@@ -109,7 +109,7 @@ jobs:
           api-token: ${{ secrets.REPLICATED_API_TOKEN }}
           chart: drone-rx-0.1.0.tgz
           promote-channel: ${{ env.CHANNEL_NAME }}
-          version: 0.1.0-${{ needs.build-and-push.outputs.tag }}
+          version: 0.1.0
 
       - name: Create Customer
         id: create-customer
@@ -142,7 +142,7 @@ jobs:
           registry-password: ${{ steps.create-customer.outputs.license-id }}
           chart: oci://registry.replicated.com/${{ secrets.REPLICATED_APP }}/${{ steps.create-release.outputs.channel-slug }}/drone-rx
           name: drone-rx
-          version: 0.1.0-${{ needs.build-and-push.outputs.tag }}
+          version: 0.1.0
           namespace: default
           values: |
             imagePullSecrets: []
