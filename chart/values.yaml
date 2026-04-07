@@ -59,5 +59,7 @@ externalDatabase:
   user: "dronerx"
   password: ""
 
+imagePullSecrets: []
+
 nats:
   enabled: true
