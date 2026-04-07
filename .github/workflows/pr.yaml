@@ -98,33 +98,59 @@ jobs:
           helm dependency build chart/
           helm package chart/ -u
 
-      - name: Prepare Cluster
-        id: prepare-cluster
-        uses: replicatedhq/replicated-actions/prepare-cluster@v1
+      - name: Define channel name
+        run: echo "CHANNEL_NAME=pr-${{ github.event.pull_request.number }}-${GITHUB_RUN_ID}" >> $GITHUB_ENV
+
+      - name: Create Release
+        id: create-release
+        uses: replicatedhq/replicated-actions/create-release@v1
         with:
           app-slug: ${{ secrets.REPLICATED_APP }}
           api-token: ${{ secrets.REPLICATED_API_TOKEN }}
           chart: drone-rx-0.1.0.tgz
+          promote-channel: ${{ env.CHANNEL_NAME }}
+          version: 0.1.0-${{ needs.build-and-push.outputs.tag }}
+
+      - name: Create Customer
+        id: create-customer
+        uses: replicatedhq/replicated-actions/create-customer@v1
+        with:
+          app-slug: ${{ secrets.REPLICATED_APP }}
+          api-token: ${{ secrets.REPLICATED_API_TOKEN }}
+          customer-name: pr-${{ github.event.pull_request.number }}-test
+          channel-slug: ${{ steps.create-release.outputs.channel-slug }}
+          customer-email: pr-${{ github.event.pull_request.number }}@example.com
+          expires-in: 1
+
+      - name: Create Cluster
+        id: create-cluster
+        uses: replicatedhq/replicated-actions/create-cluster@v1
+        with:
+          api-token: ${{ secrets.REPLICATED_API_TOKEN }}
           kubernetes-distribution: k3s
           kubernetes-version: "1.34"
           cluster-name: pr-${{ github.event.pull_request.number }}-${{ github.run_id }}
           ttl: 30m
-          helm-chart-name: drone-rx
-          helm-run-preflights: false
-          helm-values: |
+          timeout-minutes: 10
+
+      - name: Deploy with Helm
+        uses: replicatedhq/replicated-actions/helm-install@v1
+        with:
+          kubeconfig: ${{ steps.create-cluster.outputs.cluster-kubeconfig }}
+          helm-path: "helm"
+          registry-username: pr-${{ github.event.pull_request.number }}@example.com
+          registry-password: ${{ steps.create-customer.outputs.license-id }}
+          chart: oci://registry.replicated.com/${{ secrets.REPLICATED_APP }}/${{ steps.create-release.outputs.channel-slug }}/drone-rx
+          name: drone-rx
+          version: 0.1.0-${{ needs.build-and-push.outputs.tag }}
+          namespace: default
+          values: |
             imagePullSecrets: []
-            api:
-              image:
-                repository: proxy.replicated.com/proxy/drone-rx/ghcr.io/jmboby/dronerx-api
-                tag: "${{ needs.build-and-push.outputs.tag }}"
-            frontend:
-              image:
-                repository: proxy.replicated.com/proxy/drone-rx/ghcr.io/jmboby/dronerx-frontend
-                tag: "${{ needs.build-and-push.outputs.tag }}"
+          run-preflights: "false"
 
       - name: Smoke test — wait for pods
         run: |
-          echo "${{ steps.prepare-cluster.outputs.cluster-kubeconfig }}" > kubeconfig.yaml
+          echo "${{ steps.create-cluster.outputs.cluster-kubeconfig }}" > kubeconfig.yaml
           export KUBECONFIG=./kubeconfig.yaml
 
           echo "Waiting for pods to schedule..."
@@ -162,4 +188,21 @@ jobs:
         continue-on-error: true
         with:
           api-token: ${{ secrets.REPLICATED_API_TOKEN }}
-          cluster-id: ${{ steps.prepare-cluster.outputs.cluster-id }}
+          cluster-id: ${{ steps.create-cluster.outputs.cluster-id }}
+
+      - name: Archive Customer
+        if: always()
+        uses: replicatedhq/replicated-actions/archive-customer@v1
+        continue-on-error: true
+        with:
+          api-token: ${{ secrets.REPLICATED_API_TOKEN }}
+          customer-id: ${{ steps.create-customer.outputs.customer-id }}
+
+      - name: Archive Channel
+        if: always()
+        uses: replicatedhq/replicated-actions/archive-channel@v1
+        continue-on-error: true
+        with:
+          app-slug: ${{ secrets.REPLICATED_APP }}
+          api-token: ${{ secrets.REPLICATED_API_TOKEN }}
+          channel-slug: ${{ steps.create-release.outputs.channel-slug }}
