@@ -1,0 +1,15 @@
+apiVersion: kots.io/v1beta1
+kind: Application
+metadata:
+  name: drone-rx
+spec:
+  title: DroneRx
+  icon: https://raw.githubusercontent.com/jmboby/drone-rx/main/frontend/src/lib/assets/favicon.svg
+  statusInformers:
+    - deployment/dronerx-api
+    - deployment/dronerx-frontend
+  ports:
+    - serviceName: dronerx-frontend
+      servicePort: 3000
+      localPort: 3000
+      applicationUrl: "http://dronerx-frontend"
