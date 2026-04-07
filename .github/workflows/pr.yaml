@@ -105,6 +105,7 @@ jobs:
           helm-chart-name: drone-rx
           helm-run-preflights: false
           helm-values: |
+            imagePullSecrets: []
             api:
               image:
                 repository: proxy.replicated.com/proxy/drone-rx/ghcr.io/jmboby/dronerx-api
