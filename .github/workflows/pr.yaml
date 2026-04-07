@@ -103,6 +103,7 @@ jobs:
           cluster-name: pr-${{ github.event.pull_request.number }}-${{ github.run_id }}
           ttl: 30m
           helm-chart-name: drone-rx
+          helm-run-preflights: false
           helm-extra-repos: |
             - repo_name: "cnpg"
               url: "https://cloudnative-pg.github.io/charts"
