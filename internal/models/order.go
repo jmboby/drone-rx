@@ -57,13 +57,14 @@ func (s *OrderStatus) Scan(src interface{}) error {
 
 // Order represents a drone delivery order.
 type Order struct {
-	ID          string      `json:"id"`
-	PatientName string      `json:"patient_name"`
-	Address     string      `json:"address"`
-	Status      OrderStatus `json:"status"`
-	CreatedAt   time.Time   `json:"created_at"`
-	UpdatedAt   time.Time   `json:"updated_at"`
-	Items       []OrderItem `json:"items,omitempty"`
+	ID                string      `json:"id"`
+	PatientName       string      `json:"patient_name"`
+	Address           string      `json:"address"`
+	Status            OrderStatus `json:"status"`
+	EstimatedDelivery *time.Time  `json:"estimated_delivery,omitempty"`
+	CreatedAt         time.Time   `json:"created_at"`
+	UpdatedAt         time.Time   `json:"updated_at"`
+	Items             []OrderItem `json:"items,omitempty"`
 }
 
 // OrderItem is one line in an order.
@@ -115,7 +116,7 @@ type OrderStore struct{ db *pgxpool.Pool }
 func NewOrderStore(db *pgxpool.Pool) *OrderStore { return &OrderStore{db: db} }
 
 // Create inserts a new order and its items in a single transaction.
-func (s *OrderStore) Create(ctx context.Context, req CreateOrderRequest) (*Order, error) {
+func (s *OrderStore) Create(ctx context.Context, req CreateOrderRequest, eta time.Time) (*Order, error) {
 	tx, err := s.db.Begin(ctx)
 	if err != nil {
 		return nil, err
@@ -124,11 +125,11 @@ func (s *OrderStore) Create(ctx context.Context, req CreateOrderRequest) (*Order
 
 	var order Order
 	err = tx.QueryRow(ctx,
-		`INSERT INTO orders (patient_name, address, status)
-		 VALUES ($1, $2, $3)
-		 RETURNING id, patient_name, address, status, created_at, updated_at`,
-		req.PatientName, req.Address, StatusPlaced,
-	).Scan(&order.ID, &order.PatientName, &order.Address, &order.Status, &order.CreatedAt, &order.UpdatedAt)
+		`INSERT INTO orders (patient_name, address, status, estimated_delivery)
+		 VALUES ($1, $2, $3, $4)
+		 RETURNING id, patient_name, address, status, estimated_delivery, created_at, updated_at`,
+		req.PatientName, req.Address, StatusPlaced, eta,
+	).Scan(&order.ID, &order.PatientName, &order.Address, &order.Status, &order.EstimatedDelivery, &order.CreatedAt, &order.UpdatedAt)
 	if err != nil {
 		return nil, err
 	}
@@ -157,8 +158,8 @@ func (s *OrderStore) Create(ctx context.Context, req CreateOrderRequest) (*Order
 func (s *OrderStore) GetByID(ctx context.Context, id string) (*Order, error) {
 	var order Order
 	err := s.db.QueryRow(ctx,
-		`SELECT id, patient_name, address, status, created_at, updated_at FROM orders WHERE id = $1`, id,
-	).Scan(&order.ID, &order.PatientName, &order.Address, &order.Status, &order.CreatedAt, &order.UpdatedAt)
+		`SELECT id, patient_name, address, status, estimated_delivery, created_at, updated_at FROM orders WHERE id = $1`, id,
+	).Scan(&order.ID, &order.PatientName, &order.Address, &order.Status, &order.EstimatedDelivery, &order.CreatedAt, &order.UpdatedAt)
 	if err != nil {
 		return nil, err
 	}
@@ -196,7 +197,7 @@ func (s *OrderStore) GetByID(ctx context.Context, id string) (*Order, error) {
 // ListByPatient returns all orders for a given patient name.
 func (s *OrderStore) ListByPatient(ctx context.Context, patientName string) ([]Order, error) {
 	rows, err := s.db.Query(ctx,
-		`SELECT id, patient_name, address, status, created_at, updated_at
+		`SELECT id, patient_name, address, status, estimated_delivery, created_at, updated_at
 		 FROM orders WHERE patient_name = $1 ORDER BY created_at DESC`, patientName)
 	if err != nil {
 		return nil, err
@@ -208,7 +209,7 @@ func (s *OrderStore) ListByPatient(ctx context.Context, patientName string) ([]O
 // ListByStatus returns all orders with the given status.
 func (s *OrderStore) ListByStatus(ctx context.Context, status OrderStatus) ([]Order, error) {
 	rows, err := s.db.Query(ctx,
-		`SELECT id, patient_name, address, status, created_at, updated_at
+		`SELECT id, patient_name, address, status, estimated_delivery, created_at, updated_at
 		 FROM orders WHERE status = $1 ORDER BY created_at ASC`, status)
 	if err != nil {
 		return nil, err
@@ -220,7 +221,7 @@ func (s *OrderStore) ListByStatus(ctx context.Context, status OrderStatus) ([]Or
 // ListNonTerminal returns all orders that have not yet been delivered.
 func (s *OrderStore) ListNonTerminal(ctx context.Context) ([]Order, error) {
 	rows, err := s.db.Query(ctx,
-		`SELECT id, patient_name, address, status, created_at, updated_at
+		`SELECT id, patient_name, address, status, estimated_delivery, created_at, updated_at
 		 FROM orders WHERE status != $1 ORDER BY created_at ASC`, StatusDelivered)
 	if err != nil {
 		return nil, err
@@ -247,9 +248,9 @@ func (s *OrderStore) AdvanceStatus(ctx context.Context, id string) (*Order, erro
 	err = s.db.QueryRow(ctx,
 		`UPDATE orders SET status = $1, updated_at = now()
 		 WHERE id = $2
-		 RETURNING id, patient_name, address, status, created_at, updated_at`,
+		 RETURNING id, patient_name, address, status, estimated_delivery, created_at, updated_at`,
 		next, id,
-	).Scan(&order.ID, &order.PatientName, &order.Address, &order.Status, &order.CreatedAt, &order.UpdatedAt)
+	).Scan(&order.ID, &order.PatientName, &order.Address, &order.Status, &order.EstimatedDelivery, &order.CreatedAt, &order.UpdatedAt)
 	if err != nil {
 		return nil, err
 	}
@@ -265,7 +266,7 @@ func scanOrders(rows interface {
 	var orders []Order
 	for rows.Next() {
 		var o Order
-		if err := rows.Scan(&o.ID, &o.PatientName, &o.Address, &o.Status, &o.CreatedAt, &o.UpdatedAt); err != nil {
+		if err := rows.Scan(&o.ID, &o.PatientName, &o.Address, &o.Status, &o.EstimatedDelivery, &o.CreatedAt, &o.UpdatedAt); err != nil {
 			return nil, err
 		}
 		orders = append(orders, o)
