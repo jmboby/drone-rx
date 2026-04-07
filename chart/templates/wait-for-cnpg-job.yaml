@@ -14,56 +14,23 @@ spec:
   template:
     spec:
       restartPolicy: OnFailure
-      serviceAccountName: {{ include "dronerx.fullname" . }}-cnpg-waiter
       containers:
         - name: wait
-          image: bitnami/kubectl:1.31
+          image: busybox:1.36
           command:
             - sh
             - -c
             - |
-              echo "Waiting for CNPG operator to be ready..."
-              kubectl wait --for=condition=available deployment \
-                -l app.kubernetes.io/name=cloudnative-pg \
-                -n {{ .Release.Namespace }} \
-                --timeout=120s
-              echo "CNPG operator is ready"
----
-apiVersion: v1
-kind: ServiceAccount
-metadata:
-  name: {{ include "dronerx.fullname" . }}-cnpg-waiter
-  annotations:
-    "helm.sh/hook": post-install,post-upgrade
-    "helm.sh/hook-weight": "0"
-    "helm.sh/hook-delete-policy": before-hook-creation,hook-succeeded
----
-apiVersion: rbac.authorization.k8s.io/v1
-kind: Role
-metadata:
-  name: {{ include "dronerx.fullname" . }}-cnpg-waiter
-  annotations:
-    "helm.sh/hook": post-install,post-upgrade
-    "helm.sh/hook-weight": "0"
-    "helm.sh/hook-delete-policy": before-hook-creation,hook-succeeded
-rules:
-  - apiGroups: ["apps"]
-    resources: ["deployments"]
-    verbs: ["get", "list", "watch"]
----
-apiVersion: rbac.authorization.k8s.io/v1
-kind: RoleBinding
-metadata:
-  name: {{ include "dronerx.fullname" . }}-cnpg-waiter
-  annotations:
-    "helm.sh/hook": post-install,post-upgrade
-    "helm.sh/hook-weight": "0"
-    "helm.sh/hook-delete-policy": before-hook-creation,hook-succeeded
-subjects:
-  - kind: ServiceAccount
-    name: {{ include "dronerx.fullname" . }}-cnpg-waiter
-roleRef:
-  kind: Role
-  name: {{ include "dronerx.fullname" . }}-cnpg-waiter
-  apiGroup: rbac.authorization.k8s.io
+              echo "Waiting for CNPG webhook to accept connections..."
+              for i in $(seq 1 60); do
+                if nc -z cnpg-webhook-service.{{ .Release.Namespace }}.svc 443 2>/dev/null; then
+                  echo "CNPG webhook is ready after $i attempts"
+                  sleep 5
+                  exit 0
+                fi
+                echo "Attempt $i/60 - webhook not ready..."
+                sleep 5
+              done
+              echo "Timed out waiting for CNPG webhook"
+              exit 1
 {{- end }}
