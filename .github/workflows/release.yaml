@@ -137,6 +137,7 @@ jobs:
           channel-slug: ${{ needs.create-release.outputs.channel-slug }}
           customer-email: release-${{ github.run_id }}@example.com
           expires-in: 1
+          is-kots-install-enabled: "false"
 
       - name: Create Cluster
         id: create-cluster
