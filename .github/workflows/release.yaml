@@ -149,11 +149,6 @@ jobs:
           ttl: 20m
           helm-chart-name: drone-rx
           helm-run-preflights: false
-          helm-extra-repos: |
-            - repo_name: "cnpg"
-              url: "https://cloudnative-pg.github.io/charts"
-              namespace: "cnpg-system"
-              chart_name: "cloudnative-pg"
           helm-values: |
             api:
               image:
@@ -163,8 +158,6 @@ jobs:
               image:
                 repository: proxy.replicated.com/proxy/drone-rx/ghcr.io/jmboby/dronerx-frontend
                 tag: "${{ needs.build-and-push.outputs.tag }}"
-            cloudnativepg:
-              enabled: false
 
       - name: Smoke test
         run: |
