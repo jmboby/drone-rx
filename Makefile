@@ -70,5 +70,5 @@ helm-package:
 ## Clean
 
 clean:
-	rm -rf frontend/build frontend/.svelte-kit dronerx-*.tgz
+	rm -rf frontend/build frontend/.svelte-kit drone-rx-*.tgz
 	docker rmi $(API_IMAGE):$(TAG) $(FRONTEND_IMAGE):$(TAG) 2>/dev/null || true

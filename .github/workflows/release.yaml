@@ -142,12 +142,12 @@ jobs:
         with:
           app-slug: ${{ secrets.REPLICATED_APP }}
           api-token: ${{ secrets.REPLICATED_API_TOKEN }}
-          chart: dronerx-${{ needs.build-and-push.outputs.version }}.tgz
+          chart: drone-rx-${{ needs.build-and-push.outputs.version }}.tgz
           kubernetes-distribution: k3s
           kubernetes-version: "1.34"
           cluster-name: release-${{ github.run_id }}
           ttl: 20m
-          helm-chart-name: dronerx
+          helm-chart-name: drone-rx
           helm-extra-repos: |
             - repo_name: "cnpg"
               url: "https://cloudnative-pg.github.io/charts"

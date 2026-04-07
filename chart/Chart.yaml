@@ -1,5 +1,5 @@
 apiVersion: v2
-name: dronerx
+name: drone-rx
 description: Medicine delivery by drone
 type: application
 version: 0.1.0
