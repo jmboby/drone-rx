@@ -5,14 +5,15 @@ metadata:
   name: {{ include "dronerx.fullname" . }}-db
   labels:
     {{- include "dronerx.labels" . | nindent 4 }}
+  annotations:
+    "helm.sh/hook": post-install,post-upgrade
+    "helm.sh/hook-weight": "10"
 spec:
   instances: {{ .Values.postgresql.instances }}
   bootstrap:
     initdb:
       database: dronerx
       owner: dronerx
-      secret:
-        name: {{ include "dronerx.fullname" . }}-db-credentials
   storage:
     size: {{ .Values.postgresql.storage.size }}
 {{- end }}

@@ -61,7 +61,7 @@
 			<span class="text-cyan-glow/80"><DroneIcon size="w-10 h-10" animated /></span>
 			<div>
 				<h1 class="text-3xl sm:text-4xl font-bold text-white tracking-tight">Medicine Delivered Fast</h1>
-				<p class="text-navy-200 text-lg mt-1 max-w-xl">
+				<p class="text-navy-200 text-lg mt-1">
 					Order prescription and OTC medicines. Our drone fleet delivers straight to your door.
 				</p>
 			</div>

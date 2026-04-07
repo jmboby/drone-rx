@@ -1,6 +1,6 @@
 api:
   image:
-    repository: ghcr.io/jwilson/dronerx-api
+    repository: ghcr.io/jmboby/dronerx-api
     tag: "latest"
     pullPolicy: IfNotPresent
   replicas: 1
@@ -12,12 +12,12 @@ api:
     limits:
       cpu: 500m
       memory: 256Mi
-  tickerInterval: 30
+  tickerInterval: 10
   webhookURL: ""
 
 frontend:
   image:
-    repository: ghcr.io/jwilson/dronerx-frontend
+    repository: ghcr.io/jmboby/dronerx-frontend
     tag: "latest"
     pullPolicy: IfNotPresent
   replicas: 1
@@ -36,12 +36,12 @@ service:
   frontendPort: 3000
 
 ingress:
-  enabled: false
-  hostname: ""
+  enabled: true
+  hostname: "naughty-curie.ingress.replicatedcluster.com"
   tls:
-    mode: "self-signed"
-    secretName: ""
-    email: ""
+    mode: "auto"
+    secretName: "letsencrypt-cert"
+    email: "jamesw@replicated.com"
 
 cloudnativepg:
   enabled: true

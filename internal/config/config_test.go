@@ -18,8 +18,8 @@ func TestLoad_Defaults(t *testing.T) {
 	if cfg.NATSUrl != "nats://localhost:4222" {
 		t.Errorf("expected default NATS URL, got %s", cfg.NATSUrl)
 	}
-	if cfg.TickerInterval != 30 {
-		t.Errorf("expected default ticker interval 30, got %d", cfg.TickerInterval)
+	if cfg.TickerInterval != 10 {
+		t.Errorf("expected default ticker interval 10, got %d", cfg.TickerInterval)
 	}
 	if cfg.WebhookURL != "" {
 		t.Errorf("expected empty WebhookURL, got %s", cfg.WebhookURL)

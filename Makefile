@@ -1,6 +1,6 @@
 .PHONY: build build-api build-frontend lint lint-go lint-frontend lint-helm test test-go test-frontend clean
 
-REGISTRY ?= ghcr.io/jwilson
+REGISTRY ?= ghcr.io/jmboby
 API_IMAGE ?= $(REGISTRY)/dronerx-api
 FRONTEND_IMAGE ?= $(REGISTRY)/dronerx-frontend
 TAG ?= $(shell git rev-parse --short HEAD)

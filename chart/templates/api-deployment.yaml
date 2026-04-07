@@ -42,8 +42,13 @@ spec:
             - name: DB_PASSWORD
               valueFrom:
                 secretKeyRef:
+                  {{- if .Values.postgresql.enabled }}
+                  name: {{ include "dronerx.fullname" . }}-db-app
+                  key: password
+                  {{- else }}
                   name: {{ include "dronerx.fullname" . }}-db-credentials
                   key: password
+                  {{- end }}
             - name: DATABASE_URL
               value: "postgres://dronerx:$(DB_PASSWORD)@{{ include "dronerx.fullname" . }}-db-rw:5432/dronerx?sslmode=disable"
           livenessProbe:
