@@ -13,7 +13,7 @@ type OrderStatus string
 const (
 	StatusPlaced    OrderStatus = "placed"
 	StatusPreparing OrderStatus = "preparing"
-	StatusInFlight  OrderStatus = "in_flight"
+	StatusInFlight  OrderStatus = "in-flight"
 	StatusDelivered OrderStatus = "delivered"
 )
 
