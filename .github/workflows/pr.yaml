@@ -127,8 +127,14 @@ jobs:
           echo "${{ steps.prepare-cluster.outputs.cluster-kubeconfig }}" > kubeconfig.yaml
           export KUBECONFIG=./kubeconfig.yaml
 
-          echo "Waiting for deployments..."
+          echo "Waiting for pods to schedule..."
           sleep 30
+
+          echo "Container images in use:"
+          kubectl get pods -n default -o custom-columns='NAME:.metadata.name,IMAGE:.spec.containers[*].image,STATUS:.status.phase'
+
+          echo "Image pull errors:"
+          kubectl get events -n default --field-selector reason=Failed --sort-by='.lastTimestamp' 2>/dev/null || true
 
           echo "All pods:"
           kubectl get pods -A
@@ -138,12 +144,6 @@ jobs:
 
           echo "Pod status:"
           kubectl get pods -n default
-
-          echo "Container images in use:"
-          kubectl get pods -n default -o custom-columns='NAME:.metadata.name,IMAGE:.spec.containers[*].image,STATUS:.status.phase'
-
-          echo "Image pull errors:"
-          kubectl get events -n default --field-selector reason=Failed --sort-by='.lastTimestamp' 2>/dev/null || true
 
       - name: Smoke test — health check
         run: |
