@@ -1,0 +1,255 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "DroneRx Helm Chart Values",
+  "type": "object",
+  "properties": {
+    "api": {
+      "type": "object",
+      "description": "API (Go backend) configuration",
+      "properties": {
+        "image": {
+          "type": "object",
+          "properties": {
+            "repository": {
+              "type": "string",
+              "description": "API container image repository"
+            },
+            "tag": {
+              "type": "string",
+              "description": "API container image tag"
+            },
+            "pullPolicy": {
+              "type": "string",
+              "enum": ["Always", "IfNotPresent", "Never"],
+              "description": "Image pull policy"
+            }
+          },
+          "required": ["repository", "tag"]
+        },
+        "replicas": {
+          "type": "integer",
+          "minimum": 1,
+          "description": "Number of API replicas"
+        },
+        "port": {
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 65535,
+          "description": "Port the API listens on"
+        },
+        "tickerInterval": {
+          "type": "integer",
+          "minimum": 1,
+          "description": "Ticker interval in seconds for drone state updates"
+        },
+        "webhookURL": {
+          "type": "string",
+          "description": "Optional webhook URL for delivery notifications"
+        },
+        "resources": {
+          "type": "object",
+          "properties": {
+            "requests": {
+              "type": "object",
+              "properties": {
+                "cpu": {"type": "string"},
+                "memory": {"type": "string"}
+              }
+            },
+            "limits": {
+              "type": "object",
+              "properties": {
+                "cpu": {"type": "string"},
+                "memory": {"type": "string"}
+              }
+            }
+          }
+        }
+      },
+      "required": ["image", "replicas", "port"]
+    },
+    "frontend": {
+      "type": "object",
+      "description": "Frontend (SvelteKit) configuration",
+      "properties": {
+        "image": {
+          "type": "object",
+          "properties": {
+            "repository": {
+              "type": "string",
+              "description": "Frontend container image repository"
+            },
+            "tag": {
+              "type": "string",
+              "description": "Frontend container image tag"
+            },
+            "pullPolicy": {
+              "type": "string",
+              "enum": ["Always", "IfNotPresent", "Never"],
+              "description": "Image pull policy"
+            }
+          },
+          "required": ["repository", "tag"]
+        },
+        "replicas": {
+          "type": "integer",
+          "minimum": 1,
+          "description": "Number of frontend replicas"
+        },
+        "port": {
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 65535,
+          "description": "Port the frontend listens on"
+        },
+        "resources": {
+          "type": "object",
+          "properties": {
+            "requests": {
+              "type": "object",
+              "properties": {
+                "cpu": {"type": "string"},
+                "memory": {"type": "string"}
+              }
+            },
+            "limits": {
+              "type": "object",
+              "properties": {
+                "cpu": {"type": "string"},
+                "memory": {"type": "string"}
+              }
+            }
+          }
+        }
+      },
+      "required": ["image", "replicas", "port"]
+    },
+    "service": {
+      "type": "object",
+      "description": "Kubernetes Service configuration",
+      "properties": {
+        "type": {
+          "type": "string",
+          "enum": ["ClusterIP", "NodePort", "LoadBalancer"],
+          "description": "Kubernetes Service type"
+        },
+        "apiPort": {
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 65535,
+          "description": "Service port for the API"
+        },
+        "frontendPort": {
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 65535,
+          "description": "Service port for the frontend"
+        }
+      }
+    },
+    "ingress": {
+      "type": "object",
+      "description": "Ingress configuration",
+      "properties": {
+        "enabled": {
+          "type": "boolean",
+          "description": "Enable Ingress resource"
+        },
+        "hostname": {
+          "type": "string",
+          "description": "Hostname for the Ingress"
+        },
+        "tls": {
+          "type": "object",
+          "properties": {
+            "mode": {
+              "type": "string",
+              "enum": ["self-signed", "auto", "manual"],
+              "description": "TLS certificate mode: self-signed (hook job), auto (cert-manager), or manual (existing secret)"
+            },
+            "secretName": {
+              "type": "string",
+              "description": "Existing TLS secret name (used when mode=manual)"
+            },
+            "email": {
+              "type": "string",
+              "description": "Email for Let's Encrypt (used when mode=auto)"
+            }
+          }
+        }
+      }
+    },
+    "cloudnativepg": {
+      "type": "object",
+      "description": "CloudNativePG operator subchart toggle",
+      "properties": {
+        "enabled": {
+          "type": "boolean",
+          "description": "Deploy the CloudNativePG operator"
+        }
+      }
+    },
+    "postgresql": {
+      "type": "object",
+      "description": "PostgreSQL cluster configuration",
+      "properties": {
+        "enabled": {
+          "type": "boolean",
+          "description": "Deploy a CloudNativePG-managed PostgreSQL cluster"
+        },
+        "instances": {
+          "type": "integer",
+          "minimum": 1,
+          "description": "Number of PostgreSQL instances in the cluster"
+        },
+        "storage": {
+          "type": "object",
+          "properties": {
+            "size": {
+              "type": "string",
+              "description": "Storage size for each PostgreSQL instance (e.g. 1Gi)"
+            }
+          }
+        }
+      }
+    },
+    "externalDatabase": {
+      "type": "object",
+      "description": "External database connection details (used when cloudnativepg.enabled=false)",
+      "properties": {
+        "host": {
+          "type": "string",
+          "description": "PostgreSQL host"
+        },
+        "port": {
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 65535,
+          "description": "PostgreSQL port"
+        },
+        "name": {
+          "type": "string",
+          "description": "Database name"
+        },
+        "user": {
+          "type": "string",
+          "description": "Database user"
+        },
+        "password": {
+          "type": "string",
+          "description": "Database password"
+        }
+      }
+    },
+    "nats": {
+      "type": "object",
+      "description": "NATS subchart toggle",
+      "properties": {
+        "enabled": {
+          "type": "boolean",
+          "description": "Deploy NATS"
+        }
+      }
+    }
+  }
+}

@@ -1,0 +1,16 @@
+apiVersion: v2
+name: dronerx
+description: Medicine delivery by drone
+type: application
+version: 0.1.0
+appVersion: "0.1.0"
+
+dependencies:
+  - name: cloudnative-pg
+    version: "0.28.0"
+    repository: "https://cloudnative-pg.github.io/charts"
+    condition: cloudnativepg.enabled
+  - name: nats
+    version: "2.12.6"
+    repository: "https://nats-io.github.io/k8s/helm/charts"
+    condition: nats.enabled

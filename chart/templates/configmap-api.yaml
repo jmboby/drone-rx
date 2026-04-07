@@ -1,0 +1,11 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: {{ include "dronerx.fullname" . }}-api-config
+  labels:
+    {{- include "dronerx.api.labels" . | nindent 4 }}
+data:
+  PORT: {{ .Values.api.port | quote }}
+  NATS_URL: {{ include "dronerx.natsURL" . | quote }}
+  TICKER_INTERVAL: {{ .Values.api.tickerInterval | quote }}
+  WEBHOOK_URL: {{ .Values.api.webhookURL | quote }}
