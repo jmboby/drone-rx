@@ -59,7 +59,8 @@ externalDatabase:
   user: "dronerx"
   password: ""
 
-imagePullSecrets: []
+imagePullSecrets:
+  - name: ghcr-creds
 
 nats:
   enabled: true
