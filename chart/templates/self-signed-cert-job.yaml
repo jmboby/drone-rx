@@ -1,0 +1,84 @@
+{{- if and .Values.ingress.enabled (eq .Values.ingress.tls.mode "self-signed") .Values.ingress.hostname }}
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: {{ include "dronerx.fullname" . }}-self-signed-cert
+  labels:
+    {{- include "dronerx.labels" . | nindent 4 }}
+  annotations:
+    "helm.sh/hook": pre-install,pre-upgrade
+    "helm.sh/hook-weight": "-5"
+    "helm.sh/hook-delete-policy": hook-succeeded,before-hook-creation
+spec:
+  template:
+    metadata:
+      labels:
+        {{- include "dronerx.labels" . | nindent 8 }}
+        app.kubernetes.io/component: cert-job
+    spec:
+      restartPolicy: OnFailure
+      serviceAccountName: {{ include "dronerx.fullname" . }}-cert-job
+      containers:
+        - name: generate-cert
+          image: alpine:3.19
+          command:
+            - sh
+            - -c
+            - |
+              apk add --no-cache openssl kubectl 2>/dev/null || apk add --no-cache openssl
+              openssl req -x509 -nodes -days 365 -newkey rsa:2048 \
+                -keyout /tmp/tls.key \
+                -out /tmp/tls.crt \
+                -subj "/CN={{ .Values.ingress.hostname }}/O=dronerx" \
+                -addext "subjectAltName=DNS:{{ .Values.ingress.hostname }}"
+              kubectl create secret tls {{ include "dronerx.tlsSecretName" . }} \
+                --cert=/tmp/tls.crt \
+                --key=/tmp/tls.key \
+                --namespace={{ .Release.Namespace }} \
+                --dry-run=client -o yaml | kubectl apply -f -
+---
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: {{ include "dronerx.fullname" . }}-cert-job
+  labels:
+    {{- include "dronerx.labels" . | nindent 4 }}
+  annotations:
+    "helm.sh/hook": pre-install,pre-upgrade
+    "helm.sh/hook-weight": "-10"
+    "helm.sh/hook-delete-policy": hook-succeeded,before-hook-creation
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: Role
+metadata:
+  name: {{ include "dronerx.fullname" . }}-cert-job
+  labels:
+    {{- include "dronerx.labels" . | nindent 4 }}
+  annotations:
+    "helm.sh/hook": pre-install,pre-upgrade
+    "helm.sh/hook-weight": "-10"
+    "helm.sh/hook-delete-policy": hook-succeeded,before-hook-creation
+rules:
+  - apiGroups: [""]
+    resources: ["secrets"]
+    verbs: ["create", "get", "update", "patch"]
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: RoleBinding
+metadata:
+  name: {{ include "dronerx.fullname" . }}-cert-job
+  labels:
+    {{- include "dronerx.labels" . | nindent 4 }}
+  annotations:
+    "helm.sh/hook": pre-install,pre-upgrade
+    "helm.sh/hook-weight": "-10"
+    "helm.sh/hook-delete-policy": hook-succeeded,before-hook-creation
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: Role
+  name: {{ include "dronerx.fullname" . }}-cert-job
+subjects:
+  - kind: ServiceAccount
+    name: {{ include "dronerx.fullname" . }}-cert-job
+    namespace: {{ .Release.Namespace }}
+{{- end }}
