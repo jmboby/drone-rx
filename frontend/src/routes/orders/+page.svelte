@@ -56,7 +56,7 @@
 	<!-- Header -->
 	<header class="bg-white border-b border-slate-200 shadow-sm">
 		<div class="max-w-3xl mx-auto px-4 sm:px-6 py-4 flex items-center gap-3">
-			<a href="/" class="text-slate-400 hover:text-teal-600 transition-colors">
+			<a href="/" aria-label="Back to medicines" class="text-slate-400 hover:text-teal-600 transition-colors">
 				<svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
 					<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7" />
 				</svg>
