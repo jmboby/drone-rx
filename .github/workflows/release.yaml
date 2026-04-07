@@ -156,11 +156,11 @@ jobs:
           helm-values: |
             api:
               image:
-                repository: ghcr.io/jmboby/dronerx-api
+                repository: proxy.replicated.com/proxy/drone-rx/ghcr.io/jmboby/dronerx-api
                 tag: "${{ needs.build-and-push.outputs.tag }}"
             frontend:
               image:
-                repository: ghcr.io/jmboby/dronerx-frontend
+                repository: proxy.replicated.com/proxy/drone-rx/ghcr.io/jmboby/dronerx-frontend
                 tag: "${{ needs.build-and-push.outputs.tag }}"
             cloudnativepg:
               enabled: false
