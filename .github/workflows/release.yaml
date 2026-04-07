@@ -171,10 +171,17 @@ jobs:
           echo "${{ steps.prepare-cluster.outputs.cluster-kubeconfig }}" > kubeconfig.yaml
           export KUBECONFIG=./kubeconfig.yaml
 
-          kubectl rollout status deployment/dronerx-api -n default --timeout=300s || true
+          echo "Waiting for deployments..."
+          sleep 30
+
+          kubectl get pods -A
+
+          kubectl rollout status deployment -l app.kubernetes.io/component=api -n default --timeout=300s || true
           kubectl get pods -n default
 
-          kubectl port-forward svc/dronerx-api 8080:8080 -n default &
+          API_SVC=$(kubectl get svc -n default -l app.kubernetes.io/component=api -o jsonpath='{.items[0].metadata.name}')
+          echo "Found API service: ${API_SVC}"
+          kubectl port-forward svc/${API_SVC} 8080:8080 -n default &
           sleep 10
           curl -f http://localhost:8080/healthz
           echo "Health check passed"
