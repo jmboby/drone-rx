@@ -80,6 +80,12 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
+      - name: Add Helm repos
+        run: |
+          helm repo add cnpg https://cloudnative-pg.github.io/charts
+          helm repo add nats https://nats-io.github.io/k8s/helm/charts
+          helm repo update
+
       - name: Package Helm chart
         run: |
           helm dependency build chart/
