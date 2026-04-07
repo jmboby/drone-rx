@@ -23,6 +23,9 @@ frontend/build/
 .DS_Store
 Thumbs.db
 
+# Helm
+chart/charts/
+
 # Environment
 .env
 .env.local

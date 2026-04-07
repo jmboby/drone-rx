@@ -1,0 +1,63 @@
+api:
+  image:
+    repository: ghcr.io/jwilson/dronerx-api
+    tag: "latest"
+    pullPolicy: IfNotPresent
+  replicas: 1
+  port: 8080
+  resources:
+    requests:
+      cpu: 100m
+      memory: 128Mi
+    limits:
+      cpu: 500m
+      memory: 256Mi
+  tickerInterval: 30
+  webhookURL: ""
+
+frontend:
+  image:
+    repository: ghcr.io/jwilson/dronerx-frontend
+    tag: "latest"
+    pullPolicy: IfNotPresent
+  replicas: 1
+  port: 3000
+  resources:
+    requests:
+      cpu: 50m
+      memory: 64Mi
+    limits:
+      cpu: 200m
+      memory: 128Mi
+
+service:
+  type: ClusterIP
+  apiPort: 8080
+  frontendPort: 3000
+
+ingress:
+  enabled: false
+  hostname: ""
+  tls:
+    mode: "self-signed"
+    secretName: ""
+    email: ""
+
+cloudnativepg:
+  enabled: true
+
+postgresql:
+  enabled: true
+  instances: 1
+  storage:
+    size: 1Gi
+
+externalDatabase:
+  host: ""
+  port: 5432
+  name: "dronerx"
+  user: "dronerx"
+  password: ""
+
+nats:
+  enabled: true
