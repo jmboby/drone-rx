@@ -133,7 +133,10 @@ jobs:
           kubectl get pods -n default
 
           echo "Container images in use:"
-          kubectl get pods -n default -o jsonpath='{range .items[*]}{.metadata.name}{"\t"}{range .spec.containers[*]}{.image}{"\t"}{end}{"\n"}{end}'
+          kubectl get pods -n default -o custom-columns='NAME:.metadata.name,IMAGE:.spec.containers[*].image,STATUS:.status.phase'
+
+          echo "Image pull errors:"
+          kubectl get events -n default --field-selector reason=Failed --sort-by='.lastTimestamp' 2>/dev/null || true
 
       - name: Smoke test — health check
         run: |
