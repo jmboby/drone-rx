@@ -1,0 +1,147 @@
+name: PR
+
+on:
+  pull_request:
+    branches: [main]
+
+permissions:
+  contents: read
+  packages: write
+
+env:
+  REGISTRY: ghcr.io/jmboby
+  API_IMAGE: ghcr.io/jmboby/dronerx-api
+  FRONTEND_IMAGE: ghcr.io/jmboby/dronerx-frontend
+
+jobs:
+  lint-and-test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-go@v5
+        with:
+          go-version-file: go.mod
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+          cache-dependency-path: frontend/package-lock.json
+
+      - name: Install frontend dependencies
+        run: cd frontend && npm ci
+
+      - name: Lint Go
+        run: make lint-go
+
+      - name: Lint Helm
+        run: make lint-helm
+
+      - name: Test Go
+        run: make test-go
+
+  build-and-push:
+    runs-on: ubuntu-latest
+    needs: lint-and-test
+    outputs:
+      tag: ${{ steps.meta.outputs.tag }}
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Define image tag
+        id: meta
+        run: echo "tag=pr-${{ github.event.pull_request.number }}-${GITHUB_SHA::7}" >> $GITHUB_OUTPUT
+
+      - name: Log in to GHCR
+        uses: docker/login-action@v3
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Build and push API image
+        run: |
+          docker build --platform linux/amd64 \
+            -f Dockerfile.api \
+            -t ${{ env.API_IMAGE }}:${{ steps.meta.outputs.tag }} .
+          docker push ${{ env.API_IMAGE }}:${{ steps.meta.outputs.tag }}
+
+      - name: Build and push Frontend image
+        run: |
+          docker build --platform linux/amd64 \
+            -f Dockerfile.frontend \
+            -t ${{ env.FRONTEND_IMAGE }}:${{ steps.meta.outputs.tag }} .
+          docker push ${{ env.FRONTEND_IMAGE }}:${{ steps.meta.outputs.tag }}
+
+  test-on-cmx:
+    runs-on: ubuntu-latest
+    needs: build-and-push
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Package Helm chart
+        run: |
+          helm dependency build chart/
+          helm package chart/ \
+            --version 0.0.0-${{ needs.build-and-push.outputs.tag }} \
+            --app-version ${{ needs.build-and-push.outputs.tag }}
+
+      - name: Prepare Cluster
+        id: prepare-cluster
+        uses: replicatedhq/replicated-actions/prepare-cluster@v1
+        with:
+          app-slug: ${{ secrets.REPLICATED_APP }}
+          api-token: ${{ secrets.REPLICATED_API_TOKEN }}
+          chart: dronerx-0.0.0-${{ needs.build-and-push.outputs.tag }}.tgz
+          kubernetes-distribution: k3s
+          kubernetes-version: "1.29"
+          cluster-name: pr-${{ github.event.pull_request.number }}-${{ github.run_id }}
+          ttl: 30m
+          helm-chart-name: dronerx
+          helm-extra-repos: |
+            - repo_name: "cnpg"
+              url: "https://cloudnative-pg.github.io/charts"
+              namespace: "cnpg-system"
+              chart_name: "cloudnative-pg"
+          helm-values: |
+            api:
+              image:
+                repository: ghcr.io/jmboby/dronerx-api
+                tag: "${{ needs.build-and-push.outputs.tag }}"
+            frontend:
+              image:
+                repository: ghcr.io/jmboby/dronerx-frontend
+                tag: "${{ needs.build-and-push.outputs.tag }}"
+            cloudnativepg:
+              enabled: false
+
+      - name: Smoke test — wait for pods
+        run: |
+          echo "${{ steps.prepare-cluster.outputs.cluster-kubeconfig }}" > kubeconfig.yaml
+          export KUBECONFIG=./kubeconfig.yaml
+
+          echo "Waiting for API deployment..."
+          kubectl rollout status deployment/dronerx-api -n default --timeout=300s || true
+
+          echo "Waiting for Frontend deployment..."
+          kubectl rollout status deployment/dronerx-frontend -n default --timeout=300s || true
+
+          echo "Pod status:"
+          kubectl get pods -n default
+
+      - name: Smoke test — health check
+        run: |
+          export KUBECONFIG=./kubeconfig.yaml
+          kubectl port-forward svc/dronerx-api 8080:8080 -n default &
+          sleep 10
+          curl -f http://localhost:8080/healthz
+          echo "Health check passed"
+
+      - name: Remove Cluster
+        if: always()
+        uses: replicatedhq/replicated-actions/remove-cluster@v1
+        continue-on-error: true
+        with:
+          api-token: ${{ secrets.REPLICATED_API_TOKEN }}
+          cluster-id: ${{ steps.prepare-cluster.outputs.cluster-id }}
