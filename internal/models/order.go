@@ -257,6 +257,25 @@ func (s *OrderStore) AdvanceStatus(ctx context.Context, id string) (*Order, erro
 	return &order, nil
 }
 
+// CountByStatus returns a map of order status to count.
+func (s *OrderStore) CountByStatus(ctx context.Context) (map[string]int, error) {
+	rows, err := s.db.Query(ctx, `SELECT status, COUNT(*) FROM orders GROUP BY status`)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	counts := make(map[string]int)
+	for rows.Next() {
+		var status string
+		var count int
+		if err := rows.Scan(&status, &count); err != nil {
+			return nil, err
+		}
+		counts[status] = count
+	}
+	return counts, rows.Err()
+}
+
 // scanOrders is a helper that reads a result set of orders (no items).
 func scanOrders(rows interface {
 	Next() bool
