@@ -17,6 +17,8 @@ spec:
         app.kubernetes.io/component: cert-job
     spec:
       restartPolicy: OnFailure
+      imagePullSecrets:
+        {{- include "dronerx.imagePullSecrets" . | nindent 8 }}
       serviceAccountName: {{ include "dronerx.fullname" . }}-cert-job
       containers:
         - name: generate-cert
