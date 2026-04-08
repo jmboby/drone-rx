@@ -45,7 +45,7 @@ ingress:
 
 cloudnative-pg:
   image:
-    repository: images.littleroom.co.nz/proxy/drone-rx/ghcr.io/cloudnative-pg/cloudnative-pg
+    repository: images.littleroom.co.nz/proxy/drone-rx/cloudnative-pg/cloudnative-pg
   imagePullSecrets: []
 
 cloudnativepg:
@@ -76,13 +76,13 @@ nats:
       pullSecretNames: []
   nats:
     image:
-      registry: images.littleroom.co.nz/proxy/drone-rx/docker.io
+      registry: images.littleroom.co.nz/proxy/drone-rx
       repository: library/nats
   reloader:
     image:
-      registry: images.littleroom.co.nz/proxy/drone-rx/docker.io
+      registry: images.littleroom.co.nz/proxy/drone-rx
       repository: natsio/nats-server-config-reloader
   natsBox:
     image:
-      registry: images.littleroom.co.nz/proxy/drone-rx/docker.io
+      registry: images.littleroom.co.nz/proxy/drone-rx
       repository: natsio/nats-box
