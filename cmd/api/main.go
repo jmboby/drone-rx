@@ -17,6 +17,7 @@ import (
 	"github.com/jwilson/dronerx/internal/events"
 	"github.com/jwilson/dronerx/internal/handlers"
 	"github.com/jwilson/dronerx/internal/models"
+	"github.com/jwilson/dronerx/internal/sdk"
 	"github.com/jwilson/dronerx/internal/statemachine"
 	"github.com/jwilson/dronerx/internal/webhook"
 )
@@ -78,6 +79,9 @@ func main() {
 	}
 	defer nc.Drain()
 
+	// 4a. Create Replicated SDK client
+	sdkClient := sdk.NewClient(cfg.SDKUrl)
+
 	// 5. Create stores
 	medicineStore := models.NewMedicineStore(db)
 	orderStore := models.NewOrderStore(db)
@@ -90,11 +94,16 @@ func main() {
 	ticker := statemachine.NewTicker(orderStore, publisher, notifier, cfg.TickerInterval)
 	go ticker.Start(ctx)
 
+	// 7a. Start background metrics sender
+	go sdk.StartMetricsSender(ctx, sdkClient, orderStore, 5*time.Minute)
+
 	// 8. Create all handlers
 	healthHandler := handlers.NewHealthHandler(&healthChecker{db: db, nc: nc})
 	medicineHandler := handlers.NewMedicineHandler(medicineStore)
 	orderHandler := handlers.NewOrderHandler(orderStore, cfg.TickerInterval)
-	trackingHandler := handlers.NewTrackingHandler(nc)
+	trackingHandler := handlers.NewTrackingHandler(nc, sdkClient)
+	licenseHandler := handlers.NewLicenseHandler(sdkClient)
+	updatesHandler := handlers.NewUpdatesHandler(sdkClient)
 
 	// 9. Set up routes
 	mux := http.NewServeMux()
@@ -105,6 +114,8 @@ func main() {
 	mux.HandleFunc("GET /api/orders/{id}", orderHandler.GetByID)
 	mux.HandleFunc("GET /api/orders", orderHandler.List)
 	mux.Handle("GET /api/orders/{id}/track", trackingHandler)
+	mux.HandleFunc("GET /api/license/status", licenseHandler.Status)
+	mux.HandleFunc("GET /api/updates", updatesHandler.Check)
 
 	// 10. Wrap with CORS middleware
 	handler := corsMiddleware(mux)
