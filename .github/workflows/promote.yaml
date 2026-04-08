@@ -9,11 +9,11 @@ on:
       channel:
         description: "Channel to promote to"
         required: true
-        default: "Stable"
+        default: "stable"
         type: choice
         options:
-          - Beta
-          - Stable
+          - beta
+          - stable
       version:
         description: "Version label for the promotion"
         required: true
