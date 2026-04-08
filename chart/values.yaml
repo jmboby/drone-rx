@@ -46,6 +46,7 @@ ingress:
 cloudnative-pg:
   image:
     repository: images.littleroom.co.nz/proxy/drone-rx/ghcr.io/cloudnative-pg/cloudnative-pg
+  imagePullSecrets: []
 
 cloudnativepg:
   enabled: true
@@ -70,6 +71,9 @@ replicated:
 
 nats:
   enabled: true
+  global:
+    image:
+      pullSecretNames: []
   nats:
     image:
       registry: images.littleroom.co.nz/proxy/drone-rx/docker.io

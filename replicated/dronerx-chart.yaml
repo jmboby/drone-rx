@@ -15,3 +15,11 @@ spec:
       image:
         repository: images.littleroom.co.nz/proxy/drone-rx/ghcr.io/jmboby/dronerx-frontend
         tag: $VERSION
+    cloudnative-pg:
+      imagePullSecrets:
+        - name: enterprise-pull-secret
+    nats:
+      global:
+        image:
+          pullSecretNames:
+            - enterprise-pull-secret
