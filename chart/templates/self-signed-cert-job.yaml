@@ -20,7 +20,7 @@ spec:
       serviceAccountName: {{ include "dronerx.fullname" . }}-cert-job
       containers:
         - name: generate-cert
-          image: alpine:3.19
+          image: images.littleroom.co.nz/proxy/drone-rx/docker.io/library/alpine:3.19
           command:
             - sh
             - -c

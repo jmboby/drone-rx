@@ -1,6 +1,6 @@
 api:
   image:
-    repository: proxy.replicated.com/proxy/drone-rx/ghcr.io/jmboby/dronerx-api
+    repository: images.littleroom.co.nz/proxy/drone-rx/ghcr.io/jmboby/dronerx-api
     tag: "latest"
     pullPolicy: IfNotPresent
   replicas: 1
@@ -17,7 +17,7 @@ api:
 
 frontend:
   image:
-    repository: proxy.replicated.com/proxy/drone-rx/ghcr.io/jmboby/dronerx-frontend
+    repository: images.littleroom.co.nz/proxy/drone-rx/ghcr.io/jmboby/dronerx-frontend
     tag: "latest"
     pullPolicy: IfNotPresent
   replicas: 1
@@ -43,6 +43,10 @@ ingress:
     secretName: "letsencrypt-cert"
     email: "jamesw@replicated.com"
 
+cloudnative-pg:
+  image:
+    repository: images.littleroom.co.nz/proxy/drone-rx/ghcr.io/cloudnative-pg/cloudnative-pg
+
 cloudnativepg:
   enabled: true
 
@@ -66,3 +70,15 @@ replicated:
 
 nats:
   enabled: true
+  nats:
+    image:
+      registry: images.littleroom.co.nz/proxy/drone-rx/docker.io
+      repository: library/nats
+  reloader:
+    image:
+      registry: images.littleroom.co.nz/proxy/drone-rx/docker.io
+      repository: natsio/nats-server-config-reloader
+  natsBox:
+    image:
+      registry: images.littleroom.co.nz/proxy/drone-rx/docker.io
+      repository: natsio/nats-box

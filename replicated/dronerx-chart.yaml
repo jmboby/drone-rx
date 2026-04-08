@@ -9,9 +9,9 @@ spec:
   values:
     api:
       image:
-        repository: proxy.replicated.com/proxy/drone-rx/ghcr.io/jmboby/dronerx-api
+        repository: images.littleroom.co.nz/proxy/drone-rx/ghcr.io/jmboby/dronerx-api
         tag: $VERSION
     frontend:
       image:
-        repository: proxy.replicated.com/proxy/drone-rx/ghcr.io/jmboby/dronerx-frontend
+        repository: images.littleroom.co.nz/proxy/drone-rx/ghcr.io/jmboby/dronerx-frontend
         tag: $VERSION
