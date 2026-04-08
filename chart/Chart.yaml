@@ -1,5 +1,5 @@
 apiVersion: v2
-name: dronerx
+name: drone-rx
 description: Medicine delivery by drone
 type: application
 version: 0.1.0
@@ -14,3 +14,6 @@ dependencies:
     version: "2.12.6"
     repository: "https://nats-io.github.io/k8s/helm/charts"
     condition: nats.enabled
+  - name: replicated
+    repository: oci://registry.replicated.com/library
+    version: "1.18.2"

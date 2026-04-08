@@ -1,6 +1,6 @@
 api:
   image:
-    repository: ghcr.io/jmboby/dronerx-api
+    repository: proxy.replicated.com/proxy/drone-rx/ghcr.io/jmboby/dronerx-api
     tag: "latest"
     pullPolicy: IfNotPresent
   replicas: 1
@@ -17,7 +17,7 @@ api:
 
 frontend:
   image:
-    repository: ghcr.io/jmboby/dronerx-frontend
+    repository: proxy.replicated.com/proxy/drone-rx/ghcr.io/jmboby/dronerx-frontend
     tag: "latest"
     pullPolicy: IfNotPresent
   replicas: 1
@@ -58,6 +58,11 @@ externalDatabase:
   name: "dronerx"
   user: "dronerx"
   password: ""
+
+imagePullSecrets: []
+
+replicated:
+  fullnameOverride: "drone-rx-sdk"
 
 nats:
   enabled: true

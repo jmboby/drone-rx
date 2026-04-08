@@ -99,6 +99,23 @@ NATS URL helper.
 {{- end }}
 
 {{/*
+Image pull secrets helper.
+Includes the Replicated enterprise-pull-secret when available, plus any user-provided secrets.
+*/}}
+{{- define "dronerx.imagePullSecrets" -}}
+{{- if .Values.global }}
+{{- if .Values.global.replicated }}
+{{- if .Values.global.replicated.dockerconfigjson }}
+- name: enterprise-pull-secret
+{{- end }}
+{{- end }}
+{{- end }}
+{{- range .Values.imagePullSecrets }}
+- name: {{ .name }}
+{{- end }}
+{{- end }}
+
+{{/*
 TLS secret name helper.
 */}}
 {{- define "dronerx.tlsSecretName" -}}

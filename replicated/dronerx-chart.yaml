@@ -1,0 +1,17 @@
+apiVersion: kots.io/v1beta2
+kind: HelmChart
+metadata:
+  name: drone-rx
+spec:
+  chart:
+    name: drone-rx
+    chartVersion: $VERSION
+  values:
+    api:
+      image:
+        repository: proxy.replicated.com/proxy/drone-rx/ghcr.io/jmboby/dronerx-api
+        tag: $VERSION
+    frontend:
+      image:
+        repository: proxy.replicated.com/proxy/drone-rx/ghcr.io/jmboby/dronerx-frontend
+        tag: $VERSION

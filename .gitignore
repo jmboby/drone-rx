@@ -29,4 +29,9 @@ chart/charts/
 # Environment
 .env
 .env.local
+
+# Build artifacts
 api
+
+# Kubeconfig
+*.kubeconfig

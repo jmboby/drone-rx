@@ -1,0 +1,5 @@
+appSlug: "drone-rx"
+charts:
+  - path: ./chart
+manifests:
+  - ./replicated/*.yaml

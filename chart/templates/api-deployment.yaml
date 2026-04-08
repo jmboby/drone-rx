@@ -14,6 +14,8 @@ spec:
       labels:
         {{- include "dronerx.api.selectorLabels" . | nindent 8 }}
     spec:
+      imagePullSecrets:
+        {{- include "dronerx.imagePullSecrets" . | nindent 8 }}
       {{- if .Values.postgresql.enabled }}
       initContainers:
         - name: wait-for-db

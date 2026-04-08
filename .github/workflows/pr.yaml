@@ -1,0 +1,207 @@
+name: PR
+
+on:
+  pull_request:
+    branches: [main]
+
+permissions:
+  contents: read
+  packages: write
+
+env:
+  REGISTRY: ghcr.io/jmboby
+  API_IMAGE: ghcr.io/jmboby/dronerx-api
+  FRONTEND_IMAGE: ghcr.io/jmboby/dronerx-frontend
+
+jobs:
+  lint-and-test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-go@v5
+        with:
+          go-version-file: go.mod
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+          cache-dependency-path: frontend/package-lock.json
+
+      - name: Install frontend dependencies
+        run: cd frontend && npm ci
+
+      - name: Lint Go
+        run: make lint-go
+
+      - name: Lint Helm
+        run: make lint-helm
+
+      - name: Test Go
+        run: make test-go
+
+  build-and-push:
+    runs-on: ubuntu-latest
+    needs: lint-and-test
+    outputs:
+      tag: ${{ steps.meta.outputs.tag }}
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Define image tag
+        id: meta
+        run: echo "tag=pr-${{ github.event.pull_request.number }}-${GITHUB_SHA::7}" >> $GITHUB_OUTPUT
+
+      - name: Log in to GHCR
+        uses: docker/login-action@v3
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Build and push API image
+        run: |
+          docker build --platform linux/amd64 \
+            -f Dockerfile.api \
+            -t ${{ env.API_IMAGE }}:${{ steps.meta.outputs.tag }} .
+          docker push ${{ env.API_IMAGE }}:${{ steps.meta.outputs.tag }}
+
+      - name: Build and push Frontend image
+        run: |
+          docker build --platform linux/amd64 \
+            -f Dockerfile.frontend \
+            -t ${{ env.FRONTEND_IMAGE }}:${{ steps.meta.outputs.tag }} .
+          docker push ${{ env.FRONTEND_IMAGE }}:${{ steps.meta.outputs.tag }}
+
+  test-on-cmx:
+    runs-on: ubuntu-latest
+    needs: build-and-push
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Add Helm repos
+        run: |
+          helm repo add cnpg https://cloudnative-pg.github.io/charts
+          helm repo add nats https://nats-io.github.io/k8s/helm/charts
+          helm repo update
+
+      - name: Set image tags in chart values
+        run: |
+          TAG="${{ needs.build-and-push.outputs.tag }}"
+          sed -i "s|tag: \"latest\"|tag: \"${TAG}\"|g" chart/values.yaml
+          echo "Image tags set to: ${TAG}"
+          grep 'tag:' chart/values.yaml
+
+      - name: Package Helm chart
+        run: |
+          helm dependency build chart/
+          helm package chart/ -u
+
+      - name: Define channel name
+        run: echo "CHANNEL_NAME=pr-${{ github.event.pull_request.number }}-${GITHUB_RUN_ID}" >> $GITHUB_ENV
+
+      - name: Create Release
+        id: create-release
+        uses: replicatedhq/replicated-actions/create-release@v1
+        with:
+          app-slug: ${{ secrets.REPLICATED_APP }}
+          api-token: ${{ secrets.REPLICATED_API_TOKEN }}
+          chart: drone-rx-0.1.0.tgz
+          promote-channel: ${{ env.CHANNEL_NAME }}
+          version: 0.1.0
+
+      - name: Create Customer
+        id: create-customer
+        uses: replicatedhq/replicated-actions/create-customer@v1
+        with:
+          app-slug: ${{ secrets.REPLICATED_APP }}
+          api-token: ${{ secrets.REPLICATED_API_TOKEN }}
+          customer-name: pr-${{ github.event.pull_request.number }}-test
+          channel-slug: ${{ steps.create-release.outputs.channel-slug }}
+          customer-email: pr-${{ github.event.pull_request.number }}@example.com
+          expires-in: 1
+          is-kots-install-enabled: "false"
+
+      - name: Create Cluster
+        id: create-cluster
+        uses: replicatedhq/replicated-actions/create-cluster@v1
+        with:
+          api-token: ${{ secrets.REPLICATED_API_TOKEN }}
+          kubernetes-distribution: k3s
+          kubernetes-version: "1.34"
+          cluster-name: pr-${{ github.event.pull_request.number }}-${{ github.run_id }}
+          ttl: 30m
+          timeout-minutes: 10
+
+      - name: Deploy with Helm
+        uses: replicatedhq/replicated-actions/helm-install@v1
+        with:
+          kubeconfig: ${{ steps.create-cluster.outputs.cluster-kubeconfig }}
+          helm-path: "helm"
+          registry-username: pr-${{ github.event.pull_request.number }}@example.com
+          registry-password: ${{ steps.create-customer.outputs.license-id }}
+          chart: oci://registry.replicated.com/${{ secrets.REPLICATED_APP }}/${{ steps.create-release.outputs.channel-slug }}/drone-rx
+          name: drone-rx
+          version: 0.1.0
+          namespace: default
+          run-preflights: "false"
+
+      - name: Smoke test — wait for pods
+        run: |
+          echo "${{ steps.create-cluster.outputs.cluster-kubeconfig }}" > kubeconfig.yaml
+          export KUBECONFIG=./kubeconfig.yaml
+
+          echo "Waiting for pods to schedule..."
+          sleep 30
+
+          echo "Container images in use:"
+          kubectl get pods -n default -o custom-columns='NAME:.metadata.name,IMAGE:.spec.containers[*].image,STATUS:.status.phase'
+
+          echo "Image pull errors:"
+          kubectl get events -n default --field-selector reason=Failed --sort-by='.lastTimestamp' 2>/dev/null || true
+
+          echo "All pods:"
+          kubectl get pods -A
+
+          echo "Waiting for API..."
+          kubectl rollout status deployment -l app.kubernetes.io/component=api -n default --timeout=300s || true
+
+          echo "Pod status:"
+          kubectl get pods -n default
+
+      - name: Smoke test — health check
+        run: |
+          export KUBECONFIG=./kubeconfig.yaml
+
+          API_SVC=$(kubectl get svc -n default -l app.kubernetes.io/component=api -o jsonpath='{.items[0].metadata.name}')
+          echo "Found API service: ${API_SVC}"
+          kubectl port-forward svc/${API_SVC} 8080:8080 -n default &
+          sleep 10
+          curl -f http://localhost:8080/healthz
+          echo "Health check passed"
+
+      - name: Remove Cluster
+        if: always()
+        uses: replicatedhq/replicated-actions/remove-cluster@v1
+        continue-on-error: true
+        with:
+          api-token: ${{ secrets.REPLICATED_API_TOKEN }}
+          cluster-id: ${{ steps.create-cluster.outputs.cluster-id }}
+
+      - name: Archive Customer
+        if: always()
+        uses: replicatedhq/replicated-actions/archive-customer@v1
+        continue-on-error: true
+        with:
+          api-token: ${{ secrets.REPLICATED_API_TOKEN }}
+          customer-id: ${{ steps.create-customer.outputs.customer-id }}
+
+      - name: Archive Channel
+        if: always()
+        uses: replicatedhq/replicated-actions/archive-channel@v1
+        continue-on-error: true
+        with:
+          app-slug: ${{ secrets.REPLICATED_APP }}
+          api-token: ${{ secrets.REPLICATED_API_TOKEN }}
+          channel-slug: ${{ steps.create-release.outputs.channel-slug }}

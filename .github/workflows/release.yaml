@@ -1,0 +1,206 @@
+name: Release
+
+on:
+  push:
+    branches: [main]
+
+permissions:
+  contents: read
+  packages: write
+
+env:
+  REGISTRY: ghcr.io/jmboby
+  API_IMAGE: ghcr.io/jmboby/dronerx-api
+  FRONTEND_IMAGE: ghcr.io/jmboby/dronerx-frontend
+
+jobs:
+  lint-and-test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-go@v5
+        with:
+          go-version-file: go.mod
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+          cache-dependency-path: frontend/package-lock.json
+
+      - name: Install frontend dependencies
+        run: cd frontend && npm ci
+
+      - name: Lint Go
+        run: make lint-go
+
+      - name: Lint Helm
+        run: make lint-helm
+
+      - name: Test Go
+        run: make test-go
+
+  build-and-push:
+    runs-on: ubuntu-latest
+    needs: lint-and-test
+    outputs:
+      tag: ${{ steps.meta.outputs.tag }}
+      version: ${{ steps.meta.outputs.version }}
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Define image tag and version
+        id: meta
+        run: |
+          TAG="${GITHUB_SHA::7}"
+          VERSION="0.1.0-${TAG}"
+          echo "tag=${TAG}" >> $GITHUB_OUTPUT
+          echo "version=${VERSION}" >> $GITHUB_OUTPUT
+
+      - name: Log in to GHCR
+        uses: docker/login-action@v3
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Build and push API image
+        run: |
+          docker build --platform linux/amd64 \
+            -f Dockerfile.api \
+            -t ${{ env.API_IMAGE }}:${{ steps.meta.outputs.tag }} .
+          docker push ${{ env.API_IMAGE }}:${{ steps.meta.outputs.tag }}
+
+      - name: Build and push Frontend image
+        run: |
+          docker build --platform linux/amd64 \
+            -f Dockerfile.frontend \
+            -t ${{ env.FRONTEND_IMAGE }}:${{ steps.meta.outputs.tag }} .
+          docker push ${{ env.FRONTEND_IMAGE }}:${{ steps.meta.outputs.tag }}
+
+  create-release:
+    runs-on: ubuntu-latest
+    needs: build-and-push
+    outputs:
+      release-sequence: ${{ steps.release.outputs.release-sequence }}
+      channel-slug: ${{ steps.release.outputs.channel-slug }}
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Add Helm repos
+        run: |
+          helm repo add cnpg https://cloudnative-pg.github.io/charts
+          helm repo add nats https://nats-io.github.io/k8s/helm/charts
+          helm repo update
+
+      - name: Set image tags in chart values
+        run: |
+          TAG="${{ needs.build-and-push.outputs.tag }}"
+          sed -i "s|tag: \"latest\"|tag: \"${TAG}\"|g" chart/values.yaml
+
+      - name: Update version in HelmChart CR
+        run: |
+          sed -i "s/\$VERSION/${{ needs.build-and-push.outputs.version }}/g" replicated/dronerx-chart.yaml
+
+      - name: Package Helm chart into release directory
+        run: |
+          helm dependency build chart/
+          helm package chart/ \
+            --version ${{ needs.build-and-push.outputs.version }} \
+            --app-version ${{ needs.build-and-push.outputs.tag }} \
+            -d replicated/
+
+      - name: Create Replicated Release and Promote to Unstable
+        id: release
+        uses: replicatedhq/replicated-actions/create-release@v1
+        with:
+          app-slug: ${{ secrets.REPLICATED_APP }}
+          api-token: ${{ secrets.REPLICATED_API_TOKEN }}
+          yaml-dir: ./replicated
+          promote-channel: Unstable
+          version: ${{ needs.build-and-push.outputs.version }}
+
+  test-on-cmx:
+    runs-on: ubuntu-latest
+    needs: [build-and-push, create-release]
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Create Customer
+        id: create-customer
+        uses: replicatedhq/replicated-actions/create-customer@v1
+        with:
+          app-slug: ${{ secrets.REPLICATED_APP }}
+          api-token: ${{ secrets.REPLICATED_API_TOKEN }}
+          customer-name: release-${{ github.run_id }}-test
+          channel-slug: ${{ needs.create-release.outputs.channel-slug }}
+          customer-email: release-${{ github.run_id }}@example.com
+          expires-in: 1
+          is-kots-install-enabled: "false"
+
+      - name: Create Cluster
+        id: create-cluster
+        uses: replicatedhq/replicated-actions/create-cluster@v1
+        with:
+          api-token: ${{ secrets.REPLICATED_API_TOKEN }}
+          kubernetes-distribution: k3s
+          kubernetes-version: "1.34"
+          cluster-name: release-${{ github.run_id }}
+          ttl: 20m
+          timeout-minutes: 10
+
+      - name: Deploy with Helm
+        uses: replicatedhq/replicated-actions/helm-install@v1
+        with:
+          kubeconfig: ${{ steps.create-cluster.outputs.cluster-kubeconfig }}
+          helm-path: "helm"
+          registry-username: release-${{ github.run_id }}@example.com
+          registry-password: ${{ steps.create-customer.outputs.license-id }}
+          chart: oci://registry.replicated.com/${{ secrets.REPLICATED_APP }}/${{ needs.create-release.outputs.channel-slug }}/drone-rx
+          name: drone-rx
+          version: ${{ needs.build-and-push.outputs.version }}
+          namespace: default
+          run-preflights: "false"
+
+      - name: Smoke test
+        run: |
+          echo "${{ steps.create-cluster.outputs.cluster-kubeconfig }}" > kubeconfig.yaml
+          export KUBECONFIG=./kubeconfig.yaml
+
+          echo "Waiting for pods to schedule..."
+          sleep 30
+
+          echo "Container images in use:"
+          kubectl get pods -n default -o custom-columns='NAME:.metadata.name,IMAGE:.spec.containers[*].image,STATUS:.status.phase'
+
+          echo "All pods:"
+          kubectl get pods -A
+
+          echo "Waiting for API..."
+          kubectl rollout status deployment -l app.kubernetes.io/component=api -n default --timeout=300s || true
+
+          kubectl get pods -n default
+
+          API_SVC=$(kubectl get svc -n default -l app.kubernetes.io/component=api -o jsonpath='{.items[0].metadata.name}')
+          echo "Found API service: ${API_SVC}"
+          kubectl port-forward svc/${API_SVC} 8080:8080 -n default &
+          sleep 10
+          curl -f http://localhost:8080/healthz
+          echo "Health check passed"
+
+      - name: Remove Cluster
+        if: always()
+        uses: replicatedhq/replicated-actions/remove-cluster@v1
+        continue-on-error: true
+        with:
+          api-token: ${{ secrets.REPLICATED_API_TOKEN }}
+          cluster-id: ${{ steps.create-cluster.outputs.cluster-id }}
+
+      - name: Archive Customer
+        if: always()
+        uses: replicatedhq/replicated-actions/archive-customer@v1
+        continue-on-error: true
+        with:
+          api-token: ${{ secrets.REPLICATED_API_TOKEN }}
+          customer-id: ${{ steps.create-customer.outputs.customer-id }}

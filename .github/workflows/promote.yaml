@@ -1,0 +1,34 @@
+name: Promote
+
+on:
+  workflow_dispatch:
+    inputs:
+      release-sequence:
+        description: "Release sequence number to promote"
+        required: true
+      channel:
+        description: "Channel to promote to"
+        required: true
+        default: "Stable"
+        type: choice
+        options:
+          - Beta
+          - Stable
+      version:
+        description: "Version label for the promotion"
+        required: true
+
+jobs:
+  promote:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Promote Release
+        uses: replicatedhq/replicated-actions/promote-release@v1
+        with:
+          app-slug: ${{ secrets.REPLICATED_APP }}
+          api-token: ${{ secrets.REPLICATED_API_TOKEN }}
+          channel-to: ${{ inputs.channel }}
+          release-sequence: ${{ inputs.release-sequence }}
+          release-version: ${{ inputs.version }}
