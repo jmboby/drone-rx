@@ -5,7 +5,7 @@ on:
     branches: [main]
 
 permissions:
-  contents: read
+  contents: write
   packages: write
 
 env:
@@ -120,6 +120,22 @@ jobs:
           yaml-dir: ./replicated
           promote-channel: Unstable
           version: ${{ needs.build-and-push.outputs.version }}
+
+      - name: Create GitHub Release
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: v${{ needs.build-and-push.outputs.version }}
+          name: v${{ needs.build-and-push.outputs.version }}
+          body: |
+            **Version:** ${{ needs.build-and-push.outputs.version }}
+            **Images:**
+            - `ghcr.io/jmboby/dronerx-api:${{ needs.build-and-push.outputs.tag }}`
+            - `ghcr.io/jmboby/dronerx-frontend:${{ needs.build-and-push.outputs.tag }}`
+
+            **Replicated:** Release sequence ${{ steps.release.outputs.release-sequence }} promoted to Unstable
+          generate_release_notes: true
+          files: |
+            replicated/drone-rx-${{ needs.build-and-push.outputs.version }}.tgz
 
   test-on-cmx:
     runs-on: ubuntu-latest
