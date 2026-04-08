@@ -9,6 +9,7 @@ metadata:
     "helm.sh/hook": post-install,post-upgrade
     "helm.sh/hook-weight": "10"
 spec:
+  imageName: images.littleroom.co.nz/anonymous/ghcr.io/cloudnative-pg/postgresql:18.3-system-trixie
   instances: {{ .Values.postgresql.instances }}
   bootstrap:
     initdb:
