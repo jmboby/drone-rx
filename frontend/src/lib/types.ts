@@ -33,3 +33,17 @@ export const STATUS_LABELS: Record<OrderStatus, string> = {
 };
 
 export const STATUS_ORDER: OrderStatus[] = ['placed', 'preparing', 'in-flight', 'delivered'];
+
+export interface LicenseStatus {
+	valid: boolean;
+	expired: boolean;
+	license_type?: string;
+	expiration_date?: string;
+	live_tracking_enabled: boolean;
+}
+
+export interface UpdateInfo {
+	versionLabel: string;
+	createdAt: string;
+	releaseNotes: string;
+}

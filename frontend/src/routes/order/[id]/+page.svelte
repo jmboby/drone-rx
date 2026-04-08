@@ -3,7 +3,7 @@
 	import type { PageData } from './$types';
 	import type { Order, TrackingEvent } from '$lib/types';
 	import { STATUS_LABELS } from '$lib/types';
-	import { connectTracking, getOrder } from '$lib/api';
+	import { connectTracking, getOrder, getLicenseStatus } from '$lib/api';
 	import StatusTracker from '$lib/components/StatusTracker.svelte';
 	import DroneIcon from '$lib/components/DroneIcon.svelte';
 
@@ -86,9 +86,19 @@
 		}
 	}
 
-	onMount(() => {
+	onMount(async () => {
 		if (order.status !== 'delivered') {
-			startWebSocket();
+			try {
+				const license = await getLicenseStatus();
+				if (license.live_tracking_enabled) {
+					startWebSocket();
+				} else {
+					startPolling();
+				}
+			} catch {
+				// if license check fails, fall back to polling
+				startPolling();
+			}
 		}
 	});
 

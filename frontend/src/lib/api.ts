@@ -1,4 +1,4 @@
-import type { Medicine, Order, CreateOrderRequest } from './types';
+import type { Medicine, Order, CreateOrderRequest, LicenseStatus, UpdateInfo } from './types';
 
 const BASE_URL = '/api';
 
@@ -38,4 +38,12 @@ export async function listOrders(patientName: string): Promise<Order[]> {
 export function connectTracking(orderID: string): WebSocket {
 	const protocol = window.location.protocol === 'https:' ? 'wss:' : 'ws:';
 	return new WebSocket(`${protocol}//${window.location.host}/api/orders/${orderID}/track`);
+}
+
+export async function getLicenseStatus(): Promise<LicenseStatus> {
+	return fetchJSON<LicenseStatus>(`${BASE_URL}/license/status`);
+}
+
+export async function getUpdates(): Promise<UpdateInfo[]> {
+	return fetchJSON<UpdateInfo[]>(`${BASE_URL}/updates`);
 }
