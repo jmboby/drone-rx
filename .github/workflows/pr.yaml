@@ -145,8 +145,6 @@ jobs:
           name: drone-rx
           version: 0.1.0
           namespace: default
-          values: |
-            imagePullSecrets: []
           run-preflights: "false"
 
       - name: Smoke test — wait for pods

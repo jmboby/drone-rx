@@ -161,8 +161,6 @@ jobs:
           name: drone-rx
           version: ${{ needs.build-and-push.outputs.version }}
           namespace: default
-          values: |
-            imagePullSecrets: []
           run-preflights: "false"
 
       - name: Smoke test
