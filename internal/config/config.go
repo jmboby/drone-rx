@@ -11,6 +11,7 @@ type Config struct {
 	NATSUrl        string
 	TickerInterval int
 	WebhookURL     string
+	SDKUrl         string
 }
 
 func Load() Config {
@@ -20,6 +21,7 @@ func Load() Config {
 		NATSUrl:        getEnv("NATS_URL", "nats://localhost:4222"),
 		TickerInterval: getEnvInt("TICKER_INTERVAL", 10),
 		WebhookURL:     getEnv("WEBHOOK_URL", ""),
+		SDKUrl:         getEnv("REPLICATED_SDK_URL", "http://drone-rx-sdk:3000"),
 	}
 }
 

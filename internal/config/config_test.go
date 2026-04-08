@@ -24,6 +24,9 @@ func TestLoad_Defaults(t *testing.T) {
 	if cfg.WebhookURL != "" {
 		t.Errorf("expected empty WebhookURL, got %s", cfg.WebhookURL)
 	}
+	if cfg.SDKUrl != "http://drone-rx-sdk:3000" {
+		t.Errorf("expected default SDKUrl http://drone-rx-sdk:3000, got %s", cfg.SDKUrl)
+	}
 }
 
 func TestLoad_FromEnv(t *testing.T) {

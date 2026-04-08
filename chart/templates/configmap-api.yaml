@@ -9,3 +9,4 @@ data:
   NATS_URL: {{ include "dronerx.natsURL" . | quote }}
   TICKER_INTERVAL: {{ .Values.api.tickerInterval | quote }}
   WEBHOOK_URL: {{ .Values.api.webhookURL | quote }}
+  REPLICATED_SDK_URL: "http://drone-rx-sdk:3000"
