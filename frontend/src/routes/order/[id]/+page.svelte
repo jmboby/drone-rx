@@ -11,6 +11,7 @@
 
 	let order = $state<Order>(data.order);
 	let wsConnected = $state(false);
+	let trackingEnabled = $state<boolean | null>(null);
 	let pollInterval: ReturnType<typeof setInterval> | null = null;
 	let ws: WebSocket | null = null;
 
@@ -90,13 +91,14 @@
 		if (order.status !== 'delivered') {
 			try {
 				const license = await getLicenseStatus();
+				trackingEnabled = license.live_tracking_enabled;
 				if (license.live_tracking_enabled) {
 					startWebSocket();
 				} else {
 					startPolling();
 				}
 			} catch {
-				// if license check fails, fall back to polling
+				trackingEnabled = false;
 				startPolling();
 			}
 		}
@@ -137,7 +139,7 @@
 		<span class="text-navy-600">/</span>
 		<span class="text-navy-200 font-medium">Track Order</span>
 
-		<!-- Live indicator -->
+		<!-- Tracking indicator -->
 		{#if wsConnected}
 			<span class="ml-auto flex items-center gap-1.5 text-xs font-semibold text-cyan-glow">
 				<span class="relative flex h-2 w-2">
@@ -145,6 +147,13 @@
 					<span class="relative inline-flex rounded-full h-2 w-2 bg-cyan-glow"></span>
 				</span>
 				LIVE
+			</span>
+		{:else if trackingEnabled === false && order.status !== 'delivered'}
+			<span class="ml-auto flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-amber-glow/10 border border-amber-glow/30 text-xs font-semibold text-amber-300">
+				<svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+					<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
+				</svg>
+				Premium
 			</span>
 		{/if}
 	</div>
@@ -181,6 +190,18 @@
 		</div>
 
 		<StatusTracker status={order.status} />
+
+		{#if trackingEnabled === false && order.status !== 'delivered'}
+			<div class="mt-4 p-3 rounded-lg bg-amber-glow/5 border border-amber-glow/20 flex items-start gap-3">
+				<svg class="w-4 h-4 text-amber-400 mt-0.5 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+					<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z" />
+				</svg>
+				<div>
+					<p class="text-sm font-medium text-amber-300">Real-time tracking is a premium feature</p>
+					<p class="text-xs text-amber-300/60 mt-0.5">Your order status refreshes automatically every 5 seconds. Upgrade your license to enable live drone tracking.</p>
+				</div>
+			</div>
+		{/if}
 	</div>
 
 	<!-- Flight visualization for in-flight -->
