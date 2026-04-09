@@ -186,7 +186,7 @@ jobs:
       - name: Get kubeconfig
         run: |
           replicated cluster kubeconfig \
-            --id "${{ steps.cluster.outputs.cluster-id }}" \
+            "${{ steps.cluster.outputs.cluster-id }}" \
             --output-path kubeconfig.yaml
           export KUBECONFIG=./kubeconfig.yaml
           kubectl get nodes
@@ -236,10 +236,10 @@ jobs:
         if: always()
         continue-on-error: true
         run: |
-          replicated cluster rm --id "${{ steps.cluster.outputs.cluster-id }}" 2>/dev/null || true
+          replicated cluster rm "${{ steps.cluster.outputs.cluster-id }}" 2>/dev/null || true
 
       - name: Cleanup — archive customer
         if: always()
         continue-on-error: true
         run: |
-          replicated customer archive --id "${{ steps.customer.outputs.customer-id }}" 2>/dev/null || true
+          replicated customer archive "${{ steps.customer.outputs.customer-id }}" 2>/dev/null || true
