@@ -1,5 +1,18 @@
 # Changelog
 
+## [1.0.1](https://github.com/jmboby/drone-rx/compare/v1.0.0...v1.0.1) (2026-04-09)
+
+
+### Bug Fixes
+
+* **images:** Fix Replicated SDK image location ([62904b6](https://github.com/jmboby/drone-rx/commit/62904b61843f3a086deee8d903bc1c5c5a948d6b))
+* improve custom metrics — add logging, delivery stats, immediate send on startup ([a1c184b](https://github.com/jmboby/drone-rx/commit/a1c184b0eef486c1ded418b766fd4180fe211f2c))
+* improve custom metrics with delivery stats and error logging ([0d9f2c9](https://github.com/jmboby/drone-rx/commit/0d9f2c92af11e60ac85876435a0b96a30785b465))
+* proxy all remaining images through custom domain ([419a966](https://github.com/jmboby/drone-rx/commit/419a9662d1f8c26e5397d62af24b889d7d0c8e2b))
+* proxy all remaining images through custom domain ([f9f87e6](https://github.com/jmboby/drone-rx/commit/f9f87e6d99903eae65c2c503532aafdd292c9f18))
+* send custom metrics every 30s instead of 5 minutes ([ed0387c](https://github.com/jmboby/drone-rx/commit/ed0387ce25631e97ed5f7eb52ebf1a714a1e1673))
+* use per-image registry overrides for NATS instead of global ([9d83809](https://github.com/jmboby/drone-rx/commit/9d8380923f2e2eb1ea18a58707a1e19f3c03c7ef))
+
 ## 1.0.0 (2026-04-08)
 
 
