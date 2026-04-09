@@ -4,41 +4,46 @@ import (
 	"context"
 	"log"
 	"time"
+
+	"github.com/jwilson/dronerx/internal/models"
 )
 
-// MetricsSource provides order count data for metrics reporting.
 type MetricsSource interface {
-	CountByStatus(ctx context.Context) (map[string]int, error)
+	DeliveryStats(ctx context.Context) (*models.DeliveryStats, error)
 }
 
-// StartMetricsSender starts a goroutine that sends order metrics on the given interval.
 func StartMetricsSender(ctx context.Context, client *Client, source MetricsSource, interval time.Duration) {
-	go func() {
-		ticker := time.NewTicker(interval)
-		defer ticker.Stop()
-		for {
-			select {
-			case <-ctx.Done():
-				return
-			case <-ticker.C:
-				sendMetrics(ctx, client, source)
-			}
+	// Send immediately on startup
+	sendMetrics(ctx, client, source)
+
+	ticker := time.NewTicker(interval)
+	defer ticker.Stop()
+
+	for {
+		select {
+		case <-ctx.Done():
+			return
+		case <-ticker.C:
+			sendMetrics(ctx, client, source)
 		}
-	}()
+	}
 }
 
-// sendMetrics fetches counts from source and posts them as custom metrics.
 func sendMetrics(ctx context.Context, client *Client, source MetricsSource) {
-	counts, err := source.CountByStatus(ctx)
+	stats, err := source.DeliveryStats(ctx)
 	if err != nil {
-		log.Printf("metrics: count by status: %v", err)
+		log.Printf("metrics: fetching delivery stats: %v", err)
 		return
 	}
-	data := make(map[string]interface{}, len(counts))
-	for status, count := range counts {
-		data["orders_"+status] = count
+
+	data := map[string]interface{}{
+		"total_orders":              stats.TotalOrders,
+		"orders_completed":          stats.OrdersCompleted,
+		"avg_delivery_time_seconds": stats.AvgDeliveryTimeSec,
 	}
-	if err := client.SendMetrics(data); err != nil {
-		log.Printf("metrics: send: %v", err)
-	}
+
+	log.Printf("metrics: sending total=%d completed=%d avg_time=%.1fs",
+		stats.TotalOrders, stats.OrdersCompleted, stats.AvgDeliveryTimeSec)
+
+	client.SendMetrics(data)
 }

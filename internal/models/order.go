@@ -257,6 +257,29 @@ func (s *OrderStore) AdvanceStatus(ctx context.Context, id string) (*Order, erro
 	return &order, nil
 }
 
+// DeliveryStats holds aggregate delivery metrics.
+type DeliveryStats struct {
+	TotalOrders        int
+	OrdersCompleted    int
+	AvgDeliveryTimeSec float64
+}
+
+// DeliveryStats returns aggregate delivery statistics from the orders table.
+func (s *OrderStore) DeliveryStats(ctx context.Context) (*DeliveryStats, error) {
+	var stats DeliveryStats
+	err := s.db.QueryRow(ctx, `
+		SELECT
+			COUNT(*) as total,
+			COUNT(*) FILTER (WHERE status = 'delivered') as completed,
+			COALESCE(AVG(EXTRACT(EPOCH FROM (updated_at - created_at))) FILTER (WHERE status = 'delivered'), 0) as avg_delivery_sec
+		FROM orders
+	`).Scan(&stats.TotalOrders, &stats.OrdersCompleted, &stats.AvgDeliveryTimeSec)
+	if err != nil {
+		return nil, err
+	}
+	return &stats, nil
+}
+
 // CountByStatus returns a map of order status to count.
 func (s *OrderStore) CountByStatus(ctx context.Context) (map[string]int, error) {
 	rows, err := s.db.Query(ctx, `SELECT status, COUNT(*) FROM orders GROUP BY status`)

@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"encoding/json"
 	"fmt"
+	"log"
 	"net/http"
 	"time"
 )
@@ -101,20 +102,30 @@ func (c *Client) GetUpdates() ([]UpdateInfo, error) {
 	return updates, nil
 }
 
-// SendMetrics posts custom metrics to the SDK. It fails silently (returns nil on error).
+// SendMetrics posts custom metrics to the SDK. It logs errors but always returns nil (best-effort).
 func (c *Client) SendMetrics(data map[string]interface{}) error {
-	payload := map[string]interface{}{"data": data}
-	body, err := json.Marshal(payload)
+	body := map[string]interface{}{"data": data}
+	jsonData, err := json.Marshal(body)
 	if err != nil {
-		return nil // fail silently
+		log.Printf("sdk: metrics marshal error: %v", err)
+		return nil
 	}
-	url := fmt.Sprintf("%s/api/v1/app/custom-metrics", c.baseURL)
-	resp, err := c.httpClient.Post(url, "application/json", bytes.NewReader(body))
+
+	resp, err := c.httpClient.Post(
+		fmt.Sprintf("%s/api/v1/app/custom-metrics", c.baseURL),
+		"application/json",
+		bytes.NewReader(jsonData),
+	)
 	if err != nil {
-		return nil // fail silently
+		log.Printf("sdk: metrics send failed: %v", err)
+		return nil
 	}
 	defer resp.Body.Close()
-	return nil // fail silently regardless of status
+
+	if resp.StatusCode >= 300 {
+		log.Printf("sdk: metrics send returned %d", resp.StatusCode)
+	}
+	return nil
 }
 
 // IsFeatureEnabled returns true if the named license field is "true" or "1".
