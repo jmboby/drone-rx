@@ -152,7 +152,8 @@ jobs:
       - name: Get kubeconfig
         run: |
           replicated cluster kubeconfig \
-            --id "${{ steps.cluster.outputs.cluster-id }}" > kubeconfig.yaml
+            --id "${{ steps.cluster.outputs.cluster-id }}" \
+            --output-path kubeconfig.yaml
           export KUBECONFIG=./kubeconfig.yaml
           kubectl get nodes
 
