@@ -122,6 +122,7 @@ jobs:
         run: |
           OUTPUT=$(replicated customer create \
             --name "pr-${{ github.event.pull_request.number }}-test" \
+            --email "pr-${{ github.event.pull_request.number }}@example.com" \
             --channel "${{ steps.release.outputs.channel }}" \
             --expires-in 24h \
             --kots-install=false \

@@ -157,6 +157,7 @@ jobs:
         run: |
           OUTPUT=$(replicated customer create \
             --name "release-${{ github.run_id }}-test" \
+            --email "release-${{ github.run_id }}@example.com" \
             --channel Unstable \
             --expires-in 24h \
             --kots-install=false \
