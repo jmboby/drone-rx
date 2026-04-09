@@ -95,7 +95,7 @@ func main() {
 	go ticker.Start(ctx)
 
 	// 7a. Start background metrics sender
-	go sdk.StartMetricsSender(ctx, sdkClient, orderStore, 5*time.Minute)
+	go sdk.StartMetricsSender(ctx, sdkClient, orderStore, 30*time.Second)
 
 	// 8. Create all handlers
 	healthHandler := handlers.NewHealthHandler(&healthChecker{db: db, nc: nc})
