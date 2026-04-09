@@ -76,14 +76,16 @@ nats:
   enabled: true
   global:
     image:
-      registry: images.littleroom.co.nz/anonymous/index.docker.io
       pullSecretNames: []
   nats:
     image:
+      registry: images.littleroom.co.nz/anonymous/index.docker.io
       repository: library/nats
   reloader:
     image:
+      registry: images.littleroom.co.nz/anonymous/index.docker.io
       repository: natsio/nats-server-config-reloader
   natsBox:
     image:
+      registry: images.littleroom.co.nz/anonymous/index.docker.io
       repository: natsio/nats-box
