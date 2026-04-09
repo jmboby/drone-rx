@@ -16,4 +16,4 @@ dependencies:
     condition: nats.enabled
   - name: replicated
     repository: oci://registry.replicated.com/library
-    version: "1.18.2"
+    version: "1.19.1"
