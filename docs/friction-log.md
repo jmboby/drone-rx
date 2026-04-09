@@ -60,6 +60,12 @@ Pain points encountered while building and distributing a Helm-based app with Re
 **Time spent:** ~45 minutes across multiple RBAC iterations.
 **Lesson:** Start with broad permissions (`**/*` minus `team/**`), get CI working, then tighten.
 
+### Helm-install customer requires email
+**Problem:** `replicated customer create --helm-install` requires `--email` but this isn't obvious from the help text. The error only appears at runtime.
+**Error:** `email is required for customers with helm install enabled`
+**Resolution:** Add `--email "name@example.com"` to customer create.
+**Lesson:** Test CLI commands locally before embedding in CI workflows.
+
 ### Channel slugs must be lowercase
 **Problem:** Promote workflow used `Stable` (capitalized) but the API expects lowercase slugs.
 **Error:** `Could not find channel with slug Stable or name undefined`
