@@ -109,12 +109,13 @@ jobs:
           OUTPUT=$(replicated release create \
             --version 0.0.0-${{ needs.build-and-push.outputs.tag }} \
             --promote "${CHANNEL}" \
-            --ensure-channel \
-            --auto -y 2>&1)
+            --ensure-channel 2>&1)
           echo "${OUTPUT}"
           SEQUENCE=$(echo "${OUTPUT}" | grep -oE 'SEQUENCE:\s+[0-9]+' | grep -oE '[0-9]+')
+          CHANNEL_ID=$(echo "${OUTPUT}" | grep -oE 'Channel [a-zA-Z0-9]+' | head -1 | awk '{print $2}')
           echo "sequence=${SEQUENCE}" >> $GITHUB_OUTPUT
           echo "channel=${CHANNEL}" >> $GITHUB_OUTPUT
+          echo "channel-id=${CHANNEL_ID}" >> $GITHUB_OUTPUT
 
       - name: Create test customer
         id: customer
@@ -214,4 +215,4 @@ jobs:
         if: always()
         continue-on-error: true
         run: |
-          replicated channel delete "${{ steps.release.outputs.channel }}" 2>/dev/null || true
+          replicated channel rm "${{ steps.release.outputs.channel-id }}" 2>/dev/null || true

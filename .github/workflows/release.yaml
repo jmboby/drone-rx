@@ -119,8 +119,7 @@ jobs:
           OUTPUT=$(replicated release create \
             --version ${{ needs.build-and-push.outputs.version }} \
             --promote Unstable \
-            --ensure-channel \
-            --auto -y 2>&1)
+            --ensure-channel 2>&1)
           echo "${OUTPUT}"
           SEQUENCE=$(echo "${OUTPUT}" | grep -oE 'SEQUENCE:\s+[0-9]+' | grep -oE '[0-9]+')
           echo "sequence=${SEQUENCE}" >> $GITHUB_OUTPUT
