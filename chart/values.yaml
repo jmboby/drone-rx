@@ -69,7 +69,7 @@ imagePullSecrets: []
 replicated:
   fullnameOverride: "drone-rx-sdk"
   image:
-    registry: images.littleroom.co.nz/proxy/drone-rx
+    registry: images.littleroom.co.nz
     repository: library/replicated-sdk-image
 
 nats:
