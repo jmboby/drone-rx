@@ -167,9 +167,12 @@ jobs:
             --username "${EMAIL}" \
             --password "${LICENSE_ID}"
 
+          CHART_VERSION=$(grep '^version:' chart/Chart.yaml | awk '{print $2}')
+          echo "Chart version: ${CHART_VERSION}"
+
           helm install drone-rx \
             oci://registry.replicated.com/${REPLICATED_APP}/${{ steps.release.outputs.channel }}/drone-rx \
-            --version 0.0.0-${{ needs.build-and-push.outputs.tag }} \
+            --version "${CHART_VERSION}" \
             --namespace default \
             --wait --timeout 10m || true
 
