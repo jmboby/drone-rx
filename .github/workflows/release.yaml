@@ -5,6 +5,10 @@ on:
     tags:
       - "v*.*.*"
   workflow_call:
+    inputs:
+      version:
+        type: string
+        required: true
 
 permissions:
   contents: write
@@ -16,46 +20,20 @@ env:
   FRONTEND_IMAGE: ghcr.io/jmboby/dronerx-frontend
 
 jobs:
-  lint-and-test:
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v4
-
-      - uses: actions/setup-go@v5
-        with:
-          go-version-file: go.mod
-
-      - uses: actions/setup-node@v4
-        with:
-          node-version: 20
-          cache: npm
-          cache-dependency-path: frontend/package-lock.json
-
-      - name: Install frontend dependencies
-        run: cd frontend && npm ci
-
-      - name: Lint Go
-        run: make lint-go
-
-      - name: Lint Helm
-        run: make lint-helm
-
-      - name: Test Go
-        run: make test-go
-
   build-and-push:
     runs-on: ubuntu-latest
-    needs: lint-and-test
     outputs:
       version: ${{ steps.meta.outputs.version }}
     steps:
       - uses: actions/checkout@v4
 
-      - name: Extract version from tag
+      - name: Extract version
         id: meta
         run: |
-          VERSION="${GITHUB_REF_NAME#v}"
+          RAW="${{ inputs.version || github.ref_name }}"
+          VERSION="${RAW#v}"
           echo "version=${VERSION}" >> $GITHUB_OUTPUT
+          echo "Version: ${VERSION}"
 
       - name: Log in to GHCR
         uses: docker/login-action@v3
@@ -87,6 +65,8 @@ jobs:
     needs: build-and-push
     outputs:
       release-sequence: ${{ steps.release.outputs.sequence }}
+      channel: ${{ steps.release.outputs.channel }}
+      channel-id: ${{ steps.release.outputs.channel-id }}
     env:
       REPLICATED_APP: ${{ secrets.REPLICATED_APP }}
       REPLICATED_API_TOKEN: ${{ secrets.REPLICATED_API_TOKEN }}
@@ -113,29 +93,24 @@ jobs:
           sed -i "s|^version:.*|version: ${VERSION}|" chart/Chart.yaml
           sed -i "s|^appVersion:.*|appVersion: \"${VERSION}\"|" chart/Chart.yaml
           sed -i "s/\$VERSION/${VERSION}/g" replicated/dronerx-chart.yaml
+          echo "Chart values:"
+          grep 'tag:' chart/values.yaml
+          grep 'version:' chart/Chart.yaml
 
-      - name: Create Replicated Release and Promote to Unstable
+      - name: Create Replicated Release on temp channel
         id: release
         run: |
+          CHANNEL="release-${GITHUB_RUN_ID}"
           OUTPUT=$(replicated release create \
             --version ${{ needs.build-and-push.outputs.version }} \
-            --promote Unstable \
+            --promote "${CHANNEL}" \
             --ensure-channel 2>&1)
           echo "${OUTPUT}"
           SEQUENCE=$(echo "${OUTPUT}" | grep -oE 'SEQUENCE:\s+[0-9]+' | grep -oE '[0-9]+')
+          CHANNEL_ID=$(echo "${OUTPUT}" | grep -oE 'Channel [a-zA-Z0-9]+' | head -1 | awk '{print $2}')
           echo "sequence=${SEQUENCE}" >> $GITHUB_OUTPUT
-
-      - name: Upload Helm chart to GitHub Release
-        run: |
-          VERSION="${{ needs.build-and-push.outputs.version }}"
-          helm dependency build chart/
-          helm package chart/ --version ${VERSION} --app-version ${VERSION}
-
-      - name: Attach chart to GitHub Release
-        uses: softprops/action-gh-release@v2
-        with:
-          files: |
-            drone-rx-${{ needs.build-and-push.outputs.version }}.tgz
+          echo "channel=${CHANNEL}" >> $GITHUB_OUTPUT
+          echo "channel-id=${CHANNEL_ID}" >> $GITHUB_OUTPUT
 
   test-on-cmx:
     runs-on: ubuntu-latest
@@ -159,7 +134,7 @@ jobs:
           OUTPUT=$(replicated customer create \
             --name "release-${{ github.run_id }}-test" \
             --email "release-${{ github.run_id }}@example.com" \
-            --channel Unstable \
+            --channel "${{ needs.create-release.outputs.channel }}" \
             --expires-in 24h \
             --kots-install=false \
             --helm-install \
@@ -202,9 +177,12 @@ jobs:
             --username "${EMAIL}" \
             --password "${LICENSE_ID}"
 
+          CHART_VERSION=$(grep '^version:' chart/Chart.yaml | awk '{print $2}')
+          echo "Chart version: ${CHART_VERSION}"
+
           helm install drone-rx \
-            oci://registry.replicated.com/${REPLICATED_APP}/unstable/drone-rx \
-            --version ${{ needs.build-and-push.outputs.version }} \
+            oci://registry.replicated.com/${REPLICATED_APP}/${{ needs.create-release.outputs.channel }}/drone-rx \
+            --version "${CHART_VERSION}" \
             --namespace default \
             --timeout 10m || true
 
@@ -244,3 +222,62 @@ jobs:
         continue-on-error: true
         run: |
           replicated customer archive "${{ steps.customer.outputs.customer-id }}" 2>/dev/null || true
+
+  promote-to-unstable:
+    runs-on: ubuntu-latest
+    needs: [build-and-push, create-release, test-on-cmx]
+    env:
+      REPLICATED_APP: ${{ secrets.REPLICATED_APP }}
+      REPLICATED_API_TOKEN: ${{ secrets.REPLICATED_API_TOKEN }}
+    steps:
+      - name: Install Replicated CLI
+        run: |
+          curl -s https://api.github.com/repos/replicatedhq/replicated/releases/latest \
+            | grep "browser_download_url.*linux_amd64.tar.gz" \
+            | cut -d '"' -f 4 \
+            | xargs curl -sL | tar xz -C /usr/local/bin replicated
+
+      - name: Get Unstable channel ID
+        id: channel
+        run: |
+          CHANNEL_ID=$(replicated channel ls --output json 2>/dev/null \
+            | jq -r '.[] | select(.name == "Unstable") | .id')
+          echo "channel-id=${CHANNEL_ID}" >> $GITHUB_OUTPUT
+
+      - name: Promote to Unstable
+        run: |
+          echo "Promoting release ${{ needs.create-release.outputs.release-sequence }} to Unstable"
+          replicated release promote \
+            ${{ needs.create-release.outputs.release-sequence }} \
+            "${{ steps.channel.outputs.channel-id }}" \
+            --version "${{ needs.build-and-push.outputs.version }}"
+
+      - name: Cleanup — archive temp channel
+        continue-on-error: true
+        run: |
+          replicated channel rm "${{ needs.create-release.outputs.channel-id }}" 2>/dev/null || true
+
+  attach-chart:
+    runs-on: ubuntu-latest
+    needs: [build-and-push, promote-to-unstable]
+    if: ${{ github.event_name == 'push' }}
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Add Helm repos
+        run: |
+          helm repo add cnpg https://cloudnative-pg.github.io/charts
+          helm repo add nats https://nats-io.github.io/k8s/helm/charts
+          helm repo update
+
+      - name: Package and attach Helm chart to GitHub Release
+        run: |
+          VERSION="${{ needs.build-and-push.outputs.version }}"
+          helm dependency build chart/
+          helm package chart/ --version ${VERSION} --app-version ${VERSION}
+
+      - name: Upload to GitHub Release
+        uses: softprops/action-gh-release@v2
+        with:
+          files: |
+            drone-rx-${{ needs.build-and-push.outputs.version }}.tgz

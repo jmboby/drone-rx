@@ -15,20 +15,35 @@ on:
           - beta
           - stable
       version:
-        description: "Version label for the promotion"
+        description: "Version label for the promotion (must match chart version)"
         required: true
 
 jobs:
   promote:
     runs-on: ubuntu-latest
+    env:
+      REPLICATED_APP: ${{ secrets.REPLICATED_APP }}
+      REPLICATED_API_TOKEN: ${{ secrets.REPLICATED_API_TOKEN }}
     steps:
-      - uses: actions/checkout@v4
+      - name: Install Replicated CLI
+        run: |
+          curl -s https://api.github.com/repos/replicatedhq/replicated/releases/latest \
+            | grep "browser_download_url.*linux_amd64.tar.gz" \
+            | cut -d '"' -f 4 \
+            | xargs curl -sL | tar xz -C /usr/local/bin replicated
 
       - name: Promote Release
-        uses: replicatedhq/replicated-actions/promote-release@v1
-        with:
-          app-slug: ${{ secrets.REPLICATED_APP }}
-          api-token: ${{ secrets.REPLICATED_API_TOKEN }}
-          channel-to: ${{ inputs.channel }}
-          release-sequence: ${{ inputs.release-sequence }}
-          release-version: ${{ inputs.version }}
+        run: |
+          CHANNEL_ID=$(replicated channel ls --output json 2>/dev/null \
+            | jq -r '.[] | select(.name | ascii_downcase == "${{ inputs.channel }}") | .id')
+
+          if [ -z "${CHANNEL_ID}" ]; then
+            echo "Error: channel '${{ inputs.channel }}' not found"
+            exit 1
+          fi
+
+          echo "Promoting release ${{ inputs.release-sequence }} to ${{ inputs.channel }} (${CHANNEL_ID})"
+          replicated release promote \
+            ${{ inputs.release-sequence }} \
+            "${CHANNEL_ID}" \
+            --version "${{ inputs.version }}"
