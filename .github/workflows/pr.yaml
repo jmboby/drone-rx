@@ -175,7 +175,7 @@ jobs:
             oci://registry.replicated.com/${REPLICATED_APP}/${{ steps.release.outputs.channel }}/drone-rx \
             --version "${CHART_VERSION}" \
             --namespace default \
-            --wait --timeout 10m || true
+            --timeout 10m || true
 
       - name: Smoke test
         run: |

@@ -205,7 +205,7 @@ jobs:
             oci://registry.replicated.com/${REPLICATED_APP}/unstable/drone-rx \
             --version ${{ needs.build-and-push.outputs.version }} \
             --namespace default \
-            --wait --timeout 10m || true
+            --timeout 10m || true
 
       - name: Smoke test
         run: |
