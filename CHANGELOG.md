@@ -1,5 +1,13 @@
 # Changelog
 
+## [1.2.1](https://github.com/jmboby/drone-rx/compare/v1.2.0...v1.2.1) (2026-04-10)
+
+
+### Bug Fixes
+
+* verify release chain end-to-end ([217a2f3](https://github.com/jmboby/drone-rx/commit/217a2f3b6677b3e4f15f17edf181d014e3fc798c))
+* verify release chain end-to-end ([6529f8f](https://github.com/jmboby/drone-rx/commit/6529f8f4b4a7f14f4b0b6d0983cbb4a60a143865))
+
 ## [1.2.0](https://github.com/jmboby/drone-rx/compare/v1.1.0...v1.2.0) (2026-04-10)
 
 
