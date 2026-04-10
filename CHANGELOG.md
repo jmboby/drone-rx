@@ -1,5 +1,13 @@
 # Changelog
 
+## [1.2.2](https://github.com/jmboby/drone-rx/compare/v1.2.1...v1.2.2) (2026-04-10)
+
+
+### Bug Fixes
+
+* use build output version for helm install in release workflow ([43c497c](https://github.com/jmboby/drone-rx/commit/43c497cf46d6e8c607cdb6055477f25454c10980))
+* use version from build output for helm install, not Chart.yaml in repo ([436e81e](https://github.com/jmboby/drone-rx/commit/436e81e76f3d65fd5c8a467b1f93d87f03081ef0))
+
 ## [1.2.1](https://github.com/jmboby/drone-rx/compare/v1.2.0...v1.2.1) (2026-04-10)
 
 
