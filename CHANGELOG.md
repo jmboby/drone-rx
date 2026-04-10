@@ -1,5 +1,23 @@
 # Changelog
 
+## [1.1.0](https://github.com/jmboby/drone-rx/compare/v1.0.1...v1.1.0) (2026-04-10)
+
+
+### Features
+
+* add release-please version annotations to Chart.yaml and values.yaml ([f7f2db5](https://github.com/jmboby/drone-rx/commit/f7f2db565a275be5cd13697eb22b10beb9ca9186))
+
+
+### Bug Fixes
+
+* add --email flag to customer create (required for helm-install customers) ([efab481](https://github.com/jmboby/drone-rx/commit/efab48118947fb0b546e43d43cbf27300c1caf35))
+* match x-release-please-version annotation in sed tag replacement ([2a7ed28](https://github.com/jmboby/drone-rx/commit/2a7ed281c7d6bfaf8ff377ad21c7887c126b68fc))
+* remove --auto flag from CLI (uses .replicated config), fix channel cleanup to use ID ([f1cf5a4](https://github.com/jmboby/drone-rx/commit/f1cf5a4890bdd7de10afd239bcf8bd3cd630b585))
+* remove --wait from helm install to prevent deadlock with post-install hooks ([53f1e39](https://github.com/jmboby/drone-rx/commit/53f1e395097c46f6ab8c96f0128d6ea7c9a758db))
+* use --output-path for kubeconfig instead of stdout redirect ([82ffa42](https://github.com/jmboby/drone-rx/commit/82ffa42383f6ca370bf8f2f3d6ba1f880d0a5899))
+* use chart version from Chart.yaml for helm install (not release label) ([840874b](https://github.com/jmboby/drone-rx/commit/840874bf9d1f5a89737dfd290028cd8d39d44726))
+* use positional args for CLI commands (--id is deprecated) ([f3bc34e](https://github.com/jmboby/drone-rx/commit/f3bc34eb653994bea0c780a16039e96aa3618c7f))
+
 ## [1.0.1](https://github.com/jmboby/drone-rx/compare/v1.0.0...v1.0.1) (2026-04-09)
 
 
