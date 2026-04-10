@@ -32,6 +32,7 @@ chart/charts/
 
 # Build artifacts
 api
+*.tgz
 
 # Kubeconfig
 *.kubeconfig

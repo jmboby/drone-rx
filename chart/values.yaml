@@ -67,7 +67,7 @@ externalDatabase:
 imagePullSecrets: []
 
 replicated:
-  nameOverride:: "drone-rx-sdk"
+  nameOverride: "drone-rx-sdk"
   image:
     registry: images.littleroom.co.nz
     repository: library/replicated-sdk-image
