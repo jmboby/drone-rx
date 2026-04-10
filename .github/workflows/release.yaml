@@ -1,4 +1,4 @@
-name: Release
+name: Replicated Release
 
 on:
   push:
@@ -85,10 +85,19 @@ jobs:
     runs-on: ubuntu-latest
     needs: build-and-push
     outputs:
-      release-sequence: ${{ steps.release.outputs.release-sequence }}
-      channel-slug: ${{ steps.release.outputs.channel-slug }}
+      release-sequence: ${{ steps.release.outputs.sequence }}
+    env:
+      REPLICATED_APP: ${{ secrets.REPLICATED_APP }}
+      REPLICATED_API_TOKEN: ${{ secrets.REPLICATED_API_TOKEN }}
     steps:
       - uses: actions/checkout@v4
+
+      - name: Install Replicated CLI
+        run: |
+          curl -s https://api.github.com/repos/replicatedhq/replicated/releases/latest \
+            | grep "browser_download_url.*linux_amd64.tar.gz" \
+            | cut -d '"' -f 4 \
+            | xargs curl -sL | tar xz -C /usr/local/bin replicated
 
       - name: Add Helm repos
         run: |
@@ -96,90 +105,110 @@ jobs:
           helm repo add nats https://nats-io.github.io/k8s/helm/charts
           helm repo update
 
-      - name: Set image tags in chart values
+      - name: Set image tags and chart version
         run: |
           VERSION="${{ needs.build-and-push.outputs.version }}"
-          sed -i "s|tag: \"latest\"|tag: \"${VERSION}\"|g" chart/values.yaml
-
-      - name: Update version in Chart.yaml
-        run: |
-          VERSION="${{ needs.build-and-push.outputs.version }}"
+          sed -i "s|tag: \"[^\"]*\" # x-release-please-version|tag: \"${VERSION}\" # x-release-please-version|g" chart/values.yaml
           sed -i "s|^version:.*|version: ${VERSION}|" chart/Chart.yaml
           sed -i "s|^appVersion:.*|appVersion: \"${VERSION}\"|" chart/Chart.yaml
-
-      - name: Update version in HelmChart CR
-        run: |
-          sed -i "s/\$VERSION/${{ needs.build-and-push.outputs.version }}/g" replicated/dronerx-chart.yaml
-
-      - name: Package Helm chart into release directory
-        run: |
-          helm dependency build chart/
-          helm package chart/ \
-            --version ${{ needs.build-and-push.outputs.version }} \
-            --app-version ${{ needs.build-and-push.outputs.version }} \
-            -d replicated/
+          sed -i "s/\$VERSION/${VERSION}/g" replicated/dronerx-chart.yaml
 
       - name: Create Replicated Release and Promote to Unstable
         id: release
-        uses: replicatedhq/replicated-actions/create-release@v1
-        with:
-          app-slug: ${{ secrets.REPLICATED_APP }}
-          api-token: ${{ secrets.REPLICATED_API_TOKEN }}
-          yaml-dir: ./replicated
-          promote-channel: Unstable
-          version: ${{ needs.build-and-push.outputs.version }}
+        run: |
+          OUTPUT=$(replicated release create \
+            --version ${{ needs.build-and-push.outputs.version }} \
+            --promote Unstable \
+            --ensure-channel 2>&1)
+          echo "${OUTPUT}"
+          SEQUENCE=$(echo "${OUTPUT}" | grep -oE 'SEQUENCE:\s+[0-9]+' | grep -oE '[0-9]+')
+          echo "sequence=${SEQUENCE}" >> $GITHUB_OUTPUT
 
       - name: Upload Helm chart to GitHub Release
+        run: |
+          VERSION="${{ needs.build-and-push.outputs.version }}"
+          helm dependency build chart/
+          helm package chart/ --version ${VERSION} --app-version ${VERSION}
+
+      - name: Attach chart to GitHub Release
         uses: softprops/action-gh-release@v2
         with:
           files: |
-            replicated/drone-rx-${{ needs.build-and-push.outputs.version }}.tgz
+            drone-rx-${{ needs.build-and-push.outputs.version }}.tgz
 
   test-on-cmx:
     runs-on: ubuntu-latest
     needs: [build-and-push, create-release]
+    env:
+      REPLICATED_APP: ${{ secrets.REPLICATED_APP }}
+      REPLICATED_API_TOKEN: ${{ secrets.REPLICATED_API_TOKEN }}
     steps:
       - uses: actions/checkout@v4
 
-      - name: Create Customer
-        id: create-customer
-        uses: replicatedhq/replicated-actions/create-customer@v1
-        with:
-          app-slug: ${{ secrets.REPLICATED_APP }}
-          api-token: ${{ secrets.REPLICATED_API_TOKEN }}
-          customer-name: release-${{ github.run_id }}-test
-          channel-slug: ${{ needs.create-release.outputs.channel-slug }}
-          customer-email: release-${{ github.run_id }}@example.com
-          expires-in: 1
-          is-kots-install-enabled: "false"
+      - name: Install Replicated CLI
+        run: |
+          curl -s https://api.github.com/repos/replicatedhq/replicated/releases/latest \
+            | grep "browser_download_url.*linux_amd64.tar.gz" \
+            | cut -d '"' -f 4 \
+            | xargs curl -sL | tar xz -C /usr/local/bin replicated
 
-      - name: Create Cluster
-        id: create-cluster
-        uses: replicatedhq/replicated-actions/create-cluster@v1
-        with:
-          api-token: ${{ secrets.REPLICATED_API_TOKEN }}
-          kubernetes-distribution: k3s
-          kubernetes-version: "1.34"
-          cluster-name: release-${{ github.run_id }}
-          ttl: 20m
-          timeout-minutes: 10
+      - name: Create test customer
+        id: customer
+        run: |
+          OUTPUT=$(replicated customer create \
+            --name "release-${{ github.run_id }}-test" \
+            --email "release-${{ github.run_id }}@example.com" \
+            --channel Unstable \
+            --expires-in 24h \
+            --kots-install=false \
+            --helm-install \
+            --output json 2>&1)
+          echo "${OUTPUT}"
+          CUSTOMER_ID=$(echo "${OUTPUT}" | jq -r '.id')
+          LICENSE_ID=$(echo "${OUTPUT}" | jq -r '.installationId')
+          echo "customer-id=${CUSTOMER_ID}" >> $GITHUB_OUTPUT
+          echo "license-id=${LICENSE_ID}" >> $GITHUB_OUTPUT
 
-      - name: Deploy with Helm
-        uses: replicatedhq/replicated-actions/helm-install@v1
-        with:
-          kubeconfig: ${{ steps.create-cluster.outputs.cluster-kubeconfig }}
-          helm-path: "helm"
-          registry-username: release-${{ github.run_id }}@example.com
-          registry-password: ${{ steps.create-customer.outputs.license-id }}
-          chart: oci://registry.replicated.com/${{ secrets.REPLICATED_APP }}/${{ needs.create-release.outputs.channel-slug }}/drone-rx
-          name: drone-rx
-          version: ${{ needs.build-and-push.outputs.version }}
-          namespace: default
-          run-preflights: "false"
+      - name: Create CMX cluster
+        id: cluster
+        run: |
+          OUTPUT=$(replicated cluster create \
+            --distribution k3s \
+            --version 1.34 \
+            --name "release-${GITHUB_RUN_ID}" \
+            --ttl 20m \
+            --wait 10m \
+            --output json 2>&1)
+          echo "${OUTPUT}"
+          CLUSTER_ID=$(echo "${OUTPUT}" | jq -r '.id')
+          echo "cluster-id=${CLUSTER_ID}" >> $GITHUB_OUTPUT
+
+      - name: Get kubeconfig
+        run: |
+          replicated cluster kubeconfig \
+            "${{ steps.cluster.outputs.cluster-id }}" \
+            --output-path kubeconfig.yaml
+          export KUBECONFIG=./kubeconfig.yaml
+          kubectl get nodes
+
+      - name: Helm install from Replicated registry
+        run: |
+          export KUBECONFIG=./kubeconfig.yaml
+          EMAIL="release-${GITHUB_RUN_ID}@example.com"
+          LICENSE_ID="${{ steps.customer.outputs.license-id }}"
+
+          helm registry login registry.replicated.com \
+            --username "${EMAIL}" \
+            --password "${LICENSE_ID}"
+
+          helm install drone-rx \
+            oci://registry.replicated.com/${REPLICATED_APP}/unstable/drone-rx \
+            --version ${{ needs.build-and-push.outputs.version }} \
+            --namespace default \
+            --timeout 10m || true
 
       - name: Smoke test
         run: |
-          echo "${{ steps.create-cluster.outputs.cluster-kubeconfig }}" > kubeconfig.yaml
           export KUBECONFIG=./kubeconfig.yaml
 
           echo "Waiting for pods to schedule..."
@@ -203,18 +232,14 @@ jobs:
           curl -f http://localhost:8080/healthz
           echo "Health check passed"
 
-      - name: Remove Cluster
+      - name: Cleanup — remove cluster
         if: always()
-        uses: replicatedhq/replicated-actions/remove-cluster@v1
         continue-on-error: true
-        with:
-          api-token: ${{ secrets.REPLICATED_API_TOKEN }}
-          cluster-id: ${{ steps.create-cluster.outputs.cluster-id }}
+        run: |
+          replicated cluster rm "${{ steps.cluster.outputs.cluster-id }}" 2>/dev/null || true
 
-      - name: Archive Customer
+      - name: Cleanup — archive customer
         if: always()
-        uses: replicatedhq/replicated-actions/archive-customer@v1
         continue-on-error: true
-        with:
-          api-token: ${{ secrets.REPLICATED_API_TOKEN }}
-          customer-id: ${{ steps.create-customer.outputs.customer-id }}
+        run: |
+          replicated customer archive "${{ steps.customer.outputs.customer-id }}" 2>/dev/null || true
