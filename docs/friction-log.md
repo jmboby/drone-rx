@@ -4,6 +4,17 @@ Pain points encountered while building and distributing a Helm-based app with Re
 
 ---
 
+## Process — AI Agent Workflow
+
+### Claude was too confident writing CI code from docs alone
+**Problem:** Claude read Replicated CLI docs and `--help` output, then immediately wrote commands into GitHub Actions workflows without testing them locally first. Multiple commands had hidden requirements not obvious from docs (e.g., `--email` required with `--helm-install`, `--auto -y` ignoring `.replicated` config, `--id` deprecated in favour of positional args, stdout warnings corrupting kubeconfig redirects).
+**Impact:** Each failure required waiting 5-10 minutes for a GH Actions run + CMX cluster to spin up, only to discover a simple flag issue. This happened repeatedly across multiple CI iterations.
+**Resolution:** Established a rule: always run `replicated` CLI commands locally using the API token before embedding them in workflows. Use existing CMX clusters for testing (`replicated cluster ls`) instead of creating new ones.
+**Time wasted:** ~2-3 hours across all CI iterations that could have been caught in seconds locally.
+**Lesson:** Don't trust docs or help output alone. Run the actual command first, verify the output format, then write the workflow. This applies to any CLI tool being embedded in CI.
+
+---
+
 ## Tier 0 — Build It
 
 ### CloudNativePG CRD chicken-and-egg
