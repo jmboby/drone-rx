@@ -99,8 +99,9 @@ jobs:
       - name: Set image tags in chart values
         run: |
           TAG="${{ needs.build-and-push.outputs.tag }}"
-          sed -i "s|tag: \"latest\"|tag: \"${TAG}\"|g" chart/values.yaml
+          sed -i "s|tag: \"[^\"]*\" # x-release-please-version|tag: \"${TAG}\" # x-release-please-version|g" chart/values.yaml
           echo "Image tags set to: ${TAG}"
+          grep 'tag:' chart/values.yaml
 
       - name: Create release on temp channel
         id: release

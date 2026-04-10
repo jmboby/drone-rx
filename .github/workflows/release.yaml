@@ -108,7 +108,7 @@ jobs:
       - name: Set image tags and chart version
         run: |
           VERSION="${{ needs.build-and-push.outputs.version }}"
-          sed -i "s|tag: \"latest\"|tag: \"${VERSION}\"|g" chart/values.yaml
+          sed -i "s|tag: \"[^\"]*\" # x-release-please-version|tag: \"${VERSION}\" # x-release-please-version|g" chart/values.yaml
           sed -i "s|^version:.*|version: ${VERSION}|" chart/Chart.yaml
           sed -i "s|^appVersion:.*|appVersion: \"${VERSION}\"|" chart/Chart.yaml
           sed -i "s/\$VERSION/${VERSION}/g" replicated/dronerx-chart.yaml
