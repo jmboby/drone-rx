@@ -1,5 +1,13 @@
 # Changelog
 
+## [1.2.0](https://github.com/jmboby/drone-rx/compare/v1.1.0...v1.2.0) (2026-04-10)
+
+
+### Features
+
+* chain release-please → Replicated Release via workflow_call ([dd2d4bd](https://github.com/jmboby/drone-rx/commit/dd2d4bd73be0cd77a6be2efe42208804eb45a228))
+* chain release-please to Replicated Release via workflow_call ([5ba6529](https://github.com/jmboby/drone-rx/commit/5ba65292e75219f50a0c8a194aa64ae59abb3512))
+
 ## [1.1.0](https://github.com/jmboby/drone-rx/compare/v1.0.1...v1.1.0) (2026-04-10)
 
 
