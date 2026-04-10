@@ -27,4 +27,6 @@ jobs:
     needs: release-please
     if: ${{ needs.release-please.outputs.release_created == 'true' }}
     uses: ./.github/workflows/release.yaml
+    with:
+      version: ${{ needs.release-please.outputs.version }}
     secrets: inherit
