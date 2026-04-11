@@ -17,6 +17,7 @@
 
 	// Premium live countdown state
 	let countdownSeconds = $state<number | null>(null);
+	let initialTotalSeconds = $state<number | null>(null); // total from order placement to delivery
 	let countdownInterval: ReturnType<typeof setInterval> | null = null;
 	let countdownTick = $state(0); // increments each second to trigger pulse
 
@@ -53,6 +54,10 @@
 	function startCountdown(initialSeconds: number) {
 		stopCountdown();
 		countdownSeconds = Math.max(0, initialSeconds);
+		// Only set initial total on first call — don't reset on status updates
+		if (initialTotalSeconds == null) {
+			initialTotalSeconds = Math.max(0, initialSeconds);
+		}
 		countdownInterval = setInterval(() => {
 			if (countdownSeconds != null && countdownSeconds > 0) {
 				countdownSeconds--;
@@ -177,16 +182,13 @@
 	// Drone flight progress (0 to 1) derived from countdown
 	let flightProgress = $derived.by(() => {
 		if (!trackingEnabled || order.status !== 'in-flight') return 0;
-		if (countdownSeconds == null || order.remaining_eta_seconds == null) return 0.5;
-		// remaining_eta_seconds is the initial ETA; countdownSeconds ticks down
-		const total = order.remaining_eta_seconds;
-		if (total <= 0) return 1;
-		const elapsed = total - countdownSeconds;
-		return Math.min(1, Math.max(0, elapsed / total));
+		if (countdownSeconds == null || initialTotalSeconds == null || initialTotalSeconds <= 0) return 0.5;
+		const elapsed = initialTotalSeconds - countdownSeconds;
+		return Math.min(1, Math.max(0, elapsed / initialTotalSeconds));
 	});
 
-	// Confetti pieces configuration
-	const confettiPieces = Array.from({ length: 30 }, (_, i) => ({
+	// Sparkle-burst pieces configuration (16 particles radiate from delivered icon)
+	const confettiPieces = Array.from({ length: 16 }, (_, i) => ({
 		x: `${Math.random() * 100}%`,
 		delay: `${Math.random() * 1.5}s`,
 		duration: `${2 + Math.random() * 2}s`,
@@ -200,17 +202,6 @@
 	<title>DroneRx — Order #{order.id.slice(0, 8)}</title>
 </svelte:head>
 
-<!-- Confetti overlay (premium delivery celebration) -->
-{#if trackingEnabled && showConfetti}
-	<div class="fixed inset-0 pointer-events-none z-50 overflow-hidden">
-		{#each confettiPieces as piece}
-			<div
-				class="confetti-piece {piece.shape} {piece.size}"
-				style="--x: {piece.x}; --delay: {piece.delay}; --duration: {piece.duration}; background: {piece.color}; left: {piece.x};"
-			></div>
-		{/each}
-	</div>
-{/if}
 
 <!-- Header -->
 <header class="border-b border-navy-700/60 bg-navy-900/80 backdrop-blur-xl">
@@ -278,13 +269,33 @@
 			{:else if order.status === 'delivered'}
 				<div class="text-right">
 					{#if trackingEnabled && showCelebration}
-						<!-- Premium: celebration delivery -->
-						<div class="animate-celebrate-scale">
+						<!-- Premium: celebration delivery with localized sparkles -->
+						<div class="relative animate-celebrate-scale">
 							<div class="w-12 h-12 rounded-full bg-emerald-500/20 border-2 border-emerald-400 flex items-center justify-center mb-1 ml-auto shadow-lg shadow-emerald-500/30">
 								<svg class="w-6 h-6 text-emerald-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
 									<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M5 13l4 4L19 7" />
 								</svg>
 							</div>
+							{#if showConfetti}
+								{@const burstParticles = confettiPieces.map((piece, i) => {
+									const angle = (i / 16) * 2 * Math.PI;
+									const dist = 30 + Math.random() * 40;
+									return { ...piece, tx: Math.cos(angle) * dist, ty: Math.sin(angle) * dist, dur: 0.6 + Math.random() * 0.8, delay: Math.random() * 0.3 };
+								})}
+								{#each burstParticles as p}
+									<span
+										class="absolute pointer-events-none {p.shape} {p.size}"
+										style="
+											top: 50%; left: 50%;
+											background: {p.color};
+											animation: sparkle-burst {p.dur}s ease-out forwards;
+											animation-delay: {p.delay}s;
+											--tx: {p.tx.toFixed(1)}px;
+											--ty: {p.ty.toFixed(1)}px;
+										"
+									></span>
+								{/each}
+							{/if}
 							<p class="text-sm font-bold text-emerald-400">Delivered!</p>
 						</div>
 					{:else}

@@ -174,20 +174,13 @@ body {
   pointer-events: none;
 }
 
-/* Confetti celebration */
-@keyframes confetti-fall {
-  0% { transform: translateY(-10px) rotate(0deg); opacity: 1; }
-  100% { transform: translateY(100vh) rotate(720deg); opacity: 0; }
-}
-
-.confetti-piece {
-  position: absolute;
-  top: -10px;
-  width: 8px;
-  height: 8px;
-  opacity: 0;
-  animation: confetti-fall var(--duration) ease-in var(--delay) forwards;
-  left: var(--x);
+/* Sparkle burst from delivered icon — uses pre-computed --tx/--ty for browser compat */
+@keyframes sparkle-burst {
+  0% { transform: translate(-50%, -50%) scale(1); opacity: 1; }
+  100% {
+    transform: translate(calc(-50% + var(--tx)), calc(-50% + var(--ty))) scale(0);
+    opacity: 0;
+  }
 }
 
 /* Delivery text scale-up */
@@ -221,4 +214,27 @@ body {
     linear-gradient(rgba(51, 69, 128, 0.1) 1px, transparent 1px),
     linear-gradient(90deg, rgba(51, 69, 128, 0.1) 1px, transparent 1px);
   background-size: 40px 40px;
+}
+
+/* Accessibility — disable decorative animations for users who prefer reduced motion */
+@media (prefers-reduced-motion: reduce) {
+  .animate-drone-fly,
+  .animate-drone-float,
+  .animate-drone-pulse,
+  .animate-rotor-spin,
+  .animate-progress-glow,
+  .animate-countdown-pulse,
+  .animate-step-complete,
+  .animate-connector-flash,
+  .animate-celebrate-scale,
+  .animate-drone-land,
+  .sparkle-particle {
+    animation: none !important;
+  }
+
+  /* Keep Tailwind's animate-ping and animate-pulse respecting the preference */
+  .animate-ping,
+  .animate-pulse {
+    animation: none !important;
+  }
 }

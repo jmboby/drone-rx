@@ -19,7 +19,7 @@ func Load() Config {
 		Port:           getEnv("PORT", "8080"),
 		DatabaseURL:    getEnv("DATABASE_URL", ""),
 		NATSUrl:        getEnv("NATS_URL", "nats://localhost:4222"),
-		TickerInterval: getEnvInt("TICKER_INTERVAL", 10),
+		TickerInterval: getEnvInt("TICKER_INTERVAL", 5),
 		WebhookURL:     getEnv("WEBHOOK_URL", ""),
 		SDKUrl:         getEnv("REPLICATED_SDK_URL", "http://drone-rx-sdk:3000"),
 	}
