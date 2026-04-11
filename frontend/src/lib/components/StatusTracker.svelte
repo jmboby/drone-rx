@@ -5,13 +5,47 @@
 
 	interface Props {
 		status: OrderStatus;
+		premium?: boolean;
 	}
 
-	let { status }: Props = $props();
+	let { status, premium = false }: Props = $props();
 
 	let currentIndex = $derived(STATUS_ORDER.indexOf(status));
 
+	// Track the previous index to detect transitions for premium animation
+	let prevIndex = $state(-1);
+	let animatingStep = $state(-1);
+	let animatingConnector = $state(-1);
+	let sparkleStep = $state(-1);
+
+	$effect(() => {
+		const idx = currentIndex;
+		if (premium && prevIndex >= 0 && idx > prevIndex) {
+			// Animate the newly completed step and connector
+			animatingStep = idx;
+			animatingConnector = idx - 1;
+			sparkleStep = prevIndex; // sparkle on the step that just completed
+
+			setTimeout(() => {
+				animatingStep = -1;
+				animatingConnector = -1;
+				sparkleStep = -1;
+			}, 700);
+		}
+		prevIndex = idx;
+	});
+
 	const stepIcons = ['clipboard', 'flask', 'drone', 'check'] as const;
+
+	// Sparkle particle offsets
+	const sparkleOffsets = [
+		{ sx: '-12px', sy: '-14px', color: '#00e5ff' },
+		{ sx: '14px', sy: '-10px', color: '#ffab00' },
+		{ sx: '-8px', sy: '12px', color: '#4dd0e1' },
+		{ sx: '10px', sy: '14px', color: '#ffca28' },
+		{ sx: '-14px', sy: '4px', color: '#00e5ff' },
+		{ sx: '12px', sy: '-6px', color: '#ffb300' },
+	];
 </script>
 
 <div class="w-full">
@@ -24,13 +58,22 @@
 
 			<!-- Step circle -->
 			<div class="flex flex-col items-center relative">
+				{#if premium && sparkleStep === i}
+					{#each sparkleOffsets as sp}
+						<span
+							class="sparkle-particle"
+							style="--sx: {sp.sx}; --sy: {sp.sy}; background: {sp.color}; top: 50%; left: 50%;"
+						></span>
+					{/each}
+				{/if}
 				<div
 					class="w-11 h-11 rounded-full flex items-center justify-center text-sm font-bold border-2 transition-all duration-500
 						{isDone
 							? 'bg-cyan-glow/20 border-cyan-glow text-cyan-glow shadow-md shadow-cyan-glow/20'
 							: isCurrent
 								? 'bg-navy-800 border-amber-glow text-amber-glow shadow-lg shadow-amber-glow/20 animate-progress-glow'
-								: 'bg-navy-800 border-navy-600 text-navy-500'}"
+								: 'bg-navy-800 border-navy-600 text-navy-500'}
+						{premium && animatingStep === i ? ' animate-step-complete' : ''}"
 					style={isCurrent ? '--color-cyan-glow: var(--color-amber-glow)' : ''}
 				>
 					{#if isDone}
@@ -55,7 +98,8 @@
 
 			<!-- Connector line (between steps) -->
 			{#if i < STATUS_ORDER.length - 1}
-				<div class="flex-1 h-0.5 mx-1.5 mb-7 rounded-full overflow-hidden bg-navy-700 relative">
+				<div class="flex-1 h-0.5 mx-1.5 mb-7 rounded-full overflow-hidden bg-navy-700 relative
+					{premium && animatingConnector === i ? ' animate-connector-flash' : ''}">
 					<div
 						class="absolute inset-y-0 left-0 rounded-full transition-all duration-700 ease-out
 							{stepIndex < currentIndex ? 'w-full bg-cyan-glow shadow-sm shadow-cyan-glow/50' : 'w-0'}"
