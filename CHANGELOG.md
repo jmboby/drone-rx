@@ -1,5 +1,13 @@
 # Changelog
 
+## [1.5.0](https://github.com/jmboby/drone-rx/compare/v1.4.0...v1.5.0) (2026-04-11)
+
+
+### Features
+
+* add structured JSON logging with slog across all components ([f81dbd2](https://github.com/jmboby/drone-rx/commit/f81dbd20a38593a9f3c28f118b4575a2950db208))
+* add structured JSON logging with slog across all components ([857257d](https://github.com/jmboby/drone-rx/commit/857257d0d95fd79750f032a2e412e0fd9162d611))
+
 ## [1.4.0](https://github.com/jmboby/drone-rx/compare/v1.3.0...v1.4.0) (2026-04-11)
 
 
