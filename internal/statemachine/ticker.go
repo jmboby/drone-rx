@@ -2,7 +2,7 @@ package statemachine
 
 import (
 	"context"
-	"log"
+	"log/slog"
 	"time"
 
 	"github.com/jwilson/dronerx/internal/models"
@@ -48,22 +48,24 @@ func (t *Ticker) Start(ctx context.Context) {
 func (t *Ticker) tick(ctx context.Context) {
 	orders, err := t.advancer.ListNonTerminal(ctx)
 	if err != nil {
-		log.Printf("ticker: listing orders: %v", err)
+		slog.Error("ticker: list orders failed", "error", err)
 		return
 	}
 	for _, order := range orders {
 		updated, err := t.advancer.AdvanceStatus(ctx, order.ID)
 		if err != nil {
-			log.Printf("ticker: advancing order %s: %v", order.ID, err)
+			slog.Error("ticker: advance failed", "order_id", order.ID, "error", err)
 			continue
 		}
 		if updated == nil {
 			continue
 		}
+		slog.Info("order status changed", "order_id", updated.ID, "from", order.Status, "to", updated.Status)
 		if err := t.publisher.PublishOrderStatus(updated.ID, string(updated.Status), nil, updated.UpdatedAt); err != nil {
-			log.Printf("ticker: publishing status for %s: %v", updated.ID, err)
+			slog.Error("ticker: publish status failed", "order_id", updated.ID, "error", err)
 		}
 		if updated.Status == models.StatusDelivered {
+			slog.Info("order delivered", "order_id", updated.ID, "patient", updated.PatientName)
 			t.notifier.NotifyDelivered(updated.ID, updated.PatientName, updated.Address)
 		}
 	}

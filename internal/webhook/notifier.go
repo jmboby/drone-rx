@@ -3,7 +3,7 @@ package webhook
 import (
 	"bytes"
 	"encoding/json"
-	"log"
+	"log/slog"
 	"net/http"
 	"time"
 )
@@ -29,16 +29,18 @@ func (n *Notifier) NotifyDelivered(orderID, patientName, address string) {
 	}
 	data, err := json.Marshal(payload)
 	if err != nil {
-		log.Printf("webhook: marshal error: %v", err)
+		slog.Error("webhook failed", "order_id", orderID, "url", n.url, "error", err)
 		return
 	}
 	resp, err := n.client.Post(n.url, "application/json", bytes.NewReader(data))
 	if err != nil {
-		log.Printf("webhook: POST to %s failed: %v", n.url, err)
+		slog.Error("webhook failed", "order_id", orderID, "url", n.url, "error", err)
 		return
 	}
 	defer resp.Body.Close()
 	if resp.StatusCode >= 300 {
-		log.Printf("webhook: POST to %s returned %d", n.url, resp.StatusCode)
+		slog.Error("webhook failed", "order_id", orderID, "url", n.url, "status", resp.StatusCode)
+		return
 	}
+	slog.Info("webhook delivered", "order_id", orderID, "url", n.url)
 }
