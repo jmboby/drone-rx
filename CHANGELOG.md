@@ -1,5 +1,20 @@
 # Changelog
 
+## [1.4.0](https://github.com/jmboby/drone-rx/compare/v1.3.0...v1.4.0) (2026-04-11)
+
+
+### Features
+
+* polish premium tracking animations — accessibility, browser compat, visual refinement ([8b31ddc](https://github.com/jmboby/drone-rx/commit/8b31ddcbf50a46b78f5468700d2a97da47389624))
+* replace full-screen confetti with localized sparkle burst from delivered icon ([264bd5d](https://github.com/jmboby/drone-rx/commit/264bd5d28f29ec07b104356704e501008daecc6b))
+
+
+### Bug Fixes
+
+* drone flight path now animates correctly using initial total ETA ([8eba7e0](https://github.com/jmboby/drone-rx/commit/8eba7e0861ca8239fe87e1e42132c6355de83c2d))
+* faster ticker, animated flight path, polished premium tracking ([b3183ea](https://github.com/jmboby/drone-rx/commit/b3183ea237c7ed6621522d09a3206e9498c93d2c))
+* reduce ticker interval from 10s to 5s for faster order fulfilment ([e7c0804](https://github.com/jmboby/drone-rx/commit/e7c0804843173c2c168ce6826a7819eb6f27328d))
+
 ## [1.3.0](https://github.com/jmboby/drone-rx/compare/v1.2.3...v1.3.0) (2026-04-11)
 
 
