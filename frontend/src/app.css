@@ -174,14 +174,11 @@ body {
   pointer-events: none;
 }
 
-/* Sparkle burst from delivered icon */
+/* Sparkle burst from delivered icon — uses pre-computed --tx/--ty for browser compat */
 @keyframes sparkle-burst {
-  0% { transform: translate(-50%, -50%) rotate(0deg) scale(1); opacity: 1; }
+  0% { transform: translate(-50%, -50%) scale(1); opacity: 1; }
   100% {
-    transform: translate(
-      calc(-50% + cos(var(--angle)) * var(--distance)),
-      calc(-50% + sin(var(--angle)) * var(--distance))
-    ) rotate(360deg) scale(0);
+    transform: translate(calc(-50% + var(--tx)), calc(-50% + var(--ty))) scale(0);
     opacity: 0;
   }
 }
@@ -217,4 +214,27 @@ body {
     linear-gradient(rgba(51, 69, 128, 0.1) 1px, transparent 1px),
     linear-gradient(90deg, rgba(51, 69, 128, 0.1) 1px, transparent 1px);
   background-size: 40px 40px;
+}
+
+/* Accessibility — disable decorative animations for users who prefer reduced motion */
+@media (prefers-reduced-motion: reduce) {
+  .animate-drone-fly,
+  .animate-drone-float,
+  .animate-drone-pulse,
+  .animate-rotor-spin,
+  .animate-progress-glow,
+  .animate-countdown-pulse,
+  .animate-step-complete,
+  .animate-connector-flash,
+  .animate-celebrate-scale,
+  .animate-drone-land,
+  .sparkle-particle {
+    animation: none !important;
+  }
+
+  /* Keep Tailwind's animate-ping and animate-pulse respecting the preference */
+  .animate-ping,
+  .animate-pulse {
+    animation: none !important;
+  }
 }

@@ -187,8 +187,8 @@
 		return Math.min(1, Math.max(0, elapsed / initialTotalSeconds));
 	});
 
-	// Confetti pieces configuration
-	const confettiPieces = Array.from({ length: 30 }, (_, i) => ({
+	// Sparkle-burst pieces configuration (16 particles radiate from delivered icon)
+	const confettiPieces = Array.from({ length: 16 }, (_, i) => ({
 		x: `${Math.random() * 100}%`,
 		delay: `${Math.random() * 1.5}s`,
 		duration: `${2 + Math.random() * 2}s`,
@@ -277,16 +277,21 @@
 								</svg>
 							</div>
 							{#if showConfetti}
-								{#each confettiPieces.slice(0, 16) as piece, i}
+								{@const burstParticles = confettiPieces.map((piece, i) => {
+									const angle = (i / 16) * 2 * Math.PI;
+									const dist = 30 + Math.random() * 40;
+									return { ...piece, tx: Math.cos(angle) * dist, ty: Math.sin(angle) * dist, dur: 0.6 + Math.random() * 0.8, delay: Math.random() * 0.3 };
+								})}
+								{#each burstParticles as p}
 									<span
-										class="absolute pointer-events-none {piece.shape} {piece.size}"
+										class="absolute pointer-events-none {p.shape} {p.size}"
 										style="
 											top: 50%; left: 50%;
-											background: {piece.color};
-											animation: sparkle-burst {0.6 + Math.random() * 0.8}s ease-out forwards;
-											animation-delay: {Math.random() * 0.3}s;
-											--angle: {(i / 16) * 360}deg;
-											--distance: {30 + Math.random() * 40}px;
+											background: {p.color};
+											animation: sparkle-burst {p.dur}s ease-out forwards;
+											animation-delay: {p.delay}s;
+											--tx: {p.tx.toFixed(1)}px;
+											--ty: {p.ty.toFixed(1)}px;
 										"
 									></span>
 								{/each}
