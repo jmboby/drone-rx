@@ -202,17 +202,6 @@
 	<title>DroneRx — Order #{order.id.slice(0, 8)}</title>
 </svelte:head>
 
-<!-- Confetti overlay (premium delivery celebration) -->
-{#if trackingEnabled && showConfetti}
-	<div class="fixed inset-0 pointer-events-none z-50 overflow-hidden">
-		{#each confettiPieces as piece}
-			<div
-				class="confetti-piece {piece.shape} {piece.size}"
-				style="--x: {piece.x}; --delay: {piece.delay}; --duration: {piece.duration}; background: {piece.color}; left: {piece.x};"
-			></div>
-		{/each}
-	</div>
-{/if}
 
 <!-- Header -->
 <header class="border-b border-navy-700/60 bg-navy-900/80 backdrop-blur-xl">
@@ -280,13 +269,28 @@
 			{:else if order.status === 'delivered'}
 				<div class="text-right">
 					{#if trackingEnabled && showCelebration}
-						<!-- Premium: celebration delivery -->
-						<div class="animate-celebrate-scale">
+						<!-- Premium: celebration delivery with localized sparkles -->
+						<div class="relative animate-celebrate-scale">
 							<div class="w-12 h-12 rounded-full bg-emerald-500/20 border-2 border-emerald-400 flex items-center justify-center mb-1 ml-auto shadow-lg shadow-emerald-500/30">
 								<svg class="w-6 h-6 text-emerald-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
 									<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M5 13l4 4L19 7" />
 								</svg>
 							</div>
+							{#if showConfetti}
+								{#each confettiPieces.slice(0, 16) as piece, i}
+									<span
+										class="absolute pointer-events-none {piece.shape} {piece.size}"
+										style="
+											top: 50%; left: 50%;
+											background: {piece.color};
+											animation: sparkle-burst {0.6 + Math.random() * 0.8}s ease-out forwards;
+											animation-delay: {Math.random() * 0.3}s;
+											--angle: {(i / 16) * 360}deg;
+											--distance: {30 + Math.random() * 40}px;
+										"
+									></span>
+								{/each}
+							{/if}
 							<p class="text-sm font-bold text-emerald-400">Delivered!</p>
 						</div>
 					{:else}
