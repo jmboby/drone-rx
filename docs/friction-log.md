@@ -140,6 +140,60 @@ Pain points encountered while building and distributing a Helm-based app with Re
 **Resolution:** Pushed an empty commit to trigger a fresh release from the correct state.
 **Lesson:** Failed release workflows can leave stale releases on channels. Check what's actually on the channel, not just what CI reports.
 
+### `--wait` deadlock with post-install hooks
+**Problem:** Added `--wait --timeout 10m` to `helm install` in CI workflows. But the API pod has an init container waiting for the DB, which is created by a post-install hook. Helm `--wait` blocks until all pods are ready before running post-install hooks — creating a deadlock.
+**Error:** `helm install` times out; pods stuck in `Init:0/1`, no Cluster CR created, no DB.
+**Resolution:** Removed `--wait` from `helm install`. The smoke test step handles waiting for pod readiness separately.
+**Time spent:** ~15 minutes debugging on CMX cluster.
+**Lesson:** Never use `--wait` with post-install hooks that create resources other pods depend on.
+
+### sed stopped matching after release-please changed tag values
+**Problem:** The CI workflow used `sed -i "s|tag: \"latest\"|..."` to replace image tags. After adding release-please with `x-release-please-version` annotations, the tags in values.yaml changed from `"latest"` to `"1.0.0"`. The sed no longer matched anything.
+**Error:** Images tried to pull with tag `1.0.0` which didn't exist in GHCR (only PR tags existed).
+**Resolution:** Changed sed to match the annotation pattern: `sed -i "s|tag: \"[^\"]*\" # x-release-please-version|tag: \"${TAG}\" # x-release-please-version|g"`.
+**Time spent:** ~10 minutes.
+**Lesson:** When adding version management tools, check all sed/grep patterns that depend on the old format.
+
+### Chart version vs release label in OCI registry
+**Problem:** `helm install --version` needs the **chart version** from Chart.yaml, not the Replicated release label. We were passing the release label (e.g., `0.0.0-pr-17-xxx`) but the chart was packaged with version `1.0.0`.
+**Error:** `FetchReference: not found` — chart not in registry at that version.
+**Resolution:** Use `needs.build-and-push.outputs.version` (derived from tag/Chart.yaml) consistently, not the release label.
+**Time spent:** ~20 minutes testing locally with CLI.
+
+### GITHUB_TOKEN tags don't trigger other workflows
+**Problem:** release-please creates a git tag using `GITHUB_TOKEN`. GitHub Actions security prevents tags created by `GITHUB_TOKEN` from triggering other workflows (to prevent infinite loops). So the Replicated Release workflow never triggered.
+**Resolution:** Used `workflow_call` — release-please directly calls the Replicated Release workflow when a release is created. No PAT needed.
+**Time spent:** ~15 minutes.
+
+### SDK returns boolean license field values, not strings
+**Problem:** The SDK returns `"value": true` (JSON boolean) for Boolean license fields, but our Go struct had `Value string`. Go's json decoder silently fails to decode a boolean into a string field — the value was always empty.
+**Error:** `live_tracking_enabled` always returned false even when set to true in the license.
+**Resolution:** Changed `LicenseField.Value` to `interface{}` with a type switch handling `bool`, `string`, and `float64`.
+**Time spent:** ~20 minutes — had to query the SDK directly from inside the cluster to see the actual response format.
+
+### SDK license info has no `isExpired` field
+**Problem:** Our code checked `info.IsExpired` but the SDK `/license/info` endpoint doesn't have a top-level `isExpired` field. Expiry is in `entitlements.expires_at.value` as a date string.
+**Error:** License always showed as valid even when expired.
+**Resolution:** Added `Entitlements` map to `LicenseInfo` struct, with `IsExpired()` method that parses the `expires_at` entitlement date.
+**Time spent:** ~10 minutes.
+
+### SDK `licenseID` field casing mismatch
+**Problem:** SDK returns `"licenseID"` (capital D) but our struct had `json:"licenseId"` (lowercase d). Go's JSON decoder is case-sensitive for struct tags.
+**Resolution:** Fixed to `json:"licenseID"`.
+**Time spent:** 2 minutes once spotted.
+**Lesson:** Always test SDK responses by querying the actual endpoint — don't trust documentation for field names.
+
+### CNPG Cluster CR data lost on helm upgrade
+**Problem:** The CNPG Cluster CR had `helm.sh/hook: post-install,post-upgrade`. On upgrades, Helm re-ran the hook which recreated the cluster with `bootstrap.initdb`, wiping all data.
+**Resolution:** Changed to `post-install` only. The Cluster CR persists after first install and CNPG manages it normally on upgrades.
+**Time spent:** ~5 minutes.
+
+### SDK `nameOverride` doesn't prepend release name
+**Problem:** The SDK chart's `nameOverride` sets the deployment name **directly** — it does NOT prepend the Helm release name like most charts. So `nameOverride: "sdk"` gives a deployment called `sdk`, not `<release>-sdk`. You need `nameOverride: "drone-rx-sdk"` to get `drone-rx-sdk`.
+**Resolution:** Set `nameOverride` to the full desired deployment name including the app prefix.
+**Time spent:** ~15 minutes testing with `helm template`.
+**Lesson:** Always verify subchart naming with `helm template` — don't assume standard Helm name prefix behavior.
+
 ---
 
 ## General Observations
@@ -150,6 +204,9 @@ Pain points encountered while building and distributing a Helm-based app with Re
 - CloudNativePG as a subchart — once the webhook timing was solved, very clean
 - CMX k3s clusters for CI testing — fast provisioning, realistic environment
 - Replicated SDK for license gating — runtime queries with no-redeploy updates
+- Testing CLI commands locally before embedding in CI workflows — saved hours of debugging
+- release-please for semver — clean flow, auto-CHANGELOG, version annotations in Chart.yaml and values.yaml
+- workflow_call chaining — elegant solution for GITHUB_TOKEN tag limitation
 
 ### What could be improved
 - **Documentation inconsistency** — RBAC resource names shown in mixed case in docs but require lowercase in config
