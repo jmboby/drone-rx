@@ -11,9 +11,9 @@ import (
 
 // LicenseField represents a single license field from the Replicated SDK.
 type LicenseField struct {
-	Name      string `json:"name"`
-	Value     string `json:"value"`
-	ValueType string `json:"valueType"`
+	Name      string      `json:"name"`
+	Value     interface{} `json:"value"`
+	ValueType string      `json:"valueType"`
 }
 
 // LicenseInfo holds top-level license metadata.
@@ -128,12 +128,23 @@ func (c *Client) SendMetrics(data map[string]interface{}) error {
 	return nil
 }
 
-// IsFeatureEnabled returns true if the named license field is "true" or "1".
+// IsFeatureEnabled returns true if the named license field is truthy.
+// Handles both boolean (true) and string ("true", "1") values from the SDK.
 // Returns false on any error (fail closed).
 func (c *Client) IsFeatureEnabled(fieldName string) bool {
 	field, err := c.GetLicenseField(fieldName)
 	if err != nil {
+		log.Printf("sdk: feature check %s failed: %v", fieldName, err)
 		return false
 	}
-	return field.Value == "true" || field.Value == "1"
+	switch v := field.Value.(type) {
+	case bool:
+		return v
+	case string:
+		return v == "true" || v == "1"
+	case float64:
+		return v == 1
+	default:
+		return false
+	}
 }
