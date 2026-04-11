@@ -52,7 +52,7 @@ spec:
                   key: password
                   {{- end }}
             - name: DATABASE_URL
-              value: "postgres://dronerx:$(DB_PASSWORD)@{{ include "dronerx.fullname" . }}-db-rw:5432/dronerx?sslmode=disable"
+              value: "{{ include "dronerx.databaseURL" . }}"
           livenessProbe:
             httpGet:
               path: /healthz

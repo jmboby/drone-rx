@@ -76,16 +76,33 @@ app.kubernetes.io/component: frontend
 {{- end }}
 
 {{/*
+Database configuration guard.
+Fails if postgresql is disabled but no external host is provided,
+or if postgresql is enabled but an external host is also set.
+Called automatically by the dronerx.databaseURL helper.
+*/}}
+{{- define "dronerx.validateDatabase" -}}
+{{- if and .Values.postgresql.enabled .Values.externalDatabase.host -}}
+  {{- fail "Invalid configuration: postgresql.enabled=true and externalDatabase.host are mutually exclusive. Disable embedded postgres or remove externalDatabase.host." -}}
+{{- end -}}
+{{- if and (not .Values.postgresql.enabled) (not .Values.externalDatabase.host) -}}
+  {{- fail "Invalid configuration: postgresql.enabled=false but externalDatabase.host is not set. Either enable embedded postgres or provide an external database host." -}}
+{{- end -}}
+{{- end -}}
+
+{{/*
 Database URL helper.
-Uses external DB if cloudnativepg is disabled, otherwise points to the CNPG cluster service.
+Uses CNPG cluster when postgresql.enabled=true, otherwise external DB.
 */}}
 {{- define "dronerx.databaseURL" -}}
-{{- if .Values.cloudnativepg.enabled }}
-{{- printf "postgres://dronerx:$(DB_PASSWORD)@%s-db-rw:5432/dronerx?sslmode=disable" (include "dronerx.fullname" .) }}
-{{- else }}
-{{- printf "postgres://%s:$(DB_PASSWORD)@%s:%d/%s?sslmode=disable" .Values.externalDatabase.user .Values.externalDatabase.host (int .Values.externalDatabase.port) .Values.externalDatabase.name }}
-{{- end }}
-{{- end }}
+{{- include "dronerx.validateDatabase" . -}}
+{{- if .Values.postgresql.enabled -}}
+{{/* sslmode=disable is correct for cluster-local CNPG traffic */}}
+{{- printf "postgres://dronerx:$(DB_PASSWORD)@%s-db-rw:5432/dronerx?sslmode=disable" (include "dronerx.fullname" .) -}}
+{{- else -}}
+{{- printf "postgres://%s:$(DB_PASSWORD)@%s:%d/%s?sslmode=%s" .Values.externalDatabase.user .Values.externalDatabase.host (int .Values.externalDatabase.port) .Values.externalDatabase.name (.Values.externalDatabase.sslmode | default "require") -}}
+{{- end -}}
+{{- end -}}
 
 {{/*
 NATS URL helper.
