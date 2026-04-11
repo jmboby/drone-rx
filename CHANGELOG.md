@@ -1,5 +1,19 @@
 # Changelog
 
+## [1.3.0](https://github.com/jmboby/drone-rx/compare/v1.2.3...v1.3.0) (2026-04-11)
+
+
+### Features
+
+* add premium live tracking animations — flight path, countdown, transitions, confetti ([45ac5d4](https://github.com/jmboby/drone-rx/commit/45ac5d43fe40f9d98e5023d49bd42c00fc66a3c8))
+* replace license expiry banner with full-screen blocking modal overlay ([07590b3](https://github.com/jmboby/drone-rx/commit/07590b3536530e7cd5f272bca2bf8803e70aaebe))
+
+
+### Bug Fixes
+
+* DB persistence + premium tracking animations + license expiry modal ([6804006](https://github.com/jmboby/drone-rx/commit/6804006b5d77244dc5a44ba2dcb48e83fb8459e6))
+* remove post-upgrade hook from CNPG Cluster CR to preserve data across upgrades ([a999ca9](https://github.com/jmboby/drone-rx/commit/a999ca930f714daac10c8b0a66808421b05e81ea))
+
 ## [1.2.3](https://github.com/jmboby/drone-rx/compare/v1.2.2...v1.2.3) (2026-04-11)
 
 
