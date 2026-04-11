@@ -17,6 +17,7 @@
 
 	// Premium live countdown state
 	let countdownSeconds = $state<number | null>(null);
+	let initialTotalSeconds = $state<number | null>(null); // total from order placement to delivery
 	let countdownInterval: ReturnType<typeof setInterval> | null = null;
 	let countdownTick = $state(0); // increments each second to trigger pulse
 
@@ -53,6 +54,10 @@
 	function startCountdown(initialSeconds: number) {
 		stopCountdown();
 		countdownSeconds = Math.max(0, initialSeconds);
+		// Only set initial total on first call — don't reset on status updates
+		if (initialTotalSeconds == null) {
+			initialTotalSeconds = Math.max(0, initialSeconds);
+		}
 		countdownInterval = setInterval(() => {
 			if (countdownSeconds != null && countdownSeconds > 0) {
 				countdownSeconds--;
@@ -177,12 +182,9 @@
 	// Drone flight progress (0 to 1) derived from countdown
 	let flightProgress = $derived.by(() => {
 		if (!trackingEnabled || order.status !== 'in-flight') return 0;
-		if (countdownSeconds == null || order.remaining_eta_seconds == null) return 0.5;
-		// remaining_eta_seconds is the initial ETA; countdownSeconds ticks down
-		const total = order.remaining_eta_seconds;
-		if (total <= 0) return 1;
-		const elapsed = total - countdownSeconds;
-		return Math.min(1, Math.max(0, elapsed / total));
+		if (countdownSeconds == null || initialTotalSeconds == null || initialTotalSeconds <= 0) return 0.5;
+		const elapsed = initialTotalSeconds - countdownSeconds;
+		return Math.min(1, Math.max(0, elapsed / initialTotalSeconds));
 	});
 
 	// Confetti pieces configuration
