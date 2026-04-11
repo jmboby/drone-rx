@@ -11,18 +11,51 @@ import (
 
 // LicenseField represents a single license field from the Replicated SDK.
 type LicenseField struct {
-	Name      string `json:"name"`
-	Value     string `json:"value"`
-	ValueType string `json:"valueType"`
+	Name      string      `json:"name"`
+	Value     interface{} `json:"value"`
+	ValueType string      `json:"valueType"`
+}
+
+// LicenseEntitlement represents a single entitlement in the license info response.
+type LicenseEntitlement struct {
+	Title     string      `json:"title"`
+	Value     interface{} `json:"value"`
+	ValueType string      `json:"valueType"`
 }
 
 // LicenseInfo holds top-level license metadata.
 type LicenseInfo struct {
-	LicenseID      string `json:"licenseId"`
-	ChannelName    string `json:"channelName"`
-	LicenseType    string `json:"licenseType"`
-	IsExpired      bool   `json:"isExpired"`
-	ExpirationDate string `json:"expirationDate"`
+	LicenseID    string                        `json:"licenseID"`
+	ChannelName  string                        `json:"channelName"`
+	LicenseType  string                        `json:"licenseType"`
+	Entitlements map[string]LicenseEntitlement  `json:"entitlements"`
+}
+
+// IsExpired checks if the license has passed its expiration date.
+func (l *LicenseInfo) IsExpired() bool {
+	ea, ok := l.Entitlements["expires_at"]
+	if !ok {
+		return false
+	}
+	dateStr, ok := ea.Value.(string)
+	if !ok || dateStr == "" {
+		return false
+	}
+	expiry, err := time.Parse(time.RFC3339, dateStr)
+	if err != nil {
+		return false
+	}
+	return time.Now().After(expiry)
+}
+
+// ExpirationDate returns the expiration date string, or empty if none set.
+func (l *LicenseInfo) ExpirationDate() string {
+	ea, ok := l.Entitlements["expires_at"]
+	if !ok {
+		return ""
+	}
+	dateStr, _ := ea.Value.(string)
+	return dateStr
 }
 
 // UpdateInfo describes an available application update.
@@ -128,12 +161,23 @@ func (c *Client) SendMetrics(data map[string]interface{}) error {
 	return nil
 }
 
-// IsFeatureEnabled returns true if the named license field is "true" or "1".
+// IsFeatureEnabled returns true if the named license field is truthy.
+// Handles both boolean (true) and string ("true", "1") values from the SDK.
 // Returns false on any error (fail closed).
 func (c *Client) IsFeatureEnabled(fieldName string) bool {
 	field, err := c.GetLicenseField(fieldName)
 	if err != nil {
+		log.Printf("sdk: feature check %s failed: %v", fieldName, err)
 		return false
 	}
-	return field.Value == "true" || field.Value == "1"
+	switch v := field.Value.(type) {
+	case bool:
+		return v
+	case string:
+		return v == "true" || v == "1"
+	case float64:
+		return v == 1
+	default:
+		return false
+	}
 }

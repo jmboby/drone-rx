@@ -47,13 +47,14 @@ func TestClient_GetLicenseInfo(t *testing.T) {
 			return
 		}
 		w.Header().Set("Content-Type", "application/json")
-		json.NewEncoder(w).Encode(sdk.LicenseInfo{
-			LicenseID:      "abc123",
-			ChannelName:    "Stable",
-			LicenseType:    "prod",
-			IsExpired:      false,
-			ExpirationDate: "2027-01-01",
-		})
+		w.Write([]byte(`{
+			"licenseID": "abc123",
+			"channelName": "Stable",
+			"licenseType": "prod",
+			"entitlements": {
+				"expires_at": {"title": "Expiration", "value": "2027-01-01T00:00:00Z", "valueType": "String"}
+			}
+		}`))
 	}))
 	defer srv.Close()
 
@@ -71,8 +72,34 @@ func TestClient_GetLicenseInfo(t *testing.T) {
 	if info.LicenseType != "prod" {
 		t.Errorf("expected LicenseType prod, got %s", info.LicenseType)
 	}
-	if info.IsExpired {
-		t.Error("expected IsExpired false")
+	if info.IsExpired() {
+		t.Error("expected not expired (expires 2027)")
+	}
+	if info.ExpirationDate() != "2027-01-01T00:00:00Z" {
+		t.Errorf("expected expiration date, got %s", info.ExpirationDate())
+	}
+}
+
+func TestClient_LicenseInfo_Expired(t *testing.T) {
+	srv := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		w.Header().Set("Content-Type", "application/json")
+		w.Write([]byte(`{
+			"licenseID": "expired123",
+			"licenseType": "trial",
+			"entitlements": {
+				"expires_at": {"title": "Expiration", "value": "2020-01-01T00:00:00Z", "valueType": "String"}
+			}
+		}`))
+	}))
+	defer srv.Close()
+
+	client := sdk.NewClient(srv.URL)
+	info, err := client.GetLicenseInfo()
+	if err != nil {
+		t.Fatalf("unexpected error: %v", err)
+	}
+	if !info.IsExpired() {
+		t.Error("expected expired (expires 2020)")
 	}
 }
 

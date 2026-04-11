@@ -43,10 +43,10 @@ func (h *LicenseHandler) Status(w http.ResponseWriter, r *http.Request) {
 	liveTracking := h.client.IsFeatureEnabled("live_tracking_enabled")
 
 	json.NewEncoder(w).Encode(licenseStatusResponse{
-		Valid:               true,
-		Expired:             info.IsExpired,
+		Valid:               !info.IsExpired(),
+		Expired:             info.IsExpired(),
 		LicenseType:         info.LicenseType,
-		ExpirationDate:      info.ExpirationDate,
+		ExpirationDate:      info.ExpirationDate(),
 		LiveTrackingEnabled: liveTracking,
 	})
 }
