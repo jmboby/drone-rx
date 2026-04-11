@@ -2,7 +2,7 @@ package sdk
 
 import (
 	"context"
-	"log"
+	"log/slog"
 	"time"
 
 	"github.com/jwilson/dronerx/internal/models"
@@ -13,8 +13,10 @@ type MetricsSource interface {
 }
 
 func StartMetricsSender(ctx context.Context, client *Client, source MetricsSource, interval time.Duration) {
-	// Send immediately on startup
-	sendMetrics(ctx, client, source)
+	var last *models.DeliveryStats
+
+	// Send immediately on startup.
+	last = sendMetrics(ctx, client, source, last)
 
 	ticker := time.NewTicker(interval)
 	defer ticker.Stop()
@@ -24,16 +26,26 @@ func StartMetricsSender(ctx context.Context, client *Client, source MetricsSourc
 		case <-ctx.Done():
 			return
 		case <-ticker.C:
-			sendMetrics(ctx, client, source)
+			last = sendMetrics(ctx, client, source, last)
 		}
 	}
 }
 
-func sendMetrics(ctx context.Context, client *Client, source MetricsSource) {
+// sendMetrics fetches stats and sends them only when values have changed (or on first send).
+// Returns the last successfully sent stats so the caller can track state.
+func sendMetrics(ctx context.Context, client *Client, source MetricsSource, last *models.DeliveryStats) *models.DeliveryStats {
 	stats, err := source.DeliveryStats(ctx)
 	if err != nil {
-		log.Printf("metrics: fetching delivery stats: %v", err)
-		return
+		slog.Error("metrics: send failed", "error", err)
+		return last
+	}
+
+	// Skip sending when nothing has changed.
+	if last != nil &&
+		stats.TotalOrders == last.TotalOrders &&
+		stats.OrdersCompleted == last.OrdersCompleted &&
+		stats.AvgDeliveryTimeSec == last.AvgDeliveryTimeSec {
+		return last
 	}
 
 	data := map[string]interface{}{
@@ -42,8 +54,20 @@ func sendMetrics(ctx context.Context, client *Client, source MetricsSource) {
 		"avg_delivery_time_seconds": stats.AvgDeliveryTimeSec,
 	}
 
-	log.Printf("metrics: sending total=%d completed=%d avg_time=%.1fs",
-		stats.TotalOrders, stats.OrdersCompleted, stats.AvgDeliveryTimeSec)
+	if last == nil {
+		slog.Info("metrics: initial send",
+			"total_orders", stats.TotalOrders,
+			"orders_completed", stats.OrdersCompleted,
+			"avg_delivery_time_seconds", stats.AvgDeliveryTimeSec,
+		)
+	} else {
+		slog.Info("metrics: updated",
+			"total_orders", stats.TotalOrders,
+			"orders_completed", stats.OrdersCompleted,
+			"avg_delivery_time_seconds", stats.AvgDeliveryTimeSec,
+		)
+	}
 
 	client.SendMetrics(data)
+	return stats
 }

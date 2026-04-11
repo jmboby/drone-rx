@@ -4,7 +4,7 @@ import (
 	"bytes"
 	"encoding/json"
 	"fmt"
-	"log"
+	"log/slog"
 	"net/http"
 	"time"
 )
@@ -114,6 +114,7 @@ func (c *Client) GetLicenseInfo() (*LicenseInfo, error) {
 	if err := json.NewDecoder(resp.Body).Decode(&info); err != nil {
 		return nil, fmt.Errorf("sdk get license info: decode: %w", err)
 	}
+	slog.Debug("sdk license info fetched", "license_id", info.LicenseID, "type", info.LicenseType)
 	return &info, nil
 }
 
@@ -140,7 +141,7 @@ func (c *Client) SendMetrics(data map[string]interface{}) error {
 	body := map[string]interface{}{"data": data}
 	jsonData, err := json.Marshal(body)
 	if err != nil {
-		log.Printf("sdk: metrics marshal error: %v", err)
+		slog.Error("metrics: marshal error", "error", err)
 		return nil
 	}
 
@@ -150,13 +151,13 @@ func (c *Client) SendMetrics(data map[string]interface{}) error {
 		bytes.NewReader(jsonData),
 	)
 	if err != nil {
-		log.Printf("sdk: metrics send failed: %v", err)
+		slog.Error("metrics: send failed", "error", err)
 		return nil
 	}
 	defer resp.Body.Close()
 
 	if resp.StatusCode >= 300 {
-		log.Printf("sdk: metrics send returned %d", resp.StatusCode)
+		slog.Error("metrics: send failed", "status", resp.StatusCode)
 	}
 	return nil
 }
@@ -167,17 +168,20 @@ func (c *Client) SendMetrics(data map[string]interface{}) error {
 func (c *Client) IsFeatureEnabled(fieldName string) bool {
 	field, err := c.GetLicenseField(fieldName)
 	if err != nil {
-		log.Printf("sdk: feature check %s failed: %v", fieldName, err)
+		slog.Error("sdk: feature check failed", "field", fieldName, "error", err)
 		return false
 	}
+	var result bool
 	switch v := field.Value.(type) {
 	case bool:
-		return v
+		result = v
 	case string:
-		return v == "true" || v == "1"
+		result = v == "true" || v == "1"
 	case float64:
-		return v == 1
+		result = v == 1
 	default:
-		return false
+		result = false
 	}
+	slog.Debug("sdk feature check", "field", fieldName, "enabled", result)
+	return result
 }

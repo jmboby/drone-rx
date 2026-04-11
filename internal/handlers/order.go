@@ -3,6 +3,7 @@ package handlers
 import (
 	"context"
 	"encoding/json"
+	"log/slog"
 	"net/http"
 	"time"
 
@@ -55,6 +56,8 @@ func (h *OrderHandler) Create(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	slog.Info("order created", "order_id", order.ID, "patient", req.PatientName, "items", len(req.Items))
+
 	w.Header().Set("Content-Type", "application/json")
 	w.WriteHeader(http.StatusCreated)
 	json.NewEncoder(w).Encode(order)
@@ -73,6 +76,8 @@ func (h *OrderHandler) GetByID(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, "order not found", http.StatusNotFound)
 		return
 	}
+
+	slog.Debug("order fetched", "order_id", id)
 
 	remaining := models.RemainingETA(order.Status, order.UpdatedAt, h.tickerInterval)
 	resp := OrderResponse{

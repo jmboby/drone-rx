@@ -3,8 +3,9 @@ package main
 import (
 	"context"
 	"fmt"
-	"log"
+	"log/slog"
 	"net/http"
+	"os"
 	"os/signal"
 	"syscall"
 	"time"
@@ -38,6 +39,37 @@ func (h *healthChecker) PingNATS() error {
 	return nil
 }
 
+// responseWriter wraps http.ResponseWriter to capture the status code.
+type responseWriter struct {
+	http.ResponseWriter
+	status int
+}
+
+func (rw *responseWriter) WriteHeader(code int) {
+	rw.status = code
+	rw.ResponseWriter.WriteHeader(code)
+}
+
+func loggingMiddleware(next http.Handler) http.Handler {
+	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		// Skip logging for health check probes.
+		if r.URL.Path == "/healthz" {
+			next.ServeHTTP(w, r)
+			return
+		}
+		start := time.Now()
+		rw := &responseWriter{ResponseWriter: w, status: http.StatusOK}
+		next.ServeHTTP(rw, r)
+		duration := time.Since(start).Milliseconds()
+		slog.Info("http request",
+			"method", r.Method,
+			"path", r.URL.Path,
+			"status", rw.status,
+			"duration_ms", duration,
+		)
+	})
+}
+
 func corsMiddleware(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		w.Header().Set("Access-Control-Allow-Origin", "*")
@@ -52,13 +84,25 @@ func corsMiddleware(next http.Handler) http.Handler {
 }
 
 func main() {
+	// Configure structured JSON logging.
+	logger := slog.New(slog.NewJSONHandler(os.Stdout, &slog.HandlerOptions{Level: slog.LevelInfo}))
+	slog.SetDefault(logger)
+
 	// 1. Load config
 	cfg := config.Load()
+
+	slog.Info("starting dronerx",
+		"port", cfg.Port,
+		"ticker_interval", cfg.TickerInterval,
+		"sdk_url", cfg.SDKUrl,
+		"nats_url", cfg.NATSUrl,
+	)
 
 	// 2. Run migrations
 	if cfg.DatabaseURL != "" {
 		if err := database.Migrate(cfg.DatabaseURL); err != nil {
-			log.Fatalf("migrations: %v", err)
+			slog.Error("migrations failed", "error", err)
+			os.Exit(1)
 		}
 	}
 
@@ -68,14 +112,16 @@ func main() {
 
 	db, err := database.Connect(ctx, cfg.DatabaseURL)
 	if err != nil {
-		log.Fatalf("database: %v", err)
+		slog.Error("database connection failed", "error", err)
+		os.Exit(1)
 	}
 	defer db.Close()
 
 	// 4. Connect to NATS
 	nc, err := events.ConnectNATS(cfg.NATSUrl)
 	if err != nil {
-		log.Fatalf("nats: %v", err)
+		slog.Error("nats connection failed", "error", err)
+		os.Exit(1)
 	}
 	defer nc.Drain()
 
@@ -117,8 +163,8 @@ func main() {
 	mux.HandleFunc("GET /api/license/status", licenseHandler.Status)
 	mux.HandleFunc("GET /api/updates", updatesHandler.Check)
 
-	// 10. Wrap with CORS middleware
-	handler := corsMiddleware(mux)
+	// 10. Wrap with logging then CORS middleware
+	handler := loggingMiddleware(corsMiddleware(mux))
 
 	// 11. Start HTTP server with graceful shutdown
 	addr := fmt.Sprintf(":%s", cfg.Port)
@@ -128,19 +174,20 @@ func main() {
 	}
 
 	go func() {
-		log.Printf("Starting server on %s", addr)
+		slog.Info("server listening", "addr", addr)
 		if err := srv.ListenAndServe(); err != nil && err != http.ErrServerClosed {
-			log.Fatalf("server: %v", err)
+			slog.Error("server error", "error", err)
+			os.Exit(1)
 		}
 	}()
 
 	<-ctx.Done()
-	log.Println("Shutting down server...")
+	slog.Info("shutting down server")
 
 	shutdownCtx, cancel := context.WithTimeout(context.Background(), 30*time.Second)
 	defer cancel()
 	if err := srv.Shutdown(shutdownCtx); err != nil {
-		log.Printf("server shutdown: %v", err)
+		slog.Error("server shutdown error", "error", err)
 	}
-	log.Println("Server stopped.")
+	slog.Info("server stopped")
 }

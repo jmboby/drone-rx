@@ -2,7 +2,7 @@ package handlers
 
 import (
 	"context"
-	"log"
+	"log/slog"
 	"net/http"
 
 	"github.com/coder/websocket"
@@ -28,16 +28,19 @@ func (h *TrackingHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	}
 
 	if h.client != nil && !h.client.IsFeatureEnabled("live_tracking_enabled") {
+		slog.Warn("tracking denied — license", "order_id", orderID)
 		http.Error(w, "live tracking not enabled for this license", http.StatusForbidden)
 		return
 	}
 
 	conn, err := websocket.Accept(w, r, &websocket.AcceptOptions{OriginPatterns: []string{"*"}})
 	if err != nil {
-		log.Printf("websocket accept: %v", err)
+		slog.Error("websocket accept failed", "order_id", orderID, "error", err)
 		return
 	}
 	defer conn.CloseNow()
+
+	slog.Info("tracking connected", "order_id", orderID)
 
 	ctx, cancel := context.WithCancel(r.Context())
 	defer cancel()
@@ -45,12 +48,12 @@ func (h *TrackingHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	subject := "orders." + orderID + ".status"
 	sub, err := h.nc.Subscribe(subject, func(msg *nats.Msg) {
 		if err := conn.Write(ctx, websocket.MessageText, msg.Data); err != nil {
-			log.Printf("websocket write: %v", err)
+			slog.Error("websocket write failed", "order_id", orderID, "error", err)
 			cancel()
 		}
 	})
 	if err != nil {
-		log.Printf("nats subscribe: %v", err)
+		slog.Error("nats subscribe failed", "order_id", orderID, "error", err)
 		conn.Close(websocket.StatusInternalError, "subscription failed")
 		return
 	}
@@ -63,4 +66,5 @@ func (h *TrackingHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		}
 	}
 	conn.Close(websocket.StatusNormalClosure, "")
+	slog.Info("tracking disconnected", "order_id", orderID)
 }
