@@ -15,12 +15,28 @@
 	let pollInterval: ReturnType<typeof setInterval> | null = null;
 	let ws: WebSocket | null = null;
 
+	// Premium live countdown state
+	let countdownSeconds = $state<number | null>(null);
+	let countdownInterval: ReturnType<typeof setInterval> | null = null;
+	let countdownTick = $state(0); // increments each second to trigger pulse
+
+	// Confetti state for delivery celebration
+	let showConfetti = $state(false);
+	let showCelebration = $state(false);
+
 	function formatETA(seconds?: number): string {
 		if (seconds == null || seconds <= 0) return 'Arriving soon';
 		if (seconds < 60) return `${seconds}s`;
 		const mins = Math.floor(seconds / 60);
 		const secs = seconds % 60;
 		return secs > 0 ? `${mins}m ${secs}s` : `${mins}m`;
+	}
+
+	function formatCountdown(seconds: number): string {
+		if (seconds <= 0) return '00:00';
+		const mins = Math.floor(seconds / 60);
+		const secs = seconds % 60;
+		return `${String(mins).padStart(2, '0')}:${String(secs).padStart(2, '0')}`;
 	}
 
 	function formatDate(iso: string): string {
@@ -30,16 +46,44 @@
 		});
 	}
 
+	function stopCountdown() {
+		if (countdownInterval) { clearInterval(countdownInterval); countdownInterval = null; }
+	}
+
+	function startCountdown(initialSeconds: number) {
+		stopCountdown();
+		countdownSeconds = Math.max(0, initialSeconds);
+		countdownInterval = setInterval(() => {
+			if (countdownSeconds != null && countdownSeconds > 0) {
+				countdownSeconds--;
+				countdownTick++;
+			} else {
+				stopCountdown();
+			}
+		}, 1000);
+	}
+
 	function stopTracking() {
 		if (ws) { ws.close(); ws = null; }
 		if (pollInterval) { clearInterval(pollInterval); pollInterval = null; }
+		stopCountdown();
+	}
+
+	function triggerCelebration() {
+		showConfetti = true;
+		showCelebration = true;
+		// Clean up confetti after animation completes
+		setTimeout(() => { showConfetti = false; }, 4000);
 	}
 
 	async function pollOrder() {
 		try {
 			const updated = await getOrder(order.id);
 			order = updated;
-			if (updated.status === 'delivered') { stopTracking(); }
+			if (updated.status === 'delivered') {
+				stopTracking();
+				if (trackingEnabled) triggerCelebration();
+			}
 		} catch {
 			// silent — keep polling
 		}
@@ -62,7 +106,14 @@
 					if (msg.estimated_delivery) {
 						order = { ...order, estimated_delivery: msg.estimated_delivery };
 					}
-					if (order.status === 'delivered') { stopTracking(); }
+					// Update countdown when we get new ETA data
+					if (order.remaining_eta_seconds != null && order.status !== 'delivered') {
+						startCountdown(order.remaining_eta_seconds);
+					}
+					if (order.status === 'delivered') {
+						stopTracking();
+						triggerCelebration();
+					}
 				} catch {
 					// ignore parse errors
 				}
@@ -94,6 +145,10 @@
 				trackingEnabled = license.live_tracking_enabled;
 				if (license.live_tracking_enabled) {
 					startWebSocket();
+					// Initialize countdown from current ETA
+					if (order.remaining_eta_seconds != null) {
+						startCountdown(order.remaining_eta_seconds);
+					}
 				} else {
 					startPolling();
 				}
@@ -118,11 +173,44 @@
 	};
 
 	let currentStyle = $derived(statusStyles[order.status] ?? { bg: 'bg-navy-700/50', text: 'text-navy-300', border: 'border-navy-600', glow: '' });
+
+	// Drone flight progress (0 to 1) derived from countdown
+	let flightProgress = $derived.by(() => {
+		if (!trackingEnabled || order.status !== 'in-flight') return 0;
+		if (countdownSeconds == null || order.remaining_eta_seconds == null) return 0.5;
+		// remaining_eta_seconds is the initial ETA; countdownSeconds ticks down
+		const total = order.remaining_eta_seconds;
+		if (total <= 0) return 1;
+		const elapsed = total - countdownSeconds;
+		return Math.min(1, Math.max(0, elapsed / total));
+	});
+
+	// Confetti pieces configuration
+	const confettiPieces = Array.from({ length: 30 }, (_, i) => ({
+		x: `${Math.random() * 100}%`,
+		delay: `${Math.random() * 1.5}s`,
+		duration: `${2 + Math.random() * 2}s`,
+		color: ['#00e5ff', '#ffab00', '#4dd0e1', '#ffca28', '#00bcd4', '#10b981', '#ff8f00', '#a78bfa'][i % 8],
+		shape: i % 3 === 0 ? 'rounded-full' : i % 3 === 1 ? 'rounded-sm' : '',
+		size: i % 2 === 0 ? 'w-2 h-2' : 'w-1.5 h-3',
+	}));
 </script>
 
 <svelte:head>
 	<title>DroneRx — Order #{order.id.slice(0, 8)}</title>
 </svelte:head>
+
+<!-- Confetti overlay (premium delivery celebration) -->
+{#if trackingEnabled && showConfetti}
+	<div class="fixed inset-0 pointer-events-none z-50 overflow-hidden">
+		{#each confettiPieces as piece}
+			<div
+				class="confetti-piece {piece.shape} {piece.size}"
+				style="--x: {piece.x}; --delay: {piece.delay}; --duration: {piece.duration}; background: {piece.color}; left: {piece.x};"
+			></div>
+		{/each}
+	</div>
+{/if}
 
 <!-- Header -->
 <header class="border-b border-navy-700/60 bg-navy-900/80 backdrop-blur-xl">
@@ -175,21 +263,44 @@
 			{#if order.status !== 'delivered' && order.remaining_eta_seconds != null}
 				<div class="text-right">
 					<p class="text-xs text-navy-400 font-semibold uppercase tracking-widest mb-2">ETA</p>
-					<p class="text-2xl font-bold text-cyan-glow tabular-nums font-mono">{formatETA(order.remaining_eta_seconds)}</p>
+					{#if trackingEnabled && countdownSeconds != null}
+						<!-- Premium: live ticking countdown with pulse (key forces re-mount to retrigger animation) -->
+						{#key countdownTick}
+							<p class="text-3xl font-bold text-cyan-glow tabular-nums font-mono animate-countdown-pulse">
+								{formatCountdown(countdownSeconds)}
+							</p>
+						{/key}
+					{:else}
+						<!-- Standard: static ETA -->
+						<p class="text-2xl font-bold text-cyan-glow tabular-nums font-mono">{formatETA(order.remaining_eta_seconds)}</p>
+					{/if}
 				</div>
 			{:else if order.status === 'delivered'}
 				<div class="text-right">
-					<div class="w-10 h-10 rounded-full bg-emerald-500/15 border border-emerald-500/30 flex items-center justify-center mb-1 ml-auto">
-						<svg class="w-5 h-5 text-emerald-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-							<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M5 13l4 4L19 7" />
-						</svg>
-					</div>
-					<p class="text-xs text-emerald-400 font-semibold">Delivered</p>
+					{#if trackingEnabled && showCelebration}
+						<!-- Premium: celebration delivery -->
+						<div class="animate-celebrate-scale">
+							<div class="w-12 h-12 rounded-full bg-emerald-500/20 border-2 border-emerald-400 flex items-center justify-center mb-1 ml-auto shadow-lg shadow-emerald-500/30">
+								<svg class="w-6 h-6 text-emerald-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+									<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M5 13l4 4L19 7" />
+								</svg>
+							</div>
+							<p class="text-sm font-bold text-emerald-400">Delivered!</p>
+						</div>
+					{:else}
+						<!-- Standard: green checkmark -->
+						<div class="w-10 h-10 rounded-full bg-emerald-500/15 border border-emerald-500/30 flex items-center justify-center mb-1 ml-auto">
+							<svg class="w-5 h-5 text-emerald-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+								<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M5 13l4 4L19 7" />
+							</svg>
+						</div>
+						<p class="text-xs text-emerald-400 font-semibold">Delivered</p>
+					{/if}
 				</div>
 			{/if}
 		</div>
 
-		<StatusTracker status={order.status} />
+		<StatusTracker status={order.status} premium={trackingEnabled === true} />
 
 		{#if trackingEnabled === false && order.status !== 'delivered'}
 			<div class="mt-4 p-3 rounded-lg bg-amber-glow/5 border border-amber-glow/20 flex items-start gap-3">
@@ -215,10 +326,25 @@
 				<span class="text-xs font-medium text-navy-400 uppercase tracking-wide">Pharmacy</span>
 			</div>
 			<div class="flex-1 h-0.5 bg-navy-700 rounded-full relative overflow-hidden">
-				<div class="absolute inset-y-0 left-0 w-2/3 bg-gradient-to-r from-cyan-glow/80 to-cyan-glow rounded-full animate-pulse"></div>
-				<div class="absolute top-1/2 left-[60%] -translate-y-1/2">
-					<span class="text-cyan-glow"><DroneIcon size="w-6 h-6" animated /></span>
-				</div>
+				{#if trackingEnabled}
+					<!-- Premium: animated progress based on ETA countdown -->
+					<div
+						class="absolute inset-y-0 left-0 bg-gradient-to-r from-cyan-glow/80 to-cyan-glow rounded-full transition-all duration-1000 ease-linear"
+						style="width: {Math.max(5, flightProgress * 100)}%;"
+					></div>
+					<div
+						class="absolute top-1/2 -translate-y-1/2 transition-all duration-1000 ease-linear"
+						style="left: {Math.max(2, flightProgress * 95)}%;"
+					>
+						<span class="text-cyan-glow animate-drone-float"><DroneIcon size="w-6 h-6" animated /></span>
+					</div>
+				{:else}
+					<!-- Standard: static position -->
+					<div class="absolute inset-y-0 left-0 w-2/3 bg-gradient-to-r from-cyan-glow/80 to-cyan-glow rounded-full animate-pulse"></div>
+					<div class="absolute top-1/2 left-[60%] -translate-y-1/2">
+						<span class="text-cyan-glow"><DroneIcon size="w-6 h-6" animated /></span>
+					</div>
+				{/if}
 			</div>
 			<div class="flex items-center gap-3">
 				<span class="text-xs font-medium text-navy-400 uppercase tracking-wide">You</span>
@@ -226,6 +352,17 @@
 					<path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6" />
 				</svg>
 			</div>
+		</div>
+	{/if}
+
+	<!-- Premium delivery celebration — drone landing -->
+	{#if trackingEnabled && showCelebration && order.status === 'delivered'}
+		<div class="glass-card rounded-xl p-6 flex flex-col items-center justify-center gap-4 relative overflow-hidden">
+			<div class="absolute inset-0 opacity-10" style="background: radial-gradient(circle at 50% 40%, #10b981, transparent 70%);"></div>
+			<div class="animate-drone-land text-emerald-400">
+				<DroneIcon size="w-12 h-12" />
+			</div>
+			<p class="animate-celebrate-scale text-lg font-bold text-emerald-400">Package delivered safely!</p>
 		</div>
 	{/if}
 
