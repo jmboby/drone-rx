@@ -1,5 +1,15 @@
 # Changelog
 
+## [1.2.3](https://github.com/jmboby/drone-rx/compare/v1.2.2...v1.2.3) (2026-04-11)
+
+
+### Bug Fixes
+
+* add tag_name to gh-release action, remove push-only gate on attach-chart ([ad8c663](https://github.com/jmboby/drone-rx/commit/ad8c66301009959486ccebfe70c69a8bea0d3282))
+* handle boolean license field values from SDK (was only matching strings) ([cc35390](https://github.com/jmboby/drone-rx/commit/cc35390cd21b2d5c9cc60bc45522e1397dad618d))
+* parse SDK license info correctly — field casing, expiry from entitlements ([038cae9](https://github.com/jmboby/drone-rx/commit/038cae9483a4667683fadeeb75ee029389d989d9))
+* SDK response parsing, GH release tag, license field types ([a622481](https://github.com/jmboby/drone-rx/commit/a6224816dd3f9ecd38ba824dd0b921ea2171e67f))
+
 ## [1.2.2](https://github.com/jmboby/drone-rx/compare/v1.2.1...v1.2.2) (2026-04-10)
 
 
