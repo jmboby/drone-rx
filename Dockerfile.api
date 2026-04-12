@@ -6,7 +6,7 @@ COPY . .
 RUN CGO_ENABLED=0 GOOS=linux go build -o /api ./cmd/api/
 
 FROM alpine:3.19 AS support-bundle
-RUN wget -qO /tmp/support-bundle.tar.gz https://github.com/replicatedhq/troubleshoot/releases/download/v0.121.1/support-bundle_linux_amd64.tar.gz \
+RUN wget -qO /tmp/support-bundle.tar.gz https://github.com/replicatedhq/troubleshoot/releases/download/v0.126.1/support-bundle_linux_amd64.tar.gz \
     && tar -xzf /tmp/support-bundle.tar.gz -C /usr/local/bin support-bundle \
     && rm /tmp/support-bundle.tar.gz
 
