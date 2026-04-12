@@ -77,14 +77,10 @@ app.kubernetes.io/component: frontend
 
 {{/*
 Database configuration guard.
-Fails if postgresql is disabled but no external host is provided,
-or if postgresql is enabled but an external host is also set.
+Fails if postgresql is disabled but no external host is provided.
 Called automatically by the dronerx.databaseURL helper.
 */}}
 {{- define "dronerx.validateDatabase" -}}
-{{- if and .Values.postgresql.enabled .Values.externalDatabase.host -}}
-  {{- fail "Invalid configuration: postgresql.enabled=true and externalDatabase.host are mutually exclusive. Disable embedded postgres or remove externalDatabase.host." -}}
-{{- end -}}
 {{- if and (not .Values.postgresql.enabled) (not .Values.externalDatabase.host) -}}
   {{- fail "Invalid configuration: postgresql.enabled=false but externalDatabase.host is not set. Either enable embedded postgres or provide an external database host." -}}
 {{- end -}}

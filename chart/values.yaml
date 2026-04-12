@@ -62,12 +62,9 @@ postgresql:
 # -- External (BYO) PostgreSQL connection.
 # Only used when postgresql.enabled=false.
 # All fields are required when using external database.
-# -- External (BYO) PostgreSQL connection.
-# Only used when postgresql.enabled=false.
-# All fields are required when using external database.
-# Pass sensitive values via --set at install time, not in this file.
+# Pass password via --set at install time, not in this file.
 externalDatabase:
-  host: ""
+  host: "ep-wispy-boat-anis4ukg.c-6.us-east-1.aws.neon.tech"
   port: 5432
   name: "neondb"
   user: "neondb_owner"
