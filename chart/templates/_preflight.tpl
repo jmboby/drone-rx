@@ -32,7 +32,7 @@ spec:
     {{- if not .Values.postgresql.enabled }}
     - textAnalyze:
         checkName: External Database Connectivity
-        fileName: dronerx-db-check/stdout.txt
+        fileName: dronerx-db-check.log
         regex: "connected"
         outcomes:
           - fail:
@@ -49,7 +49,7 @@ spec:
     {{- if .Values.ingress.tls.cloudflare.enabled }}
     - textAnalyze:
         checkName: Cloudflare API Connectivity
-        fileName: dronerx-cloudflare-check/stdout.txt
+        fileName: dronerx-cloudflare-check.log
         regex: "connected"
         outcomes:
           - fail:
