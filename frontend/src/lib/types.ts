@@ -47,3 +47,8 @@ export interface UpdateInfo {
 	createdAt: string;
 	releaseNotes: string;
 }
+
+export interface SupportBundleResponse {
+	status: string;
+	message: string;
+}
