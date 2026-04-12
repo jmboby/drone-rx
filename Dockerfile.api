@@ -5,8 +5,14 @@ RUN go mod download
 COPY . .
 RUN CGO_ENABLED=0 GOOS=linux go build -o /api ./cmd/api/
 
+FROM alpine:3.19 AS support-bundle
+RUN wget -qO /tmp/support-bundle.tar.gz https://github.com/replicatedhq/troubleshoot/releases/download/v0.121.1/support-bundle_linux_amd64.tar.gz \
+    && tar -xzf /tmp/support-bundle.tar.gz -C /usr/local/bin support-bundle \
+    && rm /tmp/support-bundle.tar.gz
+
 FROM alpine:3.19
 RUN apk add --no-cache ca-certificates
 COPY --from=builder /api /api
+COPY --from=support-bundle /usr/local/bin/support-bundle /usr/local/bin/support-bundle
 EXPOSE 8080
 ENTRYPOINT ["/api"]
