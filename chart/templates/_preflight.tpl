@@ -4,6 +4,7 @@ kind: Preflight
 metadata:
   name: {{ include "dronerx.fullname" . }}-preflight
 spec:
+  {{- if or (not .Values.postgresql.enabled) .Values.ingress.tls.cloudflare.enabled }}
   collectors:
     {{- /* 3.1a: External DB connectivity collector (conditional) */}}
     {{- if not .Values.postgresql.enabled }}
@@ -25,12 +26,13 @@ spec:
           - |
             nc -zv api.cloudflare.com 443 2>&1 && echo "connected" || echo "connection_failed"
     {{- end }}
+  {{- end }}
   analyzers:
     {{- /* 3.1a: External DB connectivity analyzer (conditional) */}}
     {{- if not .Values.postgresql.enabled }}
     - textAnalyze:
         checkName: External Database Connectivity
-        fileName: preflight/dronerx-db-check.txt
+        fileName: dronerx-db-check/stdout.txt
         regex: "connected"
         outcomes:
           - fail:
@@ -47,7 +49,7 @@ spec:
     {{- if .Values.ingress.tls.cloudflare.enabled }}
     - textAnalyze:
         checkName: Cloudflare API Connectivity
-        fileName: preflight/dronerx-cloudflare-check.txt
+        fileName: dronerx-cloudflare-check/stdout.txt
         regex: "connected"
         outcomes:
           - fail:
