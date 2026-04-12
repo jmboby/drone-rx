@@ -181,7 +181,7 @@
     },
     "cloudnativepg": {
       "type": "object",
-      "description": "CloudNativePG operator subchart toggle",
+      "description": "CloudNativePG operator subchart toggle. Must match postgresql.enabled.",
       "properties": {
         "enabled": {
           "type": "boolean",
@@ -191,7 +191,7 @@
     },
     "postgresql": {
       "type": "object",
-      "description": "PostgreSQL cluster configuration",
+      "description": "Embedded PostgreSQL via CloudNativePG. Set enabled=false and configure externalDatabase for BYO Postgres.",
       "properties": {
         "enabled": {
           "type": "boolean",
@@ -215,7 +215,7 @@
     },
     "externalDatabase": {
       "type": "object",
-      "description": "External database connection details (used when cloudnativepg.enabled=false)",
+      "description": "External (BYO) PostgreSQL connection. Required when postgresql.enabled=false.",
       "properties": {
         "host": {
           "type": "string",
@@ -238,6 +238,12 @@
         "password": {
           "type": "string",
           "description": "Database password"
+        },
+        "sslmode": {
+          "type": "string",
+          "enum": ["disable", "require", "verify-ca", "verify-full"],
+          "default": "require",
+          "description": "PostgreSQL SSL mode (require for Neon and most cloud providers)"
         }
       }
     },
