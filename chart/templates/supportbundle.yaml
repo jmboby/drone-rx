@@ -12,5 +12,5 @@ metadata:
     {{- include "dronerx.labels" . | nindent 4 }}
     troubleshoot.sh/kind: support-bundle
 stringData:
-  support-bundle.yaml: |
+  support-bundle-spec: |
     {{ include "dronerx.supportbundle" . | nindent 4 }}

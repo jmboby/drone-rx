@@ -12,5 +12,5 @@ metadata:
     {{- include "dronerx.labels" . | nindent 4 }}
     troubleshoot.sh/kind: preflight
 stringData:
-  preflight.yaml: |
+  preflight-spec: |
     {{ include "dronerx.preflight" . | nindent 4 }}
