@@ -42,6 +42,8 @@ ingress:
     mode: "auto"
     secretName: "letsencrypt-cert"
     email: "jamesw@replicated.com"
+    cloudflare:
+      enabled: false
 
 cloudnative-pg:
   image:
