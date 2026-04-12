@@ -150,6 +150,7 @@ func main() {
 	trackingHandler := handlers.NewTrackingHandler(nc, sdkClient)
 	licenseHandler := handlers.NewLicenseHandler(sdkClient)
 	updatesHandler := handlers.NewUpdatesHandler(sdkClient)
+	adminHandler := handlers.NewAdminHandler(cfg.Namespace, "support-bundle", nil)
 
 	// 9. Set up routes
 	mux := http.NewServeMux()
@@ -162,6 +163,7 @@ func main() {
 	mux.Handle("GET /api/orders/{id}/track", trackingHandler)
 	mux.HandleFunc("GET /api/license/status", licenseHandler.Status)
 	mux.HandleFunc("GET /api/updates", updatesHandler.Check)
+	mux.HandleFunc("POST /api/admin/support-bundle", adminHandler.GenerateSupportBundle)
 
 	// 10. Wrap with logging then CORS middleware
 	handler := loggingMiddleware(corsMiddleware(mux))
