@@ -1,0 +1,3 @@
+{{- if .Capabilities.APIVersions.Has "troubleshoot.sh/v1beta2" }}
+{{ include "dronerx.preflight" . }}
+{{- end }}
