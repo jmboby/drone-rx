@@ -48,21 +48,25 @@ cloudnative-pg:
     repository: images.littleroom.co.nz/anonymous/ghcr.io/cloudnative-pg/cloudnative-pg
   imagePullSecrets: []
 
-cloudnativepg:
-  enabled: true
-
+# -- Embedded PostgreSQL (CloudNativePG).
+# Set postgresql.enabled=false and configure externalDatabase to use BYO Postgres.
+# This toggle controls both the CNPG operator subchart and the Cluster CR.
 postgresql:
   enabled: true
   instances: 1
   storage:
     size: 1Gi
 
+# -- External (BYO) PostgreSQL connection.
+# Only used when postgresql.enabled=false.
+# All fields are required when using external database.
 externalDatabase:
   host: ""
   port: 5432
   name: "dronerx"
   user: "dronerx"
   password: ""
+  sslmode: "require"
 
 imagePullSecrets: []
 

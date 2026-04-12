@@ -74,24 +74,7 @@ Open http://localhost:5173
 
 ## Helm Chart
 
-### Install on an existing cluster
-
-```bash
-# Install CloudNativePG operator first
-helm repo add cnpg https://cloudnative-pg.github.io/charts
-helm install cnpg-operator cnpg/cloudnative-pg -n cnpg-system --create-namespace --wait
-
-# Install DroneRx
-helm dependency build chart/
-helm install dronerx chart/ \
-  --namespace dronerx \
-  --create-namespace \
-  --set cloudnativepg.enabled=false \
-  --set api.image.tag=0.1.0 \
-  --set frontend.image.tag=0.1.0
-```
-
-### Install with bundled operator
+### Install with embedded PostgreSQL
 
 ```bash
 helm dependency build chart/
@@ -101,6 +84,20 @@ helm install dronerx chart/ \
   --set api.image.tag=0.1.0 \
   --set frontend.image.tag=0.1.0 \
   --timeout 5m
+```
+
+### Install with external database (e.g. Neon)
+
+```bash
+helm dependency build chart/
+helm install dronerx chart/ \
+  --namespace dronerx \
+  --create-namespace \
+  --set postgresql.enabled=false \
+  --set externalDatabase.host=ep-XXXXX.us-east-2.aws.neon.tech \
+  --set externalDatabase.password=YOUR_PASSWORD \
+  --set api.image.tag=0.1.0 \
+  --set frontend.image.tag=0.1.0
 ```
 
 ### Configuration
