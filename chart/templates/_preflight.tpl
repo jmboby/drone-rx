@@ -127,4 +127,17 @@ spec:
                 Supported distributions: EKS, GKE, AKS, RKE2, k3s, OpenShift.
           - pass:
               message: Kubernetes distribution is supported.
+    {{- /* Default storage class (always) */}}
+    - storageClass:
+        checkName: Default Storage Class
+        outcomes:
+          - fail:
+              when: "== false"
+              message: |
+                No default storage class is configured on this cluster.
+                DroneRx requires a default storage class for PostgreSQL persistent volume claims.
+                Configure a default storage class:
+                  kubectl patch storageclass <name> -p '{"metadata": {"annotations":{"storageclass.kubernetes.io/is-default-class":"true"}}}'
+          - pass:
+              message: A default storage class is available.
 {{- end }}
