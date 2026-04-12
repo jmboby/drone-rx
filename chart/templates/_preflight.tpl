@@ -4,6 +4,7 @@ kind: Preflight
 metadata:
   name: {{ include "dronerx.fullname" . }}-preflight
 spec:
+  {{- if or (not .Values.postgresql.enabled) .Values.ingress.tls.cloudflare.enabled }}
   collectors:
     {{- /* 3.1a: External DB connectivity collector (conditional) */}}
     {{- if not .Values.postgresql.enabled }}
@@ -25,12 +26,13 @@ spec:
           - |
             nc -zv api.cloudflare.com 443 2>&1 && echo "connected" || echo "connection_failed"
     {{- end }}
+  {{- end }}
   analyzers:
     {{- /* 3.1a: External DB connectivity analyzer (conditional) */}}
     {{- if not .Values.postgresql.enabled }}
     - textAnalyze:
         checkName: External Database Connectivity
-        fileName: preflight/dronerx-db-check.txt
+        fileName: dronerx-db-check.log
         regex: "connected"
         outcomes:
           - fail:
@@ -47,7 +49,7 @@ spec:
     {{- if .Values.ingress.tls.cloudflare.enabled }}
     - textAnalyze:
         checkName: Cloudflare API Connectivity
-        fileName: preflight/dronerx-cloudflare-check.txt
+        fileName: dronerx-cloudflare-check.log
         regex: "connected"
         outcomes:
           - fail:
@@ -125,4 +127,17 @@ spec:
                 Supported distributions: EKS, GKE, AKS, RKE2, k3s, OpenShift.
           - pass:
               message: Kubernetes distribution is supported.
+    {{- /* Default storage class (always) */}}
+    - storageClass:
+        checkName: Default Storage Class
+        outcomes:
+          - fail:
+              when: "== false"
+              message: |
+                No default storage class is configured on this cluster.
+                DroneRx requires a default storage class for PostgreSQL persistent volume claims.
+                Configure a default storage class:
+                  kubectl patch storageclass <name> -p '{"metadata": {"annotations":{"storageclass.kubernetes.io/is-default-class":"true"}}}'
+          - pass:
+              message: A default storage class is available.
 {{- end }}

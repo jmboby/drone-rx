@@ -196,6 +196,51 @@ Pain points encountered while building and distributing a Helm-based app with Re
 
 ---
 
+## Tier 3 — Support It
+
+### Dual database toggles caused silent inconsistency
+**Problem:** The chart had two separate toggles — `cloudnativepg.enabled` (operator subchart) and `postgresql.enabled` (Cluster CR) — that always had to move together. The `databaseURL` helper checked one, all other templates checked the other. No valid combination existed where they differed.
+**Error:** No error — just a confusing developer experience and risk of misconfiguration.
+**Resolution:** Collapsed to single `postgresql.enabled` toggle. Changed Chart.yaml condition to `postgresql.enabled`, removed `cloudnativepg` from values/schema, simplified wait-for-cnpg-job condition.
+**Time spent:** ~30 minutes to identify, plan, and implement.
+**Lesson:** When a subchart exists solely to support one feature, tie its condition to the feature toggle, not a separate key.
+
+### Hardcoded sslmode=disable breaks cloud Postgres
+**Problem:** The `databaseURL` helper hardcoded `sslmode=disable` for both embedded and external DB paths. Neon (and most cloud Postgres providers) require `sslmode=require`.
+**Resolution:** Added `externalDatabase.sslmode` field (default `require`), used it in the external DB path. Kept `sslmode=disable` for embedded CNPG (cluster-local traffic).
+**Lesson:** Never hardcode connection parameters that differ between development and production.
+
+### Mutual exclusion guard too strict for pre-configured values
+**Problem:** Added a `fail` guard to prevent `postgresql.enabled=true` and `externalDatabase.host` being set simultaneously. But this prevented pre-configuring the Neon endpoint in values.yaml alongside the embedded default.
+**Resolution:** Relaxed the guard to only enforce the essential check — `postgresql.enabled=false` requires a host. Having external DB values alongside embedded postgres is fine (pre-configuration, not conflict).
+**Lesson:** Helm guards should prevent broken installs, not restrict how values are organized.
+
+### Troubleshoot CRDs don't exist on Helm CLI installs
+**Problem:** Added `preflight.yaml` and `supportbundle.yaml` as standalone `kind: Preflight` / `kind: SupportBundle` resources. CI Helm install failed because Troubleshoot CRDs don't exist on regular clusters — only in KOTS/EC environments.
+**Error:** `resource mapping not found for name: "***-preflight" namespace: "" from "": no matches for kind "Preflight" in version "troubleshoot.sh/v1beta2"`
+**Resolution:** Dual-mode rendering: (1) Standalone CRD resources gated on `.Capabilities.APIVersions.Has "troubleshoot.sh/v1beta2"` for KOTS/EC. (2) Kubernetes Secrets with `troubleshoot.sh/kind` labels for Helm CLI installs, discovered via `kubectl preflight --load-cluster-specs`.
+**Time spent:** ~20 minutes debugging CI failure + researching Replicated docs.
+**Lesson:** Troubleshoot specs need different delivery mechanisms for KOTS vs Helm CLI paths.
+
+### Preflight run collector output paths differ from support bundle
+**Problem:** `textAnalyze` fileName was set to `preflight/dronerx-db-check.txt` (based on reference docs), then changed to `dronerx-db-check/stdout.txt` (support bundle format). Neither matched the actual preflight output.
+**Error:** `No matching files` — collectors ran successfully but analyzers couldn't find the output.
+**Resolution:** Preflight `run` collectors write to `<collectorName>.log`, not `<collectorName>/stdout.txt` or `preflight/<collectorName>.txt`. Had to extract the actual preflight bundle and inspect file paths.
+**Time spent:** ~30 minutes across two incorrect attempts.
+**Lesson:** Always verify collector output paths by extracting a real bundle. Preflight and support bundle use different output path conventions for `run` collectors.
+
+### Empty collectors section triggers default collection
+**Problem:** When no conditional `run` collectors were active (embedded DB, no Cloudflare), the preflight spec rendered `collectors: []` (empty). The troubleshoot tool interprets this as "run default collectors" — gathering cluster info, pod logs, etc. — making preflights very slow.
+**Resolution:** Only render the `collectors:` section when at least one conditional collector is active. When no collectors are needed, omit the section entirely.
+**Time spent:** ~10 minutes.
+
+### Faking --api-versions doesn't fully work for testing
+**Problem:** Used `helm template --api-versions troubleshoot.sh/v1beta2` to render preflight specs for testing. The template rendered correctly but `kubectl preflight` didn't execute `run` collectors properly when fed the output.
+**Resolution:** Use the Secret-based approach for local testing. Apply the chart (or just the preflight secret) to the cluster, then run `kubectl preflight` pointing at the rendered spec via `yq` extraction or `--show-only`.
+**Time spent:** ~15 minutes.
+
+---
+
 ## General Observations
 
 ### What worked well
@@ -207,6 +252,9 @@ Pain points encountered while building and distributing a Helm-based app with Re
 - Testing CLI commands locally before embedding in CI workflows — saved hours of debugging
 - release-please for semver — clean flow, auto-CHANGELOG, version annotations in Chart.yaml and values.yaml
 - workflow_call chaining — elegant solution for GITHUB_TOKEN tag limitation
+- Named templates for troubleshoot specs — DRY pattern, same spec serves both KOTS CRD and Helm Secret delivery
+- Extracting preflight bundles to verify file paths — saved debugging time vs guessing
+- Single `postgresql.enabled` toggle — cleaner than two-toggle approach, less user confusion
 
 ### What could be improved
 - **Documentation inconsistency** — RBAC resource names shown in mixed case in docs but require lowercase in config
@@ -214,3 +262,5 @@ Pain points encountered while building and distributing a Helm-based app with Re
 - **Proxy registry auth** — not obvious that `registry.replicated.com` (OCI chart pull) and `proxy.replicated.com` (image proxy) are different auth domains
 - **Error messages** — many Replicated API errors are generic (403, 400) without indicating which specific permission is missing
 - **CLI `--auto` flag** — confusing that it ignores `.replicated` config rather than enhancing it
+- **Troubleshoot file path docs** — reference docs show `preflight/<collectorName>.txt` for run collectors but actual output is `<collectorName>.log`. Different format for preflights vs support bundles is not documented
+- **No CRDs on Helm installs** — not obvious that Troubleshoot CRDs only exist in KOTS/EC environments. The Secret-based discovery pattern for Helm installs isn't prominently documented
