@@ -1,3 +1,16 @@
+{{- /* Standalone resource for KOTS/EC (CRDs exist) */}}
 {{- if .Capabilities.APIVersions.Has "troubleshoot.sh/v1beta2" }}
 {{ include "dronerx.preflight" . }}
 {{- end }}
+---
+{{- /* Secret-wrapped spec for Helm CLI installs (no CRDs) */}}
+apiVersion: v1
+kind: Secret
+metadata:
+  name: {{ include "dronerx.fullname" . }}-preflight
+  labels:
+    {{- include "dronerx.labels" . | nindent 4 }}
+    troubleshoot.sh/kind: preflight
+stringData:
+  preflight.yaml: |
+    {{ include "dronerx.preflight" . | nindent 4 }}
