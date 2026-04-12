@@ -50,9 +50,7 @@ cloudnative-pg:
 
 # -- Embedded PostgreSQL (CloudNativePG).
 # Set postgresql.enabled=false and configure externalDatabase to use BYO Postgres.
-cloudnativepg:
-  enabled: true
-
+# This toggle controls both the CNPG operator subchart and the Cluster CR.
 postgresql:
   enabled: true
   instances: 1

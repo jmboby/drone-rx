@@ -1,4 +1,4 @@
-{{- if and .Values.postgresql.enabled .Values.cloudnativepg.enabled }}
+{{- if .Values.postgresql.enabled }}
 apiVersion: batch/v1
 kind: Job
 metadata:

@@ -179,19 +179,9 @@
         }
       }
     },
-    "cloudnativepg": {
-      "type": "object",
-      "description": "CloudNativePG operator subchart toggle. Must match postgresql.enabled.",
-      "properties": {
-        "enabled": {
-          "type": "boolean",
-          "description": "Deploy the CloudNativePG operator"
-        }
-      }
-    },
     "postgresql": {
       "type": "object",
-      "description": "Embedded PostgreSQL via CloudNativePG. Set enabled=false and configure externalDatabase for BYO Postgres.",
+      "description": "Embedded PostgreSQL via CloudNativePG. Controls both the operator subchart and Cluster CR. Set enabled=false and configure externalDatabase for BYO Postgres.",
       "properties": {
         "enabled": {
           "type": "boolean",
