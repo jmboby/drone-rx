@@ -1,5 +1,15 @@
 # Changelog
 
+## [1.6.1](https://github.com/jmboby/drone-rx/compare/v1.6.0...v1.6.1) (2026-04-12)
+
+
+### Bug Fixes
+
+* add sslmode to externalDatabase values, clarify toggle comments ([9408bd4](https://github.com/jmboby/drone-rx/commit/9408bd484e79dda58e9b7635f8d17a274ce0d771))
+* collapse cloudnativepg.enabled into postgresql.enabled ([fad04ff](https://github.com/jmboby/drone-rx/commit/fad04fff83fd6f8b4f538f99651329927ef2fd3e))
+* consolidate DB toggles into single postgresql.enabled ([a690f1f](https://github.com/jmboby/drone-rx/commit/a690f1f32f384b39c9b3fe4abbb187235c89cb7d))
+* update schema — add sslmode enum, clarify DB toggle descriptions ([1d87b56](https://github.com/jmboby/drone-rx/commit/1d87b5603f431749ec929ebf871c94d70bb448c1))
+
 ## [1.6.0](https://github.com/jmboby/drone-rx/compare/v1.5.0...v1.6.0) (2026-04-12)
 
 
