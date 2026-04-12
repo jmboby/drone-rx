@@ -12,6 +12,7 @@ type Config struct {
 	TickerInterval int
 	WebhookURL     string
 	SDKUrl         string
+	Namespace      string
 }
 
 func Load() Config {
@@ -22,6 +23,7 @@ func Load() Config {
 		TickerInterval: getEnvInt("TICKER_INTERVAL", 5),
 		WebhookURL:     getEnv("WEBHOOK_URL", ""),
 		SDKUrl:         getEnv("REPLICATED_SDK_URL", "http://drone-rx-sdk:3000"),
+		Namespace:      getEnv("POD_NAMESPACE", "default"),
 	}
 }
 
