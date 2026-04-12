@@ -1,5 +1,13 @@
 # Changelog
 
+## [1.6.0](https://github.com/jmboby/drone-rx/compare/v1.5.0...v1.6.0) (2026-04-12)
+
+
+### Features
+
+* add structured JSON logging to frontend ([856e0c7](https://github.com/jmboby/drone-rx/commit/856e0c78d1a5dc27e5729ebaabf8437035b1ef49))
+* add structured JSON logging to frontend — page requests and API proxy ([49b865b](https://github.com/jmboby/drone-rx/commit/49b865bdd1a508b9d5282a8266dc60970ed4d405))
+
 ## [1.5.0](https://github.com/jmboby/drone-rx/compare/v1.4.0...v1.5.0) (2026-04-11)
 
 
