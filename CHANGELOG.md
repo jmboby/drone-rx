@@ -1,5 +1,23 @@
 # Changelog
 
+## [1.8.0](https://github.com/jmboby/drone-rx/compare/v1.7.0...v1.8.0) (2026-04-12)
+
+
+### Features
+
+* add default storage class check to preflight ([df42dd2](https://github.com/jmboby/drone-rx/commit/df42dd2cfe984406ea7268e429caed398625ad96))
+* wrap preflight/supportbundle specs in Secrets for Helm installs ([4f1e406](https://github.com/jmboby/drone-rx/commit/4f1e4062afad4056ddf3c32508c4c97371b39f7f))
+
+
+### Bug Fixes
+
+* correct health endpoint file path and tighten failure regex ([0ff7a79](https://github.com/jmboby/drone-rx/commit/0ff7a79bc79e6161b2316fe0b72b235dcdc8b73e))
+* correct preflight run collector output paths to .log format ([0d4c508](https://github.com/jmboby/drone-rx/commit/0d4c5084792f2c0660706b539cb1696d59f7bb7b))
+* correct run collector output paths and omit empty collectors ([a0f575d](https://github.com/jmboby/drone-rx/commit/a0f575dc0791f46140cdc8dfe79683eba5f2085f))
+* simplify to Secret-only delivery, remove CRD-gated path ([830593d](https://github.com/jmboby/drone-rx/commit/830593d83f9da8120f81fef701a7d07afee60a57))
+* Tier 3 Phase 1 — Secret wrappers, file paths, and collector fixes ([4bca2c6](https://github.com/jmboby/drone-rx/commit/4bca2c67f73b9ceface82f11f7954a8e7146c688))
+* use correct Secret data keys for troubleshoot spec discovery ([da543cf](https://github.com/jmboby/drone-rx/commit/da543cf15b0394e2a609ccb1c6d4b6af596425db))
+
 ## [1.7.0](https://github.com/jmboby/drone-rx/compare/v1.6.2...v1.7.0) (2026-04-12)
 
 
