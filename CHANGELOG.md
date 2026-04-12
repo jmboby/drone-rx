@@ -1,5 +1,17 @@
 # Changelog
 
+## [1.7.0](https://github.com/jmboby/drone-rx/compare/v1.6.2...v1.7.0) (2026-04-12)
+
+
+### Features
+
+* Tier 3 Phase 1 — preflight checks and support bundle specs ([f0ba4ec](https://github.com/jmboby/drone-rx/commit/f0ba4ec46cb44062304e9e4d02d2e2929cc29db5))
+
+
+### Bug Fixes
+
+* gate preflight/supportbundle on Troubleshoot CRD availability ([4301c07](https://github.com/jmboby/drone-rx/commit/4301c0766ad2225ada5c8b3ae070490a045fc8c6))
+
 ## [1.6.2](https://github.com/jmboby/drone-rx/compare/v1.6.1...v1.6.2) (2026-04-12)
 
 
