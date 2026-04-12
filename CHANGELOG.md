@@ -1,5 +1,13 @@
 # Changelog
 
+## [1.6.2](https://github.com/jmboby/drone-rx/compare/v1.6.1...v1.6.2) (2026-04-12)
+
+
+### Bug Fixes
+
+* opt into Node.js 24 for release-please action ([d1d052c](https://github.com/jmboby/drone-rx/commit/d1d052c33ee67f2a8dd112a343e150108249397c))
+* opt into Node.js 24 for release-please action (Node 20 deprecated) ([a30e925](https://github.com/jmboby/drone-rx/commit/a30e925010b80e410d92fa13728a779a28ad001c))
+
 ## [1.6.1](https://github.com/jmboby/drone-rx/compare/v1.6.0...v1.6.1) (2026-04-12)
 
 
