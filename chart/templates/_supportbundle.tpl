@@ -95,25 +95,25 @@ spec:
                 Run: kubectl describe deployment {{ include "dronerx.fullname" . }}-frontend -n {{ .Release.Namespace }}
           - pass:
               message: DroneRx frontend is running.
-    {{- /* 3.5: Known failure pattern — DB and NATS connection errors */}}
+    {{- /* 3.5: Known failure patterns — dependency connectivity errors */}}
     - textAnalyze:
-        checkName: Database and NATS Connection Failures
+        checkName: Application Dependency Failures
         fileName: dronerx/api-logs/*/api.log
-        regex: '"level":"ERROR".*database|"level":"ERROR".*nats|NATS not connected'
+        regex: 'metrics: send failed|metrics: marshal error|"level":"ERROR".*database|"level":"ERROR".*nats|NATS not connected'
         outcomes:
           - fail:
               when: "true"
               message: |
-                Database or NATS connection failure detected in API logs.
-                This indicates the API cannot reach its dependencies.
+                Dependency communication failures detected in API logs (last 10,000 lines / 72h).
+                This may indicate the Replicated SDK, database, or NATS is down or unreachable.
                 Remediation:
-                1. Check database pod status: kubectl get pods -l cnpg.io/cluster={{ include "dronerx.fullname" . }}-db -n {{ .Release.Namespace }}
-                2. Check NATS pod status: kubectl get pods -l app.kubernetes.io/name={{ .Release.Name }}-nats -n {{ .Release.Namespace }}
-                3. Verify DATABASE_URL in the API configmap: kubectl get configmap {{ include "dronerx.fullname" . }}-api-config -n {{ .Release.Namespace }} -o yaml
-                4. Check for network policies blocking pod-to-pod traffic
+                1. Check SDK pod: kubectl get pods -l app.kubernetes.io/name={{ include "dronerx.name" . }}-sdk -n {{ .Release.Namespace }}
+                2. Check database pods: kubectl get pods -l cnpg.io/cluster={{ include "dronerx.fullname" . }}-db -n {{ .Release.Namespace }}
+                3. Check NATS pods: kubectl get pods -l app.kubernetes.io/name={{ .Release.Name }}-nats -n {{ .Release.Namespace }}
+                4. Check API configmap: kubectl get configmap {{ include "dronerx.fullname" . }}-api-config -n {{ .Release.Namespace }} -o yaml
           - pass:
               when: "false"
-              message: No database or NATS connection failures detected in recent logs.
+              message: No dependency communication failures detected in recent logs.
     {{- /* 3.6: Storage class and node readiness */}}
     - storageClass:
         checkName: Default Storage Class Present
