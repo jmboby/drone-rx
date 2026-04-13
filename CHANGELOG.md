@@ -1,5 +1,16 @@
 # Changelog
 
+## [1.9.2](https://github.com/jmboby/drone-rx/compare/v1.9.1...v1.9.2) (2026-04-13)
+
+
+### Bug Fixes
+
+* correct health endpoint analyzer file path in support bundle ([38d5f4e](https://github.com/jmboby/drone-rx/commit/38d5f4e9ccb35aefec2ee52be98e8369f8076ce2))
+* scope DB/NATS failure analyzer to api.log only ([b04702e](https://github.com/jmboby/drone-rx/commit/b04702ea330652e708fe8000a7e317fe3c8bbfe2))
+* scope gitignore api pattern to root build artifact only ([e781590](https://github.com/jmboby/drone-rx/commit/e7815908de27ac5dcaec387edc10b8973cc147d2))
+* upload support bundle to local SDK + gitignore scope ([afd9657](https://github.com/jmboby/drone-rx/commit/afd96577563efb78aea8c3d145c32d27cb975bf7))
+* upload support bundle to local SDK, not replicated.app ([07db982](https://github.com/jmboby/drone-rx/commit/07db98223a815bebfe512de210820b90e1c0ea8e))
+
 ## [1.9.1](https://github.com/jmboby/drone-rx/compare/v1.9.0...v1.9.1) (2026-04-13)
 
 
