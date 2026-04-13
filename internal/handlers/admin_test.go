@@ -9,7 +9,7 @@ import (
 
 func TestAdminHandler_GenerateSupportBundle(t *testing.T) {
 	t.Run("returns ok when command succeeds", func(t *testing.T) {
-		h := NewAdminHandler("default", "echo", []string{"bundle-generated"})
+		h := NewAdminHandler("default", "http://sdk:3000", "echo", []string{"bundle-generated"})
 
 		req := httptest.NewRequest(http.MethodPost, "/api/admin/support-bundle", nil)
 		w := httptest.NewRecorder()
@@ -28,7 +28,7 @@ func TestAdminHandler_GenerateSupportBundle(t *testing.T) {
 	})
 
 	t.Run("returns error when command fails", func(t *testing.T) {
-		h := NewAdminHandler("default", "false", nil)
+		h := NewAdminHandler("default", "http://sdk:3000", "false", nil)
 
 		req := httptest.NewRequest(http.MethodPost, "/api/admin/support-bundle", nil)
 		w := httptest.NewRecorder()
@@ -47,7 +47,7 @@ func TestAdminHandler_GenerateSupportBundle(t *testing.T) {
 	})
 
 	t.Run("rejects non-POST methods", func(t *testing.T) {
-		h := NewAdminHandler("default", "echo", []string{"ok"})
+		h := NewAdminHandler("default", "http://sdk:3000", "echo", []string{"ok"})
 
 		req := httptest.NewRequest(http.MethodGet, "/api/admin/support-bundle", nil)
 		w := httptest.NewRecorder()

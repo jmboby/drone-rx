@@ -58,7 +58,7 @@ spec:
     {{- /* 3.3: Health endpoint textAnalyze */}}
     - textAnalyze:
         checkName: Application Health Endpoint
-        fileName: dronerx-health/*/dronerx-health-stdout.txt
+        fileName: dronerx-health/*/*/dronerx-health-stdout.txt
         regex: '"status":\s*"ok"'
         outcomes:
           - fail:
@@ -98,7 +98,7 @@ spec:
     {{- /* 3.5: Known failure pattern — DB and NATS connection errors */}}
     - textAnalyze:
         checkName: Database and NATS Connection Failures
-        fileName: dronerx/api-logs/*/*
+        fileName: dronerx/api-logs/*/api.log
         regex: '"level":"ERROR".*database|"level":"ERROR".*nats|NATS not connected'
         outcomes:
           - fail:

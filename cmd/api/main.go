@@ -150,7 +150,7 @@ func main() {
 	trackingHandler := handlers.NewTrackingHandler(nc, sdkClient)
 	licenseHandler := handlers.NewLicenseHandler(sdkClient)
 	updatesHandler := handlers.NewUpdatesHandler(sdkClient)
-	adminHandler := handlers.NewAdminHandler(cfg.Namespace, "support-bundle", nil)
+	adminHandler := handlers.NewAdminHandler(cfg.Namespace, cfg.SDKUrl, "sh", nil)
 
 	// 9. Set up routes
 	mux := http.NewServeMux()
