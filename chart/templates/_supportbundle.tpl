@@ -98,7 +98,7 @@ spec:
     {{- /* 3.5: Known failure pattern — DB and NATS connection errors */}}
     - textAnalyze:
         checkName: Database and NATS Connection Failures
-        fileName: dronerx/api-logs/*/*
+        fileName: dronerx/api-logs/*/api.log
         regex: '"level":"ERROR".*database|"level":"ERROR".*nats|NATS not connected'
         outcomes:
           - fail:
