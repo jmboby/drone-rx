@@ -1,5 +1,22 @@
 # Changelog
 
+## [1.9.0](https://github.com/jmboby/drone-rx/compare/v1.8.0...v1.9.0) (2026-04-13)
+
+
+### Features
+
+* add /admin page with support bundle generation button ([036ec54](https://github.com/jmboby/drone-rx/commit/036ec543f0996916410313db17780e75e34f569c))
+* add admin handler for support bundle generation ([a973f25](https://github.com/jmboby/drone-rx/commit/a973f25f1c1a6e852bae16b27a9cfeb9e22794b9))
+* add RBAC for support bundle collection and POD_NAMESPACE env ([adb651d](https://github.com/jmboby/drone-rx/commit/adb651d866457305957f5af24a0f57c911676af6))
+* add support-bundle CLI to API container image ([6000896](https://github.com/jmboby/drone-rx/commit/6000896ad2a4b914725ee2930062388b8afd3f6b))
+* register POST /api/admin/support-bundle route ([085b54c](https://github.com/jmboby/drone-rx/commit/085b54ccd66fe7cc633d1b17cde320b2fa8b9c9d))
+* Tier 3 Phase 2 — /admin page with support bundle generation ([96adb0a](https://github.com/jmboby/drone-rx/commit/96adb0ac10f2d5f81521d6275d82250ed9df0f86))
+
+
+### Bug Fixes
+
+* use correct troubleshoot release version (v0.126.1) ([72ab013](https://github.com/jmboby/drone-rx/commit/72ab013f122fb0532cec4e1cfb0a3de8edfc3e18))
+
 ## [1.8.0](https://github.com/jmboby/drone-rx/compare/v1.7.0...v1.8.0) (2026-04-12)
 
 
