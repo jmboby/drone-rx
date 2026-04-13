@@ -1,4 +1,4 @@
-import type { Medicine, Order, CreateOrderRequest, LicenseStatus, UpdateInfo } from './types';
+import type { Medicine, Order, CreateOrderRequest, LicenseStatus, UpdateInfo, SupportBundleResponse } from './types';
 
 const BASE_URL = '/api';
 
@@ -46,4 +46,10 @@ export async function getLicenseStatus(): Promise<LicenseStatus> {
 
 export async function getUpdates(): Promise<UpdateInfo[]> {
 	return fetchJSON<UpdateInfo[]>(`${BASE_URL}/updates`);
+}
+
+export async function generateSupportBundle(): Promise<SupportBundleResponse> {
+	return fetchJSON<SupportBundleResponse>(`${BASE_URL}/admin/support-bundle`, {
+		method: 'POST',
+	});
 }
