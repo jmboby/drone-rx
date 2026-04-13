@@ -1,5 +1,13 @@
 # Changelog
 
+## [1.9.3](https://github.com/jmboby/drone-rx/compare/v1.9.2...v1.9.3) (2026-04-13)
+
+
+### Bug Fixes
+
+* correct Content-Length when uploading support bundle to SDK ([634f023](https://github.com/jmboby/drone-rx/commit/634f0235865019bcabac53cd32fc360ee8ad2d04))
+* ensure correct Content-Length when uploading bundle to SDK ([0471d1d](https://github.com/jmboby/drone-rx/commit/0471d1d3f0817f496199ec89bf6ec7acba2e8614))
+
 ## [1.9.2](https://github.com/jmboby/drone-rx/compare/v1.9.1...v1.9.2) (2026-04-13)
 
 
