@@ -58,7 +58,7 @@ spec:
     {{- /* 3.3: Health endpoint textAnalyze */}}
     - textAnalyze:
         checkName: Application Health Endpoint
-        fileName: dronerx-health/*/dronerx-health-stdout.txt
+        fileName: dronerx-health/*/*/dronerx-health-stdout.txt
         regex: '"status":\s*"ok"'
         outcomes:
           - fail:
