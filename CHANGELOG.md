@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.9.1](https://github.com/jmboby/drone-rx/compare/v1.9.0...v1.9.1) (2026-04-13)
+
+
+### Bug Fixes
+
+* use exec collector for health check (kubectl runs client-side) ([5b294b0](https://github.com/jmboby/drone-rx/commit/5b294b0dc34472eeedf439ca49eef6f31ac948ad))
+
 ## [1.9.0](https://github.com/jmboby/drone-rx/compare/v1.8.0...v1.9.0) (2026-04-13)
 
 
