@@ -42,16 +42,23 @@ spec:
         limits:
           maxLines: 5000
           maxAge: 48h
-    {{- /* 3.3: Health endpoint HTTP collector */}}
-    - http:
+    {{- /* 3.3: Health endpoint via exec — kubectl support-bundle runs client-side,
+           so HTTP collector can't resolve svc.cluster.local DNS.
+           exec collector uses kubectl exec to run inside the API pod. */}}
+    - exec:
         collectorName: dronerx-health
-        get:
-          url: http://{{ include "dronerx.fullname" . }}-api.{{ .Release.Namespace }}.svc.cluster.local:{{ .Values.service.apiPort }}/healthz
+        name: dronerx-health
+        selector:
+          - app.kubernetes.io/name={{ include "dronerx.name" . }}
+          - app.kubernetes.io/component=api
+        namespace: {{ .Release.Namespace }}
+        command: ["wget", "-qO-", "http://localhost:{{ .Values.api.port }}/healthz"]
+        timeout: 10s
   analyzers:
-    {{- /* 3.3: Health endpoint analyzer */}}
+    {{- /* 3.3: Health endpoint textAnalyze */}}
     - textAnalyze:
         checkName: Application Health Endpoint
-        fileName: dronerx-health.json
+        fileName: dronerx-health/*/dronerx-health-stdout.txt
         regex: '"status":\s*"ok"'
         outcomes:
           - fail:
