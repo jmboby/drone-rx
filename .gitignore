@@ -31,7 +31,7 @@ chart/charts/
 .env.local
 
 # Build artifacts
-api
+/api
 *.tgz
 
 # Kubeconfig
