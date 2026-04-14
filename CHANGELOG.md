@@ -1,5 +1,13 @@
 # Changelog
 
+## [1.11.2](https://github.com/jmboby/drone-rx/compare/v1.11.1...v1.11.2) (2026-04-14)
+
+
+### Bug Fixes
+
+* revert to helmCharts format for EC cert-manager extension ([7900fd4](https://github.com/jmboby/drone-rx/commit/7900fd499b2b4b34629da828d9fb7b595875517f))
+* revert to helmCharts format for EC extensions ([42d848b](https://github.com/jmboby/drone-rx/commit/42d848b2ee2a09c84647577076364f83169d6e31))
+
 ## [1.11.1](https://github.com/jmboby/drone-rx/compare/v1.11.0...v1.11.1) (2026-04-14)
 
 
