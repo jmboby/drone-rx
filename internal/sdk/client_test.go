@@ -160,6 +160,36 @@ func TestClient_SendMetrics(t *testing.T) {
 	}
 }
 
+func TestIsFeatureEnabled_EnvFallback(t *testing.T) {
+	// SDK server that returns 500 (unreachable)
+	srv := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		w.WriteHeader(http.StatusInternalServerError)
+	}))
+	defer srv.Close()
+
+	client := sdk.NewClient(srv.URL)
+
+	// No env override — SDK fails, returns false (fail closed)
+	got := client.IsFeatureEnabled("live_tracking_enabled")
+	if got != false {
+		t.Errorf("expected false when SDK down and no override, got %v", got)
+	}
+
+	// With env override — SDK fails but env says enabled
+	client.SetFeatureOverride("live_tracking_enabled", "true")
+	got = client.IsFeatureEnabled("live_tracking_enabled")
+	if got != true {
+		t.Errorf("expected true with env override, got %v", got)
+	}
+
+	// With env override disabled
+	client.SetFeatureOverride("live_tracking_enabled", "false")
+	got = client.IsFeatureEnabled("live_tracking_enabled")
+	if got != false {
+		t.Errorf("expected false with env override false, got %v", got)
+	}
+}
+
 func TestClient_SDKUnavailable_FailsGracefully(t *testing.T) {
 	// Point at a server that is immediately closed — nothing listening.
 	srv := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {}))

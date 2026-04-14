@@ -6,13 +6,14 @@ import (
 )
 
 type Config struct {
-	Port           string
-	DatabaseURL    string
-	NATSUrl        string
-	TickerInterval int
-	WebhookURL     string
-	SDKUrl         string
-	Namespace      string
+	Port                string
+	DatabaseURL         string
+	NATSUrl             string
+	TickerInterval      int
+	WebhookURL          string
+	SDKUrl              string
+	Namespace           string
+	LiveTrackingEnabled string
 }
 
 func Load() Config {
@@ -22,8 +23,9 @@ func Load() Config {
 		NATSUrl:        getEnv("NATS_URL", "nats://localhost:4222"),
 		TickerInterval: getEnvInt("TICKER_INTERVAL", 5),
 		WebhookURL:     getEnv("WEBHOOK_URL", ""),
-		SDKUrl:         getEnv("REPLICATED_SDK_URL", "http://drone-rx-sdk:3000"),
-		Namespace:      getEnv("POD_NAMESPACE", "default"),
+		SDKUrl:              getEnv("REPLICATED_SDK_URL", "http://drone-rx-sdk:3000"),
+		Namespace:           getEnv("POD_NAMESPACE", "default"),
+		LiveTrackingEnabled: getEnv("LIVE_TRACKING_ENABLED", "true"),
 	}
 }
 
