@@ -18,6 +18,8 @@ spec:
         tag: $VERSION
     ingress:
       enabled: false
+      tls:
+        mode: "self-signed"
     postgresql:
       enabled: true
     cloudnative-pg:
