@@ -4,3 +4,16 @@ metadata:
   name: drone-rx
 spec:
   version: "3.0.0-alpha-31+k8s-1.34"
+  extensions:
+    helmCharts:
+      - chart:
+          name: cert-manager
+          chartVersion: "v1.17.1"
+        releaseName: cert-manager
+        namespace: cert-manager
+        weight: 10
+        values: |
+          crds:
+            enabled: true
+          image:
+            pullPolicy: IfNotPresent
