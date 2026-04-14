@@ -5,26 +5,23 @@ metadata:
 spec:
   version: "3.0.0-alpha-31+k8s-1.34"
   extensions:
-    helm:
-      repositories:
-        - name: jetstack
-          url: https://charts.jetstack.io
-      charts:
-        - name: cert-manager
-          chartname: jetstack/cert-manager
-          namespace: cert-manager
-          version: "v1.17.1"
-          values: |
-            crds:
-              enabled: true
+    helmCharts:
+      - chart:
+          name: cert-manager
+          chartVersion: "v1.17.1"
+        releaseName: cert-manager
+        namespace: cert-manager
+        values: |
+          crds:
+            enabled: true
+          image:
+            digest: ""
+          webhook:
             image:
               digest: ""
-            webhook:
-              image:
-                digest: ""
-            cainjector:
-              image:
-                digest: ""
-            startupapicheck:
-              image:
-                digest: ""
+          cainjector:
+            image:
+              digest: ""
+          startupapicheck:
+            image:
+              digest: ""
