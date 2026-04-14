@@ -1,5 +1,24 @@
 # Changelog
 
+## [1.10.0](https://github.com/jmboby/drone-rx/compare/v1.9.5...v1.10.0) (2026-04-14)
+
+
+### Features
+
+* add cert-manager as EC Helm extension for TLS support ([535b28a](https://github.com/jmboby/drone-rx/commit/535b28a90a4a97bfb3a278e2ab60dc9efd5b97ea))
+* add Embedded Cluster v3 config for VM installs ([33364b6](https://github.com/jmboby/drone-rx/commit/33364b683723842f0634889330e420607be64827))
+* add env var fallback for live_tracking_enabled entitlement ([05aa0e4](https://github.com/jmboby/drone-rx/commit/05aa0e458c030a55d9157e6e454204eedca57d22))
+* add LicenseFieldValue and EC defaults to HelmChart CR ([9291cfa](https://github.com/jmboby/drone-rx/commit/9291cfa8ed4716193992032492b91cfb9f903876))
+* add static v1beta3 preflight for EC installer ([9c2803e](https://github.com/jmboby/drone-rx/commit/9c2803e868847f8756b3d38102280c1792095085))
+* set self-signed TLS defaults for EC installs ([20d6907](https://github.com/jmboby/drone-rx/commit/20d69071010c4c9351f1ea4387ed5a6c058bd345))
+* Tier 4 — Embedded Cluster v3 + cert-manager TLS ([ea0d1e1](https://github.com/jmboby/drone-rx/commit/ea0d1e1774e7dac1b5a1ffdee7bfe033863cce10))
+* wire liveTrackingEnabled through chart values and configmap ([4f61b4b](https://github.com/jmboby/drone-rx/commit/4f61b4b6c6c818e1c61e3d76cb9c6b4838184310))
+
+
+### Bug Fixes
+
+* correct service and deployment names in kots-app.yaml for EC ([e4c254f](https://github.com/jmboby/drone-rx/commit/e4c254f2c7dc33e4ff37a7b0549be1f324a7f67d))
+
 ## [1.9.5](https://github.com/jmboby/drone-rx/compare/v1.9.4...v1.9.5) (2026-04-14)
 
 
