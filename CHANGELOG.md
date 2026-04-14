@@ -1,5 +1,13 @@
 # Changelog
 
+## [1.9.4](https://github.com/jmboby/drone-rx/compare/v1.9.3...v1.9.4) (2026-04-13)
+
+
+### Bug Fixes
+
+* broaden 3.5 failure pattern to catch SDK, DB, and NATS errors ([39b8c95](https://github.com/jmboby/drone-rx/commit/39b8c958cc3b8799eaf40fcb9c557d4fdaf9d6b7))
+* broaden support bundle 3.5 analyzer to catch SDK, DB, and NATS errors ([6e7094b](https://github.com/jmboby/drone-rx/commit/6e7094b31a7e91bd25466ab9b8ab3a94ed437662))
+
 ## [1.9.3](https://github.com/jmboby/drone-rx/compare/v1.9.2...v1.9.3) (2026-04-13)
 
 
