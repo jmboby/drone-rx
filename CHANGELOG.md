@@ -1,5 +1,13 @@
 # Changelog
 
+## [1.11.1](https://github.com/jmboby/drone-rx/compare/v1.11.0...v1.11.1) (2026-04-14)
+
+
+### Bug Fixes
+
+* correct EC Helm extension format for cert-manager ([4a50dd9](https://github.com/jmboby/drone-rx/commit/4a50dd9b05145cab70e4ba7293a5c5d6a5d030ba))
+* correct EC Helm extension format for cert-manager ([e7326e8](https://github.com/jmboby/drone-rx/commit/e7326e828e2af5d5ad257bc58807433499d6e74b))
+
 ## [1.11.0](https://github.com/jmboby/drone-rx/compare/v1.10.0...v1.11.0) (2026-04-14)
 
 
