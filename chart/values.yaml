@@ -14,6 +14,7 @@ api:
       memory: 256Mi
   tickerInterval: 5
   webhookURL: ""
+  liveTrackingEnabled: "true"
 
 frontend:
   image:

@@ -46,6 +46,11 @@
           "type": "string",
           "description": "Optional webhook URL for delivery notifications"
         },
+        "liveTrackingEnabled": {
+          "type": "string",
+          "description": "Enable live drone tracking. Set via LicenseFieldValue on KOTS/EC installs.",
+          "default": "true"
+        },
         "resources": {
           "type": "object",
           "properties": {
