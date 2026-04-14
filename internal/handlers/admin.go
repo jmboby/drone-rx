@@ -48,13 +48,12 @@ func (h *AdminHandler) GenerateSupportBundle(w http.ResponseWriter, r *http.Requ
 		// Two-step: collect bundle, then upload to local SDK endpoint.
 		// --auto-upload targets replicated.app which requires a license ID.
 		// Instead, we POST the tarball directly to the SDK's upload endpoint.
-		script := fmt.Sprintf(`set -e
-support-bundle --load-cluster-specs -n %s -o /tmp/support-bundle.tar.gz 2>&1
-SIZE=$(wc -c < /tmp/support-bundle.tar.gz)
-wget -q -O - \
-  --header="Content-Type: application/gzip" \
-  --header="Content-Length: $SIZE" \
-  --post-file=/tmp/support-bundle.tar.gz \
+		script := fmt.Sprintf(`rm -f /tmp/support-bundle.tar.gz
+support-bundle --load-cluster-specs -n %s -o /tmp/support-bundle.tar.gz >/dev/null 2>&1
+curl -sf -X POST \
+  -H "Content-Type: application/gzip" \
+  -H "Content-Length: $(wc -c < /tmp/support-bundle.tar.gz | tr -d ' ')" \
+  --data-binary @/tmp/support-bundle.tar.gz \
   %s/api/v1/supportbundle
 rm -f /tmp/support-bundle.tar.gz`,
 			h.namespace, h.sdkURL)

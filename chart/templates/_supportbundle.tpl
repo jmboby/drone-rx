@@ -42,23 +42,16 @@ spec:
         limits:
           maxLines: 5000
           maxAge: 48h
-    {{- /* 3.3: Health endpoint via exec — kubectl support-bundle runs client-side,
-           so HTTP collector can't resolve svc.cluster.local DNS.
-           exec collector uses kubectl exec to run inside the API pod. */}}
-    - exec:
+    {{- /* 3.3: Health endpoint HTTP collector */}}
+    - http:
         collectorName: dronerx-health
-        name: dronerx-health
-        selector:
-          - app.kubernetes.io/name={{ include "dronerx.name" . }}
-          - app.kubernetes.io/component=api
-        namespace: {{ .Release.Namespace }}
-        command: ["wget", "-qO-", "http://localhost:{{ .Values.api.port }}/healthz"]
-        timeout: 10s
+        get:
+          url: http://{{ include "dronerx.fullname" . }}-api.{{ .Release.Namespace }}.svc.cluster.local:{{ .Values.service.apiPort }}/healthz
   analyzers:
     {{- /* 3.3: Health endpoint textAnalyze */}}
     - textAnalyze:
         checkName: Application Health Endpoint
-        fileName: dronerx-health/*/*/dronerx-health-stdout.txt
+        fileName: dronerx-health.json
         regex: '"status":\s*"ok"'
         outcomes:
           - fail:
@@ -95,6 +88,18 @@ spec:
                 Run: kubectl describe deployment {{ include "dronerx.fullname" . }}-frontend -n {{ .Release.Namespace }}
           - pass:
               message: DroneRx frontend is running.
+    - statefulsetStatus:
+        name: {{ .Release.Name }}-nats
+        namespace: {{ .Release.Namespace }}
+        outcomes:
+          - fail:
+              when: "< 1"
+              message: |
+                The NATS StatefulSet has no ready replicas.
+                Real-time order tracking and event streaming are unavailable.
+                Run: kubectl describe statefulset {{ .Release.Name }}-nats -n {{ .Release.Namespace }}
+          - pass:
+              message: NATS is running.
     {{- /* 3.5: Known failure patterns — dependency connectivity errors */}}
     - textAnalyze:
         checkName: Application Dependency Failures
