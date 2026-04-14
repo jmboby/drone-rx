@@ -1,5 +1,13 @@
 # Changelog
 
+## [1.11.0](https://github.com/jmboby/drone-rx/compare/v1.10.0...v1.11.0) (2026-04-14)
+
+
+### Features
+
+* add minimal KOTS Config for EC admin console ([81fe6b3](https://github.com/jmboby/drone-rx/commit/81fe6b38ff95135c7ed9115ea215569d267ff81a))
+* add minimal KOTS Config for EC admin console ([037bd24](https://github.com/jmboby/drone-rx/commit/037bd247840ae0b3d8638231f86c6e2a5b955185))
+
 ## [1.10.0](https://github.com/jmboby/drone-rx/compare/v1.9.5...v1.10.0) (2026-04-14)
 
 
