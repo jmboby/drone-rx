@@ -6,10 +6,10 @@ spec:
   title: DroneRx
   icon: https://raw.githubusercontent.com/jmboby/drone-rx/main/frontend/src/lib/assets/favicon.svg
   statusInformers:
-    - deployment/dronerx-api
-    - deployment/dronerx-frontend
+    - deployment/drone-rx-api
+    - deployment/drone-rx-frontend
   ports:
-    - serviceName: dronerx-frontend
+    - serviceName: drone-rx-frontend
       servicePort: 3000
       localPort: 3000
-      applicationUrl: "http://dronerx-frontend"
+      applicationUrl: "http://drone-rx-frontend"

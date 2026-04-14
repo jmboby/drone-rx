@@ -211,6 +211,12 @@ jobs:
           curl -f http://localhost:8080/healthz
           echo "Health check passed"
 
+      - name: Verify EC build available
+        continue-on-error: true
+        run: |
+          echo "Checking if EC build is available for this release..."
+          replicated release ls --output json | jq '.[0] | {sequence, version, embeddedClusterArtifacts}'
+
       - name: Cleanup — remove cluster
         if: always()
         continue-on-error: true

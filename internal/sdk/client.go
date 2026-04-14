@@ -69,6 +69,7 @@ type UpdateInfo struct {
 type Client struct {
 	baseURL    string
 	httpClient *http.Client
+	overrides  map[string]string
 }
 
 // NewClient returns a Client pointed at the given base URL.
@@ -78,7 +79,15 @@ func NewClient(baseURL string) *Client {
 		httpClient: &http.Client{
 			Timeout: 5 * time.Second,
 		},
+		overrides: make(map[string]string),
 	}
+}
+
+// SetFeatureOverride sets a static override for a feature field.
+// Used as a fallback when the SDK API is unreachable (e.g., during startup).
+// The value from the license at install time is passed via env var.
+func (c *Client) SetFeatureOverride(fieldName, value string) {
+	c.overrides[fieldName] = value
 }
 
 // GetLicenseField fetches a single license field by name.
@@ -169,6 +178,12 @@ func (c *Client) IsFeatureEnabled(fieldName string) bool {
 	field, err := c.GetLicenseField(fieldName)
 	if err != nil {
 		slog.Error("sdk: feature check failed", "field", fieldName, "error", err)
+		// Fall back to static override from install-time license value
+		if override, ok := c.overrides[fieldName]; ok {
+			result := override == "true" || override == "1"
+			slog.Debug("sdk feature check fallback", "field", fieldName, "enabled", result)
+			return result
+		}
 		return false
 	}
 	var result bool

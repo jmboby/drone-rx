@@ -1,0 +1,79 @@
+apiVersion: troubleshoot.sh/v1beta3
+kind: Preflight
+metadata:
+  name: drone-rx
+spec:
+  analyzers:
+    # 3.1c: Cluster CPU capacity
+    - nodeResources:
+        checkName: Cluster CPU Capacity
+        outcomes:
+          - fail:
+              when: "sum(cpuAllocatable) < 2"
+              message: |
+                Insufficient CPU: cluster has less than 2 allocatable cores.
+                DroneRx requires at least 2 CPU cores across all nodes.
+          - warn:
+              when: "sum(cpuAllocatable) < 4"
+              message: |
+                Cluster has fewer than 4 CPU cores. Performance may be degraded under load.
+                Recommended: 4+ cores for production workloads.
+          - pass:
+              message: Cluster has sufficient CPU capacity.
+    # 3.1c: Cluster memory capacity
+    - nodeResources:
+        checkName: Cluster Memory Capacity
+        outcomes:
+          - fail:
+              when: "sum(memoryAllocatable) < 4Gi"
+              message: |
+                Insufficient memory: cluster has less than 4 GiB allocatable.
+                DroneRx requires at least 4 GiB of memory across all nodes.
+          - warn:
+              when: "sum(memoryAllocatable) < 8Gi"
+              message: |
+                Cluster has less than 8 GiB memory. Production workloads may be constrained.
+          - pass:
+              message: Cluster has sufficient memory.
+    # 3.1d: Kubernetes version
+    - clusterVersion:
+        checkName: Kubernetes Version
+        outcomes:
+          - fail:
+              when: "< 1.28.0"
+              message: |
+                Kubernetes version is not supported.
+                DroneRx requires Kubernetes 1.28 or higher.
+                Upgrade your cluster before installing.
+          - warn:
+              when: "< 1.30.0"
+              message: Kubernetes version is supported but upgrading to 1.30+ is recommended.
+          - pass:
+              message: Kubernetes version is supported.
+    # 3.1e: Distribution check
+    - distribution:
+        checkName: Kubernetes Distribution
+        outcomes:
+          - fail:
+              when: "== docker-desktop"
+              message: |
+                docker-desktop is not a supported Kubernetes distribution.
+                Supported distributions: EKS, GKE, AKS, RKE2, k3s, OpenShift, Embedded Cluster.
+          - fail:
+              when: "== microk8s"
+              message: |
+                microk8s is not a supported Kubernetes distribution.
+                Supported distributions: EKS, GKE, AKS, RKE2, k3s, OpenShift, Embedded Cluster.
+          - pass:
+              message: Kubernetes distribution is supported.
+    # 3.6: Default storage class
+    - storageClass:
+        checkName: Default Storage Class
+        outcomes:
+          - fail:
+              when: "== false"
+              message: |
+                No default storage class is configured on this cluster.
+                DroneRx requires a default storage class for PostgreSQL persistent volume claims.
+          - pass:
+              message: A default storage class is available.

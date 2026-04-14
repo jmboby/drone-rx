@@ -127,6 +127,9 @@ func main() {
 
 	// 4a. Create Replicated SDK client
 	sdkClient := sdk.NewClient(cfg.SDKUrl)
+	if cfg.LiveTrackingEnabled != "" {
+		sdkClient.SetFeatureOverride("live_tracking_enabled", cfg.LiveTrackingEnabled)
+	}
 
 	// 5. Create stores
 	medicineStore := models.NewMedicineStore(db)
