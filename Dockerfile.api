@@ -11,7 +11,7 @@ RUN wget -qO /tmp/support-bundle.tar.gz https://github.com/replicatedhq/troubles
     && rm /tmp/support-bundle.tar.gz
 
 FROM alpine:3.19
-RUN apk add --no-cache ca-certificates
+RUN apk add --no-cache ca-certificates curl
 COPY --from=builder /api /api
 COPY --from=support-bundle /usr/local/bin/support-bundle /usr/local/bin/support-bundle
 EXPOSE 8080
