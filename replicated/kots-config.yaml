@@ -1,0 +1,55 @@
+apiVersion: kots.io/v1beta1
+kind: Config
+metadata:
+  name: drone-rx
+spec:
+  groups:
+    - name: database
+      title: Database
+      description: Configure how DroneRx connects to PostgreSQL.
+      items:
+        - name: database_type
+          title: Database Type
+          type: select_one
+          default: embedded
+          items:
+            - name: embedded
+              title: Embedded (CloudNativePG)
+            - name: external
+              title: External (BYO PostgreSQL)
+        - name: external_db_host
+          title: Host
+          type: text
+          when: 'repl{{ ConfigOptionEquals "database_type" "external" }}'
+        - name: external_db_port
+          title: Port
+          type: text
+          default: "5432"
+          when: 'repl{{ ConfigOptionEquals "database_type" "external" }}'
+        - name: external_db_name
+          title: Database Name
+          type: text
+          default: "neondb"
+          when: 'repl{{ ConfigOptionEquals "database_type" "external" }}'
+        - name: external_db_user
+          title: Username
+          type: text
+          when: 'repl{{ ConfigOptionEquals "database_type" "external" }}'
+        - name: external_db_password
+          title: Password
+          type: password
+          when: 'repl{{ ConfigOptionEquals "database_type" "external" }}'
+        - name: external_db_sslmode
+          title: SSL Mode
+          type: select_one
+          default: require
+          when: 'repl{{ ConfigOptionEquals "database_type" "external" }}'
+          items:
+            - name: disable
+              title: Disable
+            - name: require
+              title: Require
+            - name: verify-ca
+              title: Verify CA
+            - name: verify-full
+              title: Verify Full

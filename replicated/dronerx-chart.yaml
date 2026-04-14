@@ -21,7 +21,14 @@ spec:
       tls:
         mode: "self-signed"
     postgresql:
-      enabled: true
+      enabled: repl{{ ConfigOptionEquals "database_type" "embedded" }}
+    externalDatabase:
+      host: repl{{ ConfigOption "external_db_host" }}
+      port: repl{{ ConfigOption "external_db_port" | ParseInt }}
+      name: repl{{ ConfigOption "external_db_name" }}
+      user: repl{{ ConfigOption "external_db_user" }}
+      password: repl{{ ConfigOption "external_db_password" }}
+      sslmode: repl{{ ConfigOption "external_db_sslmode" }}
     cloudnative-pg:
       imagePullSecrets:
         - name: enterprise-pull-secret
