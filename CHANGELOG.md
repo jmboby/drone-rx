@@ -1,5 +1,13 @@
 # Changelog
 
+## [1.9.5](https://github.com/jmboby/drone-rx/compare/v1.9.4...v1.9.5) (2026-04-14)
+
+
+### Bug Fixes
+
+* support bundle collection and upload from /admin ([0b6244a](https://github.com/jmboby/drone-rx/commit/0b6244af5a728202ef6735bee7cedb46a0e00e80))
+* support bundle upload, health collector, RBAC, and NATS status ([098042e](https://github.com/jmboby/drone-rx/commit/098042e2d1ea2d40dfa7911e79c714b8de3590f3))
+
 ## [1.9.4](https://github.com/jmboby/drone-rx/compare/v1.9.3...v1.9.4) (2026-04-13)
 
 
