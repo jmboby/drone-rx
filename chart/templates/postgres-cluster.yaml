@@ -5,9 +5,11 @@ metadata:
   name: {{ include "dronerx.fullname" . }}-db
   labels:
     {{- include "dronerx.labels" . | nindent 4 }}
+  {{- if .Values.cnpgOperator.managed }}
   annotations:
     "helm.sh/hook": post-install
     "helm.sh/hook-weight": "10"
+  {{- end }}
 spec:
   imageName: images.littleroom.co.nz/anonymous/ghcr.io/cloudnative-pg/postgresql:18.3-system-trixie
   instances: {{ .Values.postgresql.instances }}
