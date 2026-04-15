@@ -11,13 +11,16 @@ spec:
       image:
         registry: ghcr.io
         repository: jmboby/dronerx-api
+        tag: $VERSION
     frontend:
       image:
         registry: ghcr.io
         repository: jmboby/dronerx-frontend
+        tag: $VERSION
     cloudnative-pg:
       image:
         repository: ghcr.io/cloudnative-pg/cloudnative-pg
+        tag: "1.29.0"
     nats:
       container:
         image:
@@ -63,9 +66,6 @@ spec:
       imagePullSecrets:
         - name: enterprise-pull-secret
     nats:
-      reloader:
-        image:
-          fullImageName: 'repl{{ ReplicatedImageName "index.docker.io/natsio/nats-server-config-reloader:0.21.1" }}'
       global:
         image:
           pullSecretNames:
