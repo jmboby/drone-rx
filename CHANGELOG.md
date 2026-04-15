@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.16.1](https://github.com/jmboby/drone-rx/compare/v1.16.0...v1.16.1) (2026-04-15)
+
+
+### Bug Fixes
+
+* remove NATS reloader image override for EC ([dee5deb](https://github.com/jmboby/drone-rx/commit/dee5deb4de0be312538d7ca55cbb6825ec2cefe6))
+
 ## [1.16.0](https://github.com/jmboby/drone-rx/compare/v1.15.1...v1.16.0) (2026-04-15)
 
 
