@@ -1,5 +1,18 @@
 # Changelog
 
+## [1.18.0](https://github.com/jmboby/drone-rx/compare/v1.17.0...v1.18.0) (2026-04-15)
+
+
+### Features
+
+* add cnpgOperator.managed toggle to values.yaml ([59bb5b9](https://github.com/jmboby/drone-rx/commit/59bb5b960f4440c9cf664c7494e8b94e6e4423d1))
+* add separate CNPG operator HelmChart CR at weight 5 ([f6f976c](https://github.com/jmboby/drone-rx/commit/f6f976c45f7b5895d9b63809ac8eab06bb6997d0))
+* add weight 10 to dronerx HelmChart CR, set cnpgOperator.managed=false ([38a314c](https://github.com/jmboby/drone-rx/commit/38a314cd393087c41146e6eba8fb84b97c4bfe0d))
+* condition CNPG subchart on cnpgOperator.managed ([e63d403](https://github.com/jmboby/drone-rx/commit/e63d403404d8ef67a07adc4cad876be062d76e5a))
+* make Cluster CR hook annotations conditional on cnpgOperator.managed ([fa37bb3](https://github.com/jmboby/drone-rx/commit/fa37bb3dcd3c15891d74af2b8d1e2ca8a25f1193))
+* only render wait-for-cnpg job when cnpgOperator.managed=true ([be796e5](https://github.com/jmboby/drone-rx/commit/be796e52115dd95d4fa2c80c5f70ae11283b1210))
+* separate CNPG operator into weighted HelmChart CR ([62de7c2](https://github.com/jmboby/drone-rx/commit/62de7c26b0c2a9dd72b83bf17ad123572c976b51))
+
 ## [1.17.0](https://github.com/jmboby/drone-rx/compare/v1.16.4...v1.17.0) (2026-04-15)
 
 
