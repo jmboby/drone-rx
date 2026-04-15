@@ -37,14 +37,14 @@ spec:
   values:
     api:
       image:
-        registry: 'repl{{ ReplicatedImageRegistry "ghcr.io" }}'
-        repository: 'repl{{ ReplicatedImageRepository "ghcr.io/jmboby/dronerx-api" }}'
+        registry: images.littleroom.co.nz
+        repository: proxy/drone-rx/ghcr.io/jmboby/dronerx-api
         tag: $VERSION
       liveTrackingEnabled: 'repl{{ LicenseFieldValue "live_tracking_enabled" }}'
     frontend:
       image:
-        registry: 'repl{{ ReplicatedImageRegistry "ghcr.io" }}'
-        repository: 'repl{{ ReplicatedImageRepository "ghcr.io/jmboby/dronerx-frontend" }}'
+        registry: images.littleroom.co.nz
+        repository: proxy/drone-rx/ghcr.io/jmboby/dronerx-frontend
         tag: $VERSION
     ingress:
       enabled: false
@@ -62,7 +62,7 @@ spec:
       sslmode: repl{{ ConfigOption "external_db_sslmode" }}
     cloudnative-pg:
       image:
-        repository: 'repl{{ ReplicatedImageRegistry "ghcr.io" }}/repl{{ ReplicatedImageRepository "ghcr.io/cloudnative-pg/cloudnative-pg" }}'
+        repository: images.littleroom.co.nz/anonymous/ghcr.io/cloudnative-pg/cloudnative-pg
       imagePullSecrets:
         - name: enterprise-pull-secret
     nats:
