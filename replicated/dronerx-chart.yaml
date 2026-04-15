@@ -17,23 +17,30 @@ spec:
         registry: ghcr.io
         repository: jmboby/dronerx-frontend
         tag: $VERSION
+    postgresql:
+      enabled: true
+    nats:
+      enabled: true
+      container:
+        image:
+          registry: index.docker.io
+          repository: library/nats
+      reloader:
+        image:
+          registry: index.docker.io
+          repository: natsio/nats-server-config-reloader
+      natsBox:
+        container:
+          image:
+            registry: index.docker.io
+            repository: natsio/nats-box
     cloudnative-pg:
       image:
         repository: ghcr.io/cloudnative-pg/cloudnative-pg
-        tag: "1.29.0"
-    nats:
-      container:
-        image:
-          repository: index.docker.io/library/nats
-          tag: 2.12.6-alpine
-      reloader:
-        image:
-          repository: index.docker.io/natsio/nats-server-config-reloader
-          tag: "0.21.1"
-      natsBox:
-        image:
-          repository: index.docker.io/natsio/nats-box
-          tag: "0.19.3"
+    replicated:
+      image:
+        registry: registry.replicated.com
+        repository: library/replicated-sdk-image
   values:
     api:
       image:
