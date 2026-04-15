@@ -16,6 +16,7 @@ api:
   tickerInterval: 5
   webhookURL: ""
   liveTrackingEnabled: "true"
+  lightModeEnabled: "false"
 
 frontend:
   image:
