@@ -1,8 +1,10 @@
 <script lang="ts">
 	import '../app.css';
-	import { onMount } from 'svelte';
+	import { onMount, setContext } from 'svelte';
 	import { getUpdates, getLicenseStatus } from '$lib/api';
 	import type { UpdateInfo, LicenseStatus } from '$lib/types';
+	import { theme } from '$lib/stores/theme';
+	import { writable } from 'svelte/store';
 
 	let { children } = $props();
 
@@ -13,7 +15,13 @@
 	let showUpdateBanner = $derived(latestUpdate !== null && !bannerDismissed);
 	let showLicenseWarning = $derived(license !== null && (license.expired || !license.valid));
 
+	// Expose light_mode_enabled to child pages via context
+	const lightModeEnabled = writable(false);
+	setContext('lightModeEnabled', lightModeEnabled);
+
 	onMount(async () => {
+		theme.init();
+
 		try {
 			const [updates, licenseStatus] = await Promise.all([
 				getUpdates().catch(() => []),
@@ -24,6 +32,7 @@
 			}
 			if (licenseStatus) {
 				license = licenseStatus;
+				lightModeEnabled.set(licenseStatus.light_mode_enabled ?? false);
 			}
 		} catch {
 			// silent — banners are non-critical
