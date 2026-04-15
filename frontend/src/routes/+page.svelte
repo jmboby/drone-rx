@@ -3,6 +3,11 @@
 	import MedicineCard from '$lib/components/MedicineCard.svelte';
 	import DroneIcon from '$lib/components/DroneIcon.svelte';
 	import { cartCount } from '$lib/stores/cart';
+	import ThemeToggle from '$lib/components/ThemeToggle.svelte';
+	import { getContext } from 'svelte';
+	import type { Writable } from 'svelte/store';
+
+	const lightModeEnabled = getContext<Writable<boolean>>('lightModeEnabled');
 
 	let { data }: { data: PageData } = $props();
 
@@ -48,6 +53,10 @@
 					</span>
 				{/if}
 			</a>
+			{#if $lightModeEnabled}
+				<span class="text-navy-600">|</span>
+				<ThemeToggle />
+			{/if}
 		</nav>
 	</div>
 </header>

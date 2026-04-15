@@ -1,6 +1,11 @@
 <script lang="ts">
 	import { generateSupportBundle } from '$lib/api';
 	import DroneIcon from '$lib/components/DroneIcon.svelte';
+	import ThemeToggle from '$lib/components/ThemeToggle.svelte';
+	import { getContext } from 'svelte';
+	import type { Writable } from 'svelte/store';
+
+	const lightModeEnabled = getContext<Writable<boolean>>('lightModeEnabled');
 
 	let loading = $state(false);
 	let result = $state<{ status: string; message: string } | null>(null);
@@ -40,6 +45,10 @@
 			<a href="/" class="text-sm font-medium text-navy-200 hover:text-cyan-glow transition-colors">
 				Back to Store
 			</a>
+			{#if $lightModeEnabled}
+				<span class="text-navy-600">|</span>
+				<ThemeToggle />
+			{/if}
 		</nav>
 	</div>
 </header>

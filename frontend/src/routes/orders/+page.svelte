@@ -3,6 +3,11 @@
 	import { STATUS_LABELS } from '$lib/types';
 	import { listOrders } from '$lib/api';
 	import DroneIcon from '$lib/components/DroneIcon.svelte';
+	import ThemeToggle from '$lib/components/ThemeToggle.svelte';
+	import { getContext } from 'svelte';
+	import type { Writable } from 'svelte/store';
+
+	const lightModeEnabled = getContext<Writable<boolean>>('lightModeEnabled');
 
 	let searchName = $state('');
 	let orders = $state<Order[]>([]);
@@ -67,6 +72,10 @@
 		</div>
 		<span class="text-navy-600">/</span>
 		<span class="text-navy-200 font-medium">Order History</span>
+		{#if $lightModeEnabled}
+			<span class="ml-auto text-navy-600">|</span>
+			<ThemeToggle />
+		{/if}
 	</div>
 </header>
 
