@@ -138,8 +138,10 @@ jobs:
           echo "${OUTPUT}"
           CUSTOMER_ID=$(echo "${OUTPUT}" | jq -r '.id')
           LICENSE_ID=$(echo "${OUTPUT}" | jq -r '.installationId')
+          CHANNEL_SLUG=$(echo "${OUTPUT}" | jq -r '.channels[0].channelSlug')
           echo "customer-id=${CUSTOMER_ID}" >> $GITHUB_OUTPUT
           echo "license-id=${LICENSE_ID}" >> $GITHUB_OUTPUT
+          echo "channel-slug=${CHANNEL_SLUG}" >> $GITHUB_OUTPUT
 
       - name: Get kubeconfig for existing cluster
         run: |
@@ -163,7 +165,7 @@ jobs:
           echo "Chart version: ${VERSION}"
 
           helm install drone-rx \
-            oci://registry.replicated.com/${REPLICATED_APP}/${{ steps.release.outputs.channel }}/drone-rx \
+            oci://registry.replicated.com/${REPLICATED_APP}/${{ steps.customer.outputs.channel-slug }}/drone-rx \
             --version "${VERSION}" \
             --namespace default \
             --timeout 10m || true
