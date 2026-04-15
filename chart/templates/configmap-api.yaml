@@ -11,3 +11,4 @@ data:
   WEBHOOK_URL: {{ .Values.api.webhookURL | quote }}
   REPLICATED_SDK_URL: "http://drone-rx-sdk:3000"
   LIVE_TRACKING_ENABLED: {{ .Values.api.liveTrackingEnabled | quote }}
+  LIGHT_MODE_ENABLED: {{ .Values.api.lightModeEnabled | quote }}

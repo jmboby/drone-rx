@@ -6,6 +6,11 @@
 	import { connectTracking, getOrder, getLicenseStatus } from '$lib/api';
 	import StatusTracker from '$lib/components/StatusTracker.svelte';
 	import DroneIcon from '$lib/components/DroneIcon.svelte';
+	import ThemeToggle from '$lib/components/ThemeToggle.svelte';
+	import { getContext } from 'svelte';
+	import type { Writable } from 'svelte/store';
+
+	const lightModeEnabled = getContext<Writable<boolean>>('lightModeEnabled');
 
 	let { data }: { data: PageData } = $props();
 
@@ -234,6 +239,10 @@
 				</svg>
 				Premium
 			</span>
+		{/if}
+		{#if $lightModeEnabled}
+			<span class="text-navy-600 {wsConnected || trackingEnabled === false ? '' : 'ml-auto'}">|</span>
+			<ThemeToggle />
 		{/if}
 	</div>
 </header>

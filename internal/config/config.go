@@ -14,6 +14,7 @@ type Config struct {
 	SDKUrl              string
 	Namespace           string
 	LiveTrackingEnabled string
+	LightModeEnabled    string
 }
 
 func Load() Config {
@@ -26,6 +27,7 @@ func Load() Config {
 		SDKUrl:              getEnv("REPLICATED_SDK_URL", "http://drone-rx-sdk:3000"),
 		Namespace:           getEnv("POD_NAMESPACE", "default"),
 		LiveTrackingEnabled: getEnv("LIVE_TRACKING_ENABLED", "true"),
+		LightModeEnabled:    getEnv("LIGHT_MODE_ENABLED", "false"),
 	}
 }
 

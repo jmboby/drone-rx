@@ -3,6 +3,11 @@
 	import { cart, cartTotal } from '$lib/stores/cart';
 	import { createOrder } from '$lib/api';
 	import DroneIcon from '$lib/components/DroneIcon.svelte';
+	import ThemeToggle from '$lib/components/ThemeToggle.svelte';
+	import { getContext } from 'svelte';
+	import type { Writable } from 'svelte/store';
+
+	const lightModeEnabled = getContext<Writable<boolean>>('lightModeEnabled');
 
 	let patientName = $state('');
 	let address = $state('');
@@ -54,6 +59,10 @@
 		</div>
 		<span class="text-navy-600">/</span>
 		<span class="text-navy-200 font-medium">Place Order</span>
+		{#if $lightModeEnabled}
+			<span class="ml-auto text-navy-600">|</span>
+			<ThemeToggle />
+		{/if}
 	</div>
 </header>
 

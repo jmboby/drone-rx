@@ -53,6 +53,50 @@ body {
   border-radius: 3px;
 }
 
+/* Light theme overrides */
+[data-theme="light"] {
+  --color-navy-950: #ffffff;
+  --color-navy-900: #f8fafc;
+  --color-navy-800: #f1f5f9;
+  --color-navy-700: #e2e8f0;
+  --color-navy-600: #cbd5e1;
+  --color-navy-500: #94a3b8;
+  --color-navy-400: #64748b;
+  --color-navy-300: #475569;
+  --color-navy-200: #334155;
+  --color-navy-100: #1e293b;
+  --color-navy-50: #0f172a;
+}
+
+[data-theme="light"] body,
+body[data-theme="light"] {
+  color: #1e293b;
+}
+
+[data-theme="light"] .glass-card {
+  background: linear-gradient(135deg, rgba(255, 255, 255, 0.9), rgba(248, 250, 252, 0.95));
+  border: 1px solid rgba(226, 232, 240, 0.8);
+}
+
+[data-theme="light"] .glass-card-hover:hover {
+  border-color: rgba(0, 229, 255, 0.4);
+  box-shadow: 0 4px 24px rgba(0, 229, 255, 0.1), 0 1px 2px rgba(0, 0, 0, 0.05);
+}
+
+[data-theme="light"] ::-webkit-scrollbar-track {
+  background: #f1f5f9;
+}
+
+[data-theme="light"] ::-webkit-scrollbar-thumb {
+  background: #cbd5e1;
+}
+
+[data-theme="light"] .grid-bg {
+  background-image:
+    linear-gradient(rgba(148, 163, 184, 0.15) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(148, 163, 184, 0.15) 1px, transparent 1px);
+}
+
 /* Drone pulse animation for in-flight status */
 @keyframes drone-pulse {
   0%, 100% { opacity: 1; }
