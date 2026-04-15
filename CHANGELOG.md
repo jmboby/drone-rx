@@ -1,5 +1,16 @@
 # Changelog
 
+## [1.18.1](https://github.com/jmboby/drone-rx/compare/v1.18.0...v1.18.1) (2026-04-15)
+
+
+### Bug Fixes
+
+* add charts/ to gitignore and pull CNPG chart in dev-release ([fcb5503](https://github.com/jmboby/drone-rx/commit/fcb5503922379945db1a72079157cedf697ea8a8))
+* bundle CNPG operator chart in Replicated releases ([23de544](https://github.com/jmboby/drone-rx/commit/23de5442922baeaeba13925855d21a00e3ad76ad))
+* bundle CNPG operator chart in Replicated releases ([d1f31c5](https://github.com/jmboby/drone-rx/commit/d1f31c588cfad810c34a73ff45e41af61305ad84))
+* correct CNPG chart path in .replicated ([902c422](https://github.com/jmboby/drone-rx/commit/902c422db2692f6d113bf6cb746e4bf36f8f7018))
+* use HasLocalRegistry template for CNPG operator image ([3f51713](https://github.com/jmboby/drone-rx/commit/3f51713392d0bcd17e167aa23e6ef54667641256))
+
 ## [1.18.0](https://github.com/jmboby/drone-rx/compare/v1.17.0...v1.18.0) (2026-04-15)
 
 
