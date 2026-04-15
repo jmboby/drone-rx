@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.16.3](https://github.com/jmboby/drone-rx/compare/v1.16.2...v1.16.3) (2026-04-15)
+
+
+### Bug Fixes
+
+* revert EC template functions to hardcoded proxy paths ([6149381](https://github.com/jmboby/drone-rx/commit/6149381dc45153023184835d10ffc54499d0c2bf))
+
 ## [1.16.2](https://github.com/jmboby/drone-rx/compare/v1.16.1...v1.16.2) (2026-04-15)
 
 
