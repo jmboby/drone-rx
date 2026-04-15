@@ -66,6 +66,13 @@ body {
   --color-navy-200: #334155;
   --color-navy-100: #1e293b;
   --color-navy-50: #0f172a;
+
+  /* Remap hardcoded Tailwind white to dark for readability on light backgrounds */
+  --color-white: #0f172a;
+
+  /* Slightly deepen cyan tones for light-bg contrast */
+  --color-cyan-300: #0891b2;
+  --color-cyan-400: #0e7490;
 }
 
 [data-theme="light"] body,
@@ -73,16 +80,29 @@ body[data-theme="light"] {
   color: #1e293b;
 }
 
+/* Headings, titles, logo text, prices — white is invisible on light backgrounds */
+body[data-theme="light"] .text-white {
+  color: #0f172a;
+}
+
+/* Cart badge: text-navy-950 maps to #fff in light mode — force dark on amber */
+body[data-theme="light"] .text-navy-950 {
+  color: #1a2035;
+}
+
+/* Glass cards — refined light frosted glass with subtle depth */
 [data-theme="light"] .glass-card {
-  background: linear-gradient(135deg, rgba(255, 255, 255, 0.9), rgba(248, 250, 252, 0.95));
-  border: 1px solid rgba(226, 232, 240, 0.8);
+  background: linear-gradient(135deg, rgba(255, 255, 255, 0.92), rgba(248, 250, 252, 0.97));
+  border: 1px solid rgba(203, 213, 225, 0.6);
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.04), 0 1px 2px rgba(0, 0, 0, 0.02);
 }
 
 [data-theme="light"] .glass-card-hover:hover {
-  border-color: rgba(0, 229, 255, 0.4);
-  box-shadow: 0 4px 24px rgba(0, 229, 255, 0.1), 0 1px 2px rgba(0, 0, 0, 0.05);
+  border-color: rgba(0, 188, 212, 0.5);
+  box-shadow: 0 4px 24px rgba(0, 188, 212, 0.1), 0 1px 3px rgba(0, 0, 0, 0.06);
 }
 
+/* Scrollbar */
 [data-theme="light"] ::-webkit-scrollbar-track {
   background: #f1f5f9;
 }
@@ -91,10 +111,11 @@ body[data-theme="light"] {
   background: #cbd5e1;
 }
 
+/* Grid background — softer for light mode */
 [data-theme="light"] .grid-bg {
   background-image:
-    linear-gradient(rgba(148, 163, 184, 0.15) 1px, transparent 1px),
-    linear-gradient(90deg, rgba(148, 163, 184, 0.15) 1px, transparent 1px);
+    linear-gradient(rgba(148, 163, 184, 0.12) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(148, 163, 184, 0.12) 1px, transparent 1px);
 }
 
 /* Drone pulse animation for in-flight status */
