@@ -1,5 +1,13 @@
 # Changelog
 
+## [1.17.0](https://github.com/jmboby/drone-rx/compare/v1.16.4...v1.17.0) (2026-04-15)
+
+
+### Features
+
+* add air-gap image rewriting with HasLocalRegistry ([ca19f8e](https://github.com/jmboby/drone-rx/commit/ca19f8e6a1140871a0a838b6eea90479276e7fd1))
+* add air-gap image rewriting with HasLocalRegistry ternary ([953ae0f](https://github.com/jmboby/drone-rx/commit/953ae0f38412cc2b49a72878734e5488533e07fb))
+
 ## [1.16.4](https://github.com/jmboby/drone-rx/compare/v1.16.3...v1.16.4) (2026-04-15)
 
 
