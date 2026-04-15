@@ -6,14 +6,25 @@ spec:
   chart:
     name: drone-rx
     chartVersion: $VERSION
+  builder:
+    api:
+      image:
+        registry: ghcr.io
+        repository: jmboby/dronerx-api
+    frontend:
+      image:
+        registry: ghcr.io
+        repository: jmboby/dronerx-frontend
   values:
     api:
       image:
+        registry: 'repl{{ ReplicatedImageRegistry "ghcr.io" }}'
         repository: 'repl{{ ReplicatedImageRepository "ghcr.io/jmboby/dronerx-api" }}'
         tag: $VERSION
       liveTrackingEnabled: 'repl{{ LicenseFieldValue "live_tracking_enabled" }}'
     frontend:
       image:
+        registry: 'repl{{ ReplicatedImageRegistry "ghcr.io" }}'
         repository: 'repl{{ ReplicatedImageRepository "ghcr.io/jmboby/dronerx-frontend" }}'
         tag: $VERSION
     ingress:
@@ -35,9 +46,6 @@ spec:
         repository: 'repl{{ ReplicatedImageRepository "ghcr.io/cloudnative-pg/cloudnative-pg" }}'
       imagePullSecrets:
         - name: enterprise-pull-secret
-    replicated:
-      image:
-        registry: 'repl{{ ReplicatedImageRegistry "images.littleroom.co.nz" }}'
     nats:
       nats:
         image:

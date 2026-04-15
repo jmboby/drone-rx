@@ -17,7 +17,7 @@ spec:
       imagePullSecrets:
         {{- include "dronerx.imagePullSecrets" . | nindent 8 }}
       serviceAccountName: {{ include "dronerx.fullname" . }}-api
-      {{- if .Values.postgresql.enabled }}
+      {{- if eq .Values.postgresql.enabled true }}
       initContainers:
         - name: wait-for-db
           image: images.littleroom.co.nz/anonymous/index.docker.io/library/busybox:1.36
@@ -32,7 +32,7 @@ spec:
       {{- end }}
       containers:
         - name: api
-          image: "{{ .Values.api.image.repository }}:{{ .Values.api.image.tag }}"
+          image: "{{ .Values.api.image.registry }}/{{ .Values.api.image.repository }}:{{ .Values.api.image.tag }}"
           imagePullPolicy: {{ .Values.api.image.pullPolicy }}
           ports:
             - name: http
@@ -45,7 +45,7 @@ spec:
             - name: DB_PASSWORD
               valueFrom:
                 secretKeyRef:
-                  {{- if .Values.postgresql.enabled }}
+                  {{- if eq .Values.postgresql.enabled true }}
                   name: {{ include "dronerx.fullname" . }}-db-app
                   key: password
                   {{- else }}

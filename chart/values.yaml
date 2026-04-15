@@ -1,6 +1,7 @@
 api:
   image:
-    repository: images.littleroom.co.nz/proxy/drone-rx/ghcr.io/jmboby/dronerx-api
+    registry: images.littleroom.co.nz
+    repository: proxy/drone-rx/ghcr.io/jmboby/dronerx-api
     tag: "1.0.0" # x-release-please-version
     pullPolicy: IfNotPresent
   replicas: 1
@@ -18,7 +19,8 @@ api:
 
 frontend:
   image:
-    repository: images.littleroom.co.nz/proxy/drone-rx/ghcr.io/jmboby/dronerx-frontend
+    registry: images.littleroom.co.nz
+    repository: proxy/drone-rx/ghcr.io/jmboby/dronerx-frontend
     tag: "1.0.0" # x-release-please-version
     pullPolicy: IfNotPresent
   replicas: 1

@@ -10,6 +10,10 @@
         "image": {
           "type": "object",
           "properties": {
+            "registry": {
+              "type": "string",
+              "description": "API container image registry"
+            },
             "repository": {
               "type": "string",
               "description": "API container image repository"
@@ -24,7 +28,7 @@
               "description": "Image pull policy"
             }
           },
-          "required": ["repository", "tag"]
+          "required": ["registry", "repository", "tag"]
         },
         "replicas": {
           "type": "integer",
@@ -80,6 +84,10 @@
         "image": {
           "type": "object",
           "properties": {
+            "registry": {
+              "type": "string",
+              "description": "Frontend container image registry"
+            },
             "repository": {
               "type": "string",
               "description": "Frontend container image repository"
@@ -94,7 +102,7 @@
               "description": "Image pull policy"
             }
           },
-          "required": ["repository", "tag"]
+          "required": ["registry", "repository", "tag"]
         },
         "replicas": {
           "type": "integer",
