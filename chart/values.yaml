@@ -82,6 +82,9 @@ externalDatabase:
   password: ""
   sslmode: "require"
 
+busybox:
+  image: images.littleroom.co.nz/anonymous/index.docker.io/library/busybox:1.36
+
 imagePullSecrets: []
 
 replicated:

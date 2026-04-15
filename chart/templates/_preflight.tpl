@@ -10,7 +10,7 @@ spec:
     {{- if ne .Values.postgresql.enabled true }}
     - run:
         collectorName: dronerx-db-check
-        image: images.littleroom.co.nz/anonymous/index.docker.io/library/busybox:1.36
+        image: {{ .Values.busybox.image }}
         command: ["sh", "-c"]
         args:
           - |
@@ -20,7 +20,7 @@ spec:
     {{- if .Values.ingress.tls.cloudflare.enabled }}
     - run:
         collectorName: dronerx-cloudflare-check
-        image: images.littleroom.co.nz/anonymous/index.docker.io/library/busybox:1.36
+        image: {{ .Values.busybox.image }}
         command: ["sh", "-c"]
         args:
           - |

@@ -36,6 +36,8 @@ spec:
           image:
             registry: index.docker.io
             repository: natsio/nats-box
+    busybox:
+      image: index.docker.io/library/busybox:1.36
     replicated:
       image:
         registry: registry.replicated.com
@@ -43,6 +45,8 @@ spec:
   values:
     cnpgOperator:
       managed: false
+    busybox:
+      image: repl{{ HasLocalRegistry | ternary (print LocalRegistryHost "/" LocalRegistryNamespace "/busybox:1.36") "images.littleroom.co.nz/anonymous/index.docker.io/library/busybox:1.36" }}
     api:
       image:
         registry: 'repl{{ HasLocalRegistry | ternary LocalRegistryHost "images.littleroom.co.nz" }}'
