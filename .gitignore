@@ -25,6 +25,7 @@ Thumbs.db
 
 # Helm
 chart/charts/
+charts/
 
 # Environment
 .env
