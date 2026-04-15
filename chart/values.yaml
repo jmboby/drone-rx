@@ -54,6 +54,12 @@ cloudnative-pg:
     repository: images.littleroom.co.nz/anonymous/ghcr.io/cloudnative-pg/cloudnative-pg
   imagePullSecrets: []
 
+# -- CNPG operator management mode.
+# true = operator deployed as subchart (helm CLI installs)
+# false = operator deployed externally via Replicated HelmChart CR
+cnpgOperator:
+  managed: true
+
 # -- Embedded PostgreSQL (CloudNativePG).
 # Set postgresql.enabled=false and configure externalDatabase to use BYO Postgres.
 # This toggle controls both the CNPG operator subchart and the Cluster CR.
