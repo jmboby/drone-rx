@@ -1,5 +1,13 @@
 # Changelog
 
+## [1.15.0](https://github.com/jmboby/drone-rx/compare/v1.14.0...v1.15.0) (2026-04-15)
+
+
+### Features
+
+* split image fields into registry/repository for EC v3 ([f2f38a7](https://github.com/jmboby/drone-rx/commit/f2f38a7c5bcb1fbc4a3daedcf178bac6d2c9f505))
+* split image fields into registry/repository for EC v3 ([16bbd95](https://github.com/jmboby/drone-rx/commit/16bbd95f61c6affcefd16a66c14dd8a3bbdfc264))
+
 ## [1.14.0](https://github.com/jmboby/drone-rx/compare/v1.13.0...v1.14.0) (2026-04-15)
 
 
