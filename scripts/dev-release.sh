@@ -7,6 +7,9 @@ set -euo pipefail
 CHANNEL="${1:-Unstable}"
 VERSION="0.0.0-dev.$(date +%s)"
 
+# Ensure we run from repo root
+cd "$(git rev-parse --show-toplevel)"
+
 echo "Creating dev release ${VERSION} on channel ${CHANNEL}..."
 
 # Substitute $VERSION placeholders (same as CI does)
