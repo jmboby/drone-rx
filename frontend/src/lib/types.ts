@@ -40,6 +40,7 @@ export interface LicenseStatus {
 	license_type?: string;
 	expiration_date?: string;
 	live_tracking_enabled: boolean;
+	light_mode_enabled: boolean;
 }
 
 export interface UpdateInfo {
