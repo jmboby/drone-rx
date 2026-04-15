@@ -1,5 +1,15 @@
 # Changelog
 
+## [1.12.1](https://github.com/jmboby/drone-rx/compare/v1.12.0...v1.12.1) (2026-04-15)
+
+
+### Bug Fixes
+
+* quote LicenseFieldValue as string, remove port minimum ([9538774](https://github.com/jmboby/drone-rx/commit/953877476e911a4aaca01996749e967c567ff05c))
+* run dev-release from repo root ([df4223a](https://github.com/jmboby/drone-rx/commit/df4223a3db1100d825e178ec1b96786e853cbc77))
+* run dev-release script from repo root ([2c680cc](https://github.com/jmboby/drone-rx/commit/2c680cc16b3ddaddd57a67fe5e99629c438d10b7))
+* use latest image tag in dev-release script ([24d746a](https://github.com/jmboby/drone-rx/commit/24d746a210256c06d2d6df4f768837488ea33ec1))
+
 ## [1.12.0](https://github.com/jmboby/drone-rx/compare/v1.11.2...v1.12.0) (2026-04-15)
 
 
