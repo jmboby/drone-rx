@@ -130,6 +130,9 @@ func main() {
 	if cfg.LiveTrackingEnabled != "" {
 		sdkClient.SetFeatureOverride("live_tracking_enabled", cfg.LiveTrackingEnabled)
 	}
+	if cfg.LightModeEnabled != "" {
+		sdkClient.SetFeatureOverride("light_mode_enabled", cfg.LightModeEnabled)
+	}
 
 	// 5. Create stores
 	medicineStore := models.NewMedicineStore(db)
