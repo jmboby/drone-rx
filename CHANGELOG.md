@@ -1,5 +1,13 @@
 # Changelog
 
+## [1.16.2](https://github.com/jmboby/drone-rx/compare/v1.16.1...v1.16.2) (2026-04-15)
+
+
+### Bug Fixes
+
+* light mode contrast — override text-white and refine palette ([b35ddd7](https://github.com/jmboby/drone-rx/commit/b35ddd7d355eff2699725fd2114fcbdeb7bbc165))
+* light mode contrast — text-white invisible on white backgrounds ([e8d292e](https://github.com/jmboby/drone-rx/commit/e8d292e5356a25fa9d8516b8ba8df8f1df2d6038))
+
 ## [1.16.1](https://github.com/jmboby/drone-rx/compare/v1.16.0...v1.16.1) (2026-04-15)
 
 
