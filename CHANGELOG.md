@@ -1,5 +1,19 @@
 # Changelog
 
+## [1.16.0](https://github.com/jmboby/drone-rx/compare/v1.15.1...v1.16.0) (2026-04-15)
+
+
+### Features
+
+* add light theme CSS variable overrides ([ed2542a](https://github.com/jmboby/drone-rx/commit/ed2542a40adea653eef534c0d95a5a475f9e90e4))
+* add light_mode_enabled license field to API ([310362b](https://github.com/jmboby/drone-rx/commit/310362b12e874e5ef3118f9eaffbe3410342b5ef))
+* add light_mode_enabled to Helm chart config ([4cb35b8](https://github.com/jmboby/drone-rx/commit/4cb35b875e0d5a283e3342c3b7c9222d2dac78a5))
+* add theme store and light_mode_enabled type ([3e16e0d](https://github.com/jmboby/drone-rx/commit/3e16e0dcc1f53b1e3961d205f1a6e64e82d80e85))
+* add ThemeToggle component ([4c5c848](https://github.com/jmboby/drone-rx/commit/4c5c8482721072a39349264b926019589d6f40bb))
+* add ThemeToggle to all page headers ([16e0f36](https://github.com/jmboby/drone-rx/commit/16e0f36cc494cf7223479e902c949df56f9b738a))
+* init theme store and expose light_mode_enabled via context ([f565549](https://github.com/jmboby/drone-rx/commit/f56554967dbc889014df4a0d686f14416ffad66f))
+* license-gated Light Mode theme toggle ([88b239a](https://github.com/jmboby/drone-rx/commit/88b239a3b24f1c23b21645e71951b772a2372892))
+
 ## [1.15.1](https://github.com/jmboby/drone-rx/compare/v1.15.0...v1.15.1) (2026-04-15)
 
 
