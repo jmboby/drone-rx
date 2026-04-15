@@ -63,9 +63,6 @@ spec:
       imagePullSecrets:
         - name: enterprise-pull-secret
     nats:
-      reloader:
-        image:
-          fullImageName: 'repl{{ ReplicatedImageName "index.docker.io/natsio/nats-server-config-reloader:0.21.1" }}'
       global:
         image:
           pullSecretNames:
