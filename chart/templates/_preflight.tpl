@@ -4,10 +4,10 @@ kind: Preflight
 metadata:
   name: {{ include "dronerx.fullname" . }}-preflight
 spec:
-  {{- if or (not .Values.postgresql.enabled) .Values.ingress.tls.cloudflare.enabled }}
+  {{- if or (ne .Values.postgresql.enabled true) .Values.ingress.tls.cloudflare.enabled }}
   collectors:
     {{- /* 3.1a: External DB connectivity collector (conditional) */}}
-    {{- if not .Values.postgresql.enabled }}
+    {{- if ne .Values.postgresql.enabled true }}
     - run:
         collectorName: dronerx-db-check
         image: images.littleroom.co.nz/anonymous/index.docker.io/library/busybox:1.36
@@ -29,7 +29,7 @@ spec:
   {{- end }}
   analyzers:
     {{- /* 3.1a: External DB connectivity analyzer (conditional) */}}
-    {{- if not .Values.postgresql.enabled }}
+    {{- if ne .Values.postgresql.enabled true }}
     - textAnalyze:
         checkName: External Database Connectivity
         fileName: dronerx-db-check.log

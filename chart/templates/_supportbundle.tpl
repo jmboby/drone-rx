@@ -24,7 +24,7 @@ spec:
         limits:
           maxLines: 5000
           maxAge: 48h
-    {{- if .Values.postgresql.enabled }}
+    {{- if eq .Values.postgresql.enabled true }}
     - logs:
         name: dronerx/postgres-logs
         selector:
