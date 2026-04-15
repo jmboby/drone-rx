@@ -1,5 +1,18 @@
 # Changelog
 
+## [1.12.0](https://github.com/jmboby/drone-rx/compare/v1.11.2...v1.12.0) (2026-04-15)
+
+
+### Features
+
+* add dev-release script for manual EC testing ([7638a83](https://github.com/jmboby/drone-rx/commit/7638a8393f6f6fbd2186e03bbbd2612702d7b587))
+
+
+### Bug Fixes
+
+* remove cert-manager extension from EC config ([5f6d359](https://github.com/jmboby/drone-rx/commit/5f6d3595d0398bd8bc4de57f6ad5f56355822f4d))
+* remove cert-manager extension to unblock EC testing ([f4acbd8](https://github.com/jmboby/drone-rx/commit/f4acbd8051abdb365abcc3d551b9ec05732f1b3a))
+
 ## [1.11.2](https://github.com/jmboby/drone-rx/compare/v1.11.1...v1.11.2) (2026-04-14)
 
 
