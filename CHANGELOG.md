@@ -1,5 +1,13 @@
 # Changelog
 
+## [1.16.4](https://github.com/jmboby/drone-rx/compare/v1.16.3...v1.16.4) (2026-04-15)
+
+
+### Bug Fixes
+
+* restructure builder key for air-gap image discovery ([d806d2a](https://github.com/jmboby/drone-rx/commit/d806d2a57544e29388ff9cab8ecf9cd37147285a))
+* restructure builder key for air-gap image discovery ([6cf447f](https://github.com/jmboby/drone-rx/commit/6cf447f6cc2df01ae91d79159a90e00ae605c58d))
+
 ## [1.16.3](https://github.com/jmboby/drone-rx/compare/v1.16.2...v1.16.3) (2026-04-15)
 
 
