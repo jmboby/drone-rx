@@ -22,6 +22,7 @@ spec:
         mode: "self-signed"
     postgresql:
       enabled: repl{{ ConfigOptionEquals "database_type" "embedded" }}
+      instances: repl{{ ConfigOption "postgres_instances" | ParseInt }}
     externalDatabase:
       host: repl{{ ConfigOption "external_db_host" }}
       port: repl{{ ConfigOption "external_db_port" | ParseInt }}
