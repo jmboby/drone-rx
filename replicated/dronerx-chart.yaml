@@ -20,6 +20,7 @@ spec:
         tag: $VERSION
     postgresql:
       enabled: true
+      imageName: ghcr.io/cloudnative-pg/postgresql:18.3-system-trixie
     nats:
       enabled: true
       container:
@@ -59,6 +60,7 @@ spec:
         mode: "self-signed"
     postgresql:
       enabled: repl{{ ConfigOptionEquals "database_type" "embedded" }}
+      imageName: repl{{ HasLocalRegistry | ternary (print LocalRegistryHost "/" LocalRegistryNamespace "/postgresql:18.3-system-trixie") "images.littleroom.co.nz/anonymous/ghcr.io/cloudnative-pg/postgresql:18.3-system-trixie" }}
       instances: repl{{ ConfigOption "postgres_instances" | ParseInt }}
     externalDatabase:
       host: repl{{ ConfigOption "external_db_host" }}
