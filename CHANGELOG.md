@@ -1,5 +1,15 @@
 # Changelog
 
+## [1.15.1](https://github.com/jmboby/drone-rx/compare/v1.15.0...v1.15.1) (2026-04-15)
+
+
+### Bug Fixes
+
+* CNPG and NATS reloader image paths for EC v3 ([df52edd](https://github.com/jmboby/drone-rx/commit/df52edd7122d169d0bdd266a0a5d8cac10f0b088))
+* CNPG and NATS reloader image paths for EC v3 ([41c87f1](https://github.com/jmboby/drone-rx/commit/41c87f1ff93b55d8d72b9e1bfed45d0c0e494dec))
+* sync chart version with release version in PR workflow ([b80d302](https://github.com/jmboby/drone-rx/commit/b80d302c9453d36e6e3423550f5f3fa7415b9606))
+* use channel slug instead of name in PR helm install ([e921d1a](https://github.com/jmboby/drone-rx/commit/e921d1ab14546d93491cac99823a36381895080c))
+
 ## [1.15.0](https://github.com/jmboby/drone-rx/compare/v1.14.0...v1.15.0) (2026-04-15)
 
 
