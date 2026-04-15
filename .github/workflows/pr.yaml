@@ -96,12 +96,17 @@ jobs:
           helm repo add nats https://nats-io.github.io/k8s/helm/charts
           helm repo update
 
-      - name: Set image tags in chart values
+      - name: Set image tags and chart version
         run: |
           TAG="${{ needs.build-and-push.outputs.tag }}"
+          VERSION="0.0.0-${TAG}"
           sed -i "s|tag: \"[^\"]*\" # x-release-please-version|tag: \"${TAG}\" # x-release-please-version|g" chart/values.yaml
+          sed -i "s|^version:.*|version: ${VERSION}|" chart/Chart.yaml
+          sed -i "s|^appVersion:.*|appVersion: \"${VERSION}\"|" chart/Chart.yaml
           echo "Image tags set to: ${TAG}"
+          echo "Chart version set to: ${VERSION}"
           grep 'tag:' chart/values.yaml
+          grep 'version:' chart/Chart.yaml
 
       - name: Create release on temp channel
         id: release
@@ -154,12 +159,12 @@ jobs:
             --username "${EMAIL}" \
             --password "${LICENSE_ID}"
 
-          CHART_VERSION=$(grep '^version:' chart/Chart.yaml | awk '{print $2}')
-          echo "Chart version: ${CHART_VERSION}"
+          VERSION="0.0.0-${{ needs.build-and-push.outputs.tag }}"
+          echo "Chart version: ${VERSION}"
 
           helm install drone-rx \
             oci://registry.replicated.com/${REPLICATED_APP}/${{ steps.release.outputs.channel }}/drone-rx \
-            --version "${CHART_VERSION}" \
+            --version "${VERSION}" \
             --namespace default \
             --timeout 10m || true
 
