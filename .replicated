@@ -1,5 +1,6 @@
 appSlug: "drone-rx"
 charts:
   - path: ./chart
+  - path: ./charts/cnpg-operator
 manifests:
   - ./replicated/*.yaml
