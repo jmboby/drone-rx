@@ -1,4 +1,4 @@
-{{- if eq .Values.postgresql.enabled true }}
+{{- if and (eq .Values.postgresql.enabled true) .Values.cnpgOperator.managed }}
 apiVersion: batch/v1
 kind: Job
 metadata:
