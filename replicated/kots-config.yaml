@@ -17,6 +17,11 @@ spec:
               title: Embedded (CloudNativePG)
             - name: external
               title: External (BYO PostgreSQL)
+        - name: postgres_instances
+          title: PostgreSQL Instances
+          type: text
+          default: "1"
+          when: 'repl{{ ConfigOptionEquals "database_type" "embedded" }}'
         - name: external_db_host
           title: Host
           type: text

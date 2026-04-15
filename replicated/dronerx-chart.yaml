@@ -9,12 +9,12 @@ spec:
   values:
     api:
       image:
-        repository: images.littleroom.co.nz/proxy/drone-rx/ghcr.io/jmboby/dronerx-api
+        repository: 'repl{{ ReplicatedImageRepository "ghcr.io/jmboby/dronerx-api" }}'
         tag: $VERSION
       liveTrackingEnabled: 'repl{{ LicenseFieldValue "live_tracking_enabled" }}'
     frontend:
       image:
-        repository: images.littleroom.co.nz/proxy/drone-rx/ghcr.io/jmboby/dronerx-frontend
+        repository: 'repl{{ ReplicatedImageRepository "ghcr.io/jmboby/dronerx-frontend" }}'
         tag: $VERSION
     ingress:
       enabled: false
@@ -22,6 +22,7 @@ spec:
         mode: "self-signed"
     postgresql:
       enabled: repl{{ ConfigOptionEquals "database_type" "embedded" }}
+      instances: repl{{ ConfigOption "postgres_instances" | ParseInt }}
     externalDatabase:
       host: repl{{ ConfigOption "external_db_host" }}
       port: repl{{ ConfigOption "external_db_port" | ParseInt }}
@@ -30,9 +31,23 @@ spec:
       password: repl{{ ConfigOption "external_db_password" }}
       sslmode: repl{{ ConfigOption "external_db_sslmode" }}
     cloudnative-pg:
+      image:
+        repository: 'repl{{ ReplicatedImageRepository "ghcr.io/cloudnative-pg/cloudnative-pg" }}'
       imagePullSecrets:
         - name: enterprise-pull-secret
+    replicated:
+      image:
+        registry: 'repl{{ ReplicatedImageRegistry "images.littleroom.co.nz" }}'
     nats:
+      nats:
+        image:
+          registry: 'repl{{ ReplicatedImageRegistry "index.docker.io" }}'
+      reloader:
+        image:
+          registry: 'repl{{ ReplicatedImageRegistry "index.docker.io" }}'
+      natsBox:
+        image:
+          registry: 'repl{{ ReplicatedImageRegistry "index.docker.io" }}'
       global:
         image:
           pullSecretNames:
