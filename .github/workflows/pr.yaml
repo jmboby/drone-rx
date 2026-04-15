@@ -96,6 +96,11 @@ jobs:
           helm repo add nats https://nats-io.github.io/k8s/helm/charts
           helm repo update
 
+      - name: Pull CNPG operator chart for release bundling
+        run: |
+          mkdir -p charts/cnpg-operator
+          helm pull cnpg/cloudnative-pg --version 0.28.0 --untar --untardir charts/cnpg-operator
+
       - name: Set image tags and chart version
         run: |
           TAG="${{ needs.build-and-push.outputs.tag }}"
