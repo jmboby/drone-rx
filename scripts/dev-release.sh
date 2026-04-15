@@ -25,6 +25,10 @@ helm repo add cnpg https://cloudnative-pg.github.io/charts 2>/dev/null || true
 helm repo add nats https://nats-io.github.io/k8s/helm/charts 2>/dev/null || true
 helm repo update >/dev/null 2>&1
 
+# Pull CNPG operator chart for release bundling
+mkdir -p charts/cnpg-operator
+helm pull cnpg/cloudnative-pg --version 0.28.0 --untar --untardir charts/cnpg-operator
+
 # Create the release
 replicated release create \
   --version "${VERSION}" \
@@ -38,5 +42,6 @@ echo "Reverting local file changes..."
 # Revert substitutions
 git checkout chart/values.yaml chart/Chart.yaml replicated/dronerx-chart.yaml
 rm -f chart/values.yaml.bak chart/Chart.yaml.bak replicated/dronerx-chart.yaml.bak
+rm -rf charts/
 
 echo "Done. Local files restored."
