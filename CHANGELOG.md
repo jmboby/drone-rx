@@ -1,5 +1,18 @@
 # Changelog
 
+## [1.13.0](https://github.com/jmboby/drone-rx/compare/v1.12.1...v1.13.0) (2026-04-15)
+
+
+### Features
+
+* replace Svelte logo with DroneRx drone icon ([d5135bf](https://github.com/jmboby/drone-rx/commit/d5135bfab9cd91b36afce9d7fb522355a80dd141))
+* replace Svelte logo with DroneRx drone icon ([fa2a6ad](https://github.com/jmboby/drone-rx/commit/fa2a6ad8578aa14fa5624bc5db49f8232058f6c5))
+
+
+### Bug Fixes
+
+* use app's actual drone icon for favicon ([f2a1cf9](https://github.com/jmboby/drone-rx/commit/f2a1cf9a7dc76ad9c73feb5245ef20c6044f3455))
+
 ## [1.12.1](https://github.com/jmboby/drone-rx/compare/v1.12.0...v1.12.1) (2026-04-15)
 
 
