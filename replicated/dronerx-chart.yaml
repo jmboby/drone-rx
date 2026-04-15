@@ -6,6 +6,7 @@ spec:
   chart:
     name: drone-rx
     chartVersion: $VERSION
+  weight: 10
   builder:
     api:
       image:
@@ -34,14 +35,13 @@ spec:
           image:
             registry: index.docker.io
             repository: natsio/nats-box
-    cloudnative-pg:
-      image:
-        repository: ghcr.io/cloudnative-pg/cloudnative-pg
     replicated:
       image:
         registry: registry.replicated.com
         repository: library/replicated-sdk-image
   values:
+    cnpgOperator:
+      managed: false
     api:
       image:
         registry: 'repl{{ HasLocalRegistry | ternary LocalRegistryHost "images.littleroom.co.nz" }}'
@@ -67,11 +67,6 @@ spec:
       user: repl{{ ConfigOption "external_db_user" }}
       password: repl{{ ConfigOption "external_db_password" }}
       sslmode: repl{{ ConfigOption "external_db_sslmode" }}
-    cloudnative-pg:
-      image:
-        repository: repl{{ HasLocalRegistry | ternary (print LocalRegistryHost "/" LocalRegistryNamespace "/cloudnative-pg") "images.littleroom.co.nz/anonymous/ghcr.io/cloudnative-pg/cloudnative-pg" }}
-      imagePullSecrets:
-        - name: enterprise-pull-secret
     replicated:
       image:
         registry: 'repl{{ HasLocalRegistry | ternary LocalRegistryHost "images.littleroom.co.nz" }}'
