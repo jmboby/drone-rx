@@ -1,5 +1,21 @@
 # Changelog
 
+## [1.19.0](https://github.com/jmboby/drone-rx/compare/v1.18.4...v1.19.0) (2026-04-16)
+
+
+### Features
+
+* add Traefik ingress controller as separate HelmChart CR for EC ([46f9106](https://github.com/jmboby/drone-rx/commit/46f91061f1df5f870b7867ebbd670e6e48f8fb63))
+* add Traefik ingress controller for EC v3 ([fcb0ddf](https://github.com/jmboby/drone-rx/commit/fcb0ddf223102a13633665579597680f71ec6a12))
+
+
+### Bug Fixes
+
+* **airgap:** Fix syntax ([94bcb71](https://github.com/jmboby/drone-rx/commit/94bcb719e671382c67cece1c8e9564737e9b04dd))
+* **airgap:** Fix up dev-release.sh mess ([476259f](https://github.com/jmboby/drone-rx/commit/476259fe7a7b325ab38f850fe13ceebfc63c1093))
+* dev-release.sh always reverts files via trap on EXIT ([fbd9532](https://github.com/jmboby/drone-rx/commit/fbd9532a21ab48c65882f49c3a86e1005a96bed3))
+* dev-release.sh always reverts files via trap on EXIT ([1ff81a0](https://github.com/jmboby/drone-rx/commit/1ff81a08ee760a0413d649aad1c714c0870b5f08))
+
 ## [1.18.4](https://github.com/jmboby/drone-rx/compare/v1.18.3...v1.18.4) (2026-04-16)
 
 
