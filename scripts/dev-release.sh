@@ -41,11 +41,42 @@ mkdir -p charts/cnpg-operator charts/traefik
 helm pull cnpg/cloudnative-pg --version 0.28.0 --untar --untardir charts/cnpg-operator
 helm pull traefik/traefik --version 39.0.7 --untar --untardir charts/traefik
 
-# Create the release
+# Pre-flight: show what we're sending
+echo ""
+echo "=== Pre-flight checks ==="
+echo ".replicated contents:"
+cat .replicated
+echo ""
+echo "Chart archives:"
+ls -lh charts/ 2>/dev/null || echo "  (no charts/ dir)"
+echo ""
+echo "Replicated manifests:"
+ls -lh replicated/
+echo ""
+echo "Chart.yaml version:"
+grep 'version:' chart/Chart.yaml
+echo ""
+echo "dronerx-chart.yaml chartVersion:"
+grep 'chartVersion' replicated/dronerx-chart.yaml
+echo "========================="
+echo ""
+
+# Create the release (stdout + stderr print directly for visibility)
+echo "Creating release..."
+set +e
 replicated release create \
   --version "${VERSION}" \
   --promote "${CHANNEL}" \
-  --ensure-channel
+  --ensure-channel \
+  --debug
+RC=$?
+set -e
+
+if [ $RC -ne 0 ]; then
+  echo ""
+  echo "ERROR: replicated release create failed (exit code ${RC})"
+  exit 1
+fi
 
 echo ""
 echo "Release ${VERSION} created on ${CHANNEL}."

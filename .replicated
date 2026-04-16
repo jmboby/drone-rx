@@ -2,6 +2,6 @@ appSlug: "drone-rx"
 charts:
   - path: ./chart
   - path: ./charts/cnpg-operator/cloudnative-pg
-  - path: ./charts/traefik
+  - path: ./charts/traefik/traefik
 manifests:
   - ./replicated/*.yaml
