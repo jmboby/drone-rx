@@ -12,12 +12,12 @@ spec:
       image:
         registry: ghcr.io
         repository: jmboby/dronerx-api
-        tag: latest
+        tag: $VERSION
     frontend:
       image:
         registry: ghcr.io
         repository: jmboby/dronerx-frontend
-        tag: latest
+        tag: $VERSION
     postgresql:
       enabled: true
       imageName: ghcr.io/cloudnative-pg/postgresql:18.3-system-trixie
