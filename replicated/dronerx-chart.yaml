@@ -5,7 +5,7 @@ metadata:
 spec:
   chart:
     name: drone-rx
-    chartVersion: 0.0.0-dev.1776307712
+    chartVersion: $VERSION
   weight: 10
   builder:
     api:
