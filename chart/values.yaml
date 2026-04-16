@@ -65,6 +65,7 @@ cnpgOperator:
 # This toggle controls both the CNPG operator subchart and the Cluster CR.
 postgresql:
   enabled: true
+  imageName: images.littleroom.co.nz/anonymous/ghcr.io/cloudnative-pg/postgresql:18.3-system-trixie
   instances: 1
   storage:
     size: 1Gi
@@ -80,6 +81,9 @@ externalDatabase:
   user: "neondb_owner"
   password: ""
   sslmode: "require"
+
+busybox:
+  image: images.littleroom.co.nz/anonymous/index.docker.io/library/busybox:1.36
 
 imagePullSecrets: []
 

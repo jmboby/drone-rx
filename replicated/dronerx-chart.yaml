@@ -20,6 +20,7 @@ spec:
         tag: $VERSION
     postgresql:
       enabled: true
+      imageName: ghcr.io/cloudnative-pg/postgresql:18.3-system-trixie
     nats:
       enabled: true
       container:
@@ -35,6 +36,8 @@ spec:
           image:
             registry: index.docker.io
             repository: natsio/nats-box
+    busybox:
+      image: index.docker.io/library/busybox:1.36
     replicated:
       image:
         registry: registry.replicated.com
@@ -42,6 +45,8 @@ spec:
   values:
     cnpgOperator:
       managed: false
+    busybox:
+      image: repl{{ HasLocalRegistry | ternary (print LocalRegistryHost "/" LocalRegistryNamespace "/busybox:1.36") "images.littleroom.co.nz/anonymous/index.docker.io/library/busybox:1.36" }}
     api:
       image:
         registry: 'repl{{ HasLocalRegistry | ternary LocalRegistryHost "images.littleroom.co.nz" }}'
@@ -59,6 +64,7 @@ spec:
         mode: "self-signed"
     postgresql:
       enabled: repl{{ ConfigOptionEquals "database_type" "embedded" }}
+      imageName: repl{{ HasLocalRegistry | ternary (print LocalRegistryHost "/" LocalRegistryNamespace "/postgresql:18.3-system-trixie") "images.littleroom.co.nz/anonymous/ghcr.io/cloudnative-pg/postgresql:18.3-system-trixie" }}
       instances: repl{{ ConfigOption "postgres_instances" | ParseInt }}
     externalDatabase:
       host: repl{{ ConfigOption "external_db_host" }}
