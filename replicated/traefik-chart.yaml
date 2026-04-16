@@ -24,5 +24,6 @@ spec:
       nodePorts:
         http: 80
         https: 443
-    imagePullSecrets:
-      - name: enterprise-pull-secret
+    deployment:
+      imagePullSecrets:
+        - name: enterprise-pull-secret
