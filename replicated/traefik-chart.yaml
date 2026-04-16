@@ -1,0 +1,28 @@
+apiVersion: kots.io/v1beta2
+kind: HelmChart
+metadata:
+  name: traefik
+spec:
+  chart:
+    name: traefik
+    chartVersion: 39.0.7
+  weight: 3
+  helmUpgradeFlags:
+    - --wait
+    - --timeout=5m
+  builder:
+    image:
+      registry: docker.io
+      repository: traefik
+      tag: v3.6.12
+  values:
+    image:
+      registry: 'repl{{ HasLocalRegistry | ternary LocalRegistryHost "images.littleroom.co.nz/anonymous/index.docker.io" }}'
+      repository: 'repl{{ HasLocalRegistry | ternary (print LocalRegistryNamespace "/traefik") "library/traefik" }}'
+    service:
+      type: NodePort
+      nodePorts:
+        http: 80
+        https: 443
+    imagePullSecrets:
+      - name: enterprise-pull-secret
