@@ -1,5 +1,14 @@
 # Changelog
 
+## [1.18.4](https://github.com/jmboby/drone-rx/compare/v1.18.3...v1.18.4) (2026-04-16)
+
+
+### Bug Fixes
+
+* **airgap:** Re-add builder key ([f1d940f](https://github.com/jmboby/drone-rx/commit/f1d940f7927ca70737af511c29e2181ace06cd58))
+* **airgap:** Remove builder key images ([c695df3](https://github.com/jmboby/drone-rx/commit/c695df30685a52822e59ee3e1d528bfc73192644))
+* **airgap:** Remove builder key images ([aad73de](https://github.com/jmboby/drone-rx/commit/aad73de227af5c219199b9859d12ef7fec3447ab))
+
 ## [1.18.3](https://github.com/jmboby/drone-rx/compare/v1.18.2...v1.18.3) (2026-04-16)
 
 
