@@ -1,5 +1,13 @@
 # Changelog
 
+## [1.18.2](https://github.com/jmboby/drone-rx/compare/v1.18.1...v1.18.2) (2026-04-15)
+
+
+### Bug Fixes
+
+* regenerate Chart.lock after Chart.yaml condition change ([411f0a9](https://github.com/jmboby/drone-rx/commit/411f0a91ac4fbf8ba725854f57675c026f80968a))
+* regenerate Chart.lock after CNPG condition change ([1c7041f](https://github.com/jmboby/drone-rx/commit/1c7041ff3908499d9ae546ec810e5c1f735853e7))
+
 ## [1.18.1](https://github.com/jmboby/drone-rx/compare/v1.18.0...v1.18.1) (2026-04-15)
 
 
