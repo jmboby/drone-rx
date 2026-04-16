@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.18.3](https://github.com/jmboby/drone-rx/compare/v1.18.2...v1.18.3) (2026-04-16)
+
+
+### Bug Fixes
+
+* make PostgreSQL image air-gap aware ([655b350](https://github.com/jmboby/drone-rx/commit/655b350df879b47d9b02557b54dbb8966399a9b4))
+
 ## [1.18.2](https://github.com/jmboby/drone-rx/compare/v1.18.1...v1.18.2) (2026-04-15)
 
 
