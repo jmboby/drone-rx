@@ -2,7 +2,7 @@ api:
   image:
     registry: images.littleroom.co.nz
     repository: proxy/drone-rx/ghcr.io/jmboby/dronerx-api
-    tag: "1.0.0" # x-release-please-version
+    tag: 1.0.0" # x-release-please-version
     pullPolicy: IfNotPresent
   replicas: 1
   port: 8080
@@ -22,7 +22,7 @@ frontend:
   image:
     registry: images.littleroom.co.nz
     repository: proxy/drone-rx/ghcr.io/jmboby/dronerx-frontend
-    tag: "1.0.0" # x-release-please-version
+    tag: 1.0.0" # x-release-please-version
     pullPolicy: IfNotPresent
   replicas: 1
   port: 3000
