@@ -5,43 +5,43 @@ metadata:
 spec:
   chart:
     name: drone-rx
-    chartVersion: $VERSION
+    chartVersion: 0.0.0-dev.1776307712
   weight: 10
   builder:
-    # api:
-    #   image:
-    #     registry: ghcr.io
-    #     repository: jmboby/dronerx-api
-    #     tag: $VERSION
-    # frontend:
-    #   image:
-    #     registry: ghcr.io
-    #     repository: jmboby/dronerx-frontend
-    #     tag: $VERSION
-    # postgresql:
-    #   enabled: true
-    #   imageName: ghcr.io/cloudnative-pg/postgresql:18.3-system-trixie
-    # nats:
-    #   enabled: true
-    #   container:
-    #     image:
-    #       registry: index.docker.io
-    #       repository: library/nats
-    #   reloader:
-    #     image:
-    #       registry: index.docker.io
-    #       repository: natsio/nats-server-config-reloader
-    #   natsBox:
-    #     container:
-    #       image:
-    #         registry: index.docker.io
-    #         repository: natsio/nats-box
-    # busybox:
-    #   image: index.docker.io/library/busybox:1.36
-    # replicated:
-    #   image:
-    #     registry: registry.replicated.com
-    #     repository: library/replicated-sdk-image
+    api:
+      image:
+        registry: ghcr.io
+        repository: jmboby/dronerx-api
+        tag: latest
+    frontend:
+      image:
+        registry: ghcr.io
+        repository: jmboby/dronerx-frontend
+        tag: latest
+    postgresql:
+      enabled: true
+      imageName: ghcr.io/cloudnative-pg/postgresql:18.3-system-trixie
+    nats:
+      enabled: true
+      container:
+        image:
+          registry: index.docker.io
+          repository: library/nats
+      reloader:
+        image:
+          registry: index.docker.io
+          repository: natsio/nats-server-config-reloader
+      natsBox:
+        container:
+          image:
+            registry: index.docker.io
+            repository: natsio/nats-box
+    busybox:
+      image: index.docker.io/library/busybox:1.36
+    replicated:
+      image:
+        registry: proxy.replicated.com
+        repository: library/replicated-sdk-image
   values:
     cnpgOperator:
       managed: false
@@ -51,13 +51,13 @@ spec:
       image:
         registry: 'repl{{ HasLocalRegistry | ternary LocalRegistryHost "images.littleroom.co.nz" }}'
         repository: 'repl{{ HasLocalRegistry | ternary (print LocalRegistryNamespace "/dronerx-api") "proxy/drone-rx/ghcr.io/jmboby/dronerx-api" }}'
-        tag: $VERSION
+        tag: latest
       liveTrackingEnabled: 'repl{{ LicenseFieldValue "live_tracking_enabled" }}'
     frontend:
       image:
         registry: 'repl{{ HasLocalRegistry | ternary LocalRegistryHost "images.littleroom.co.nz" }}'
         repository: 'repl{{ HasLocalRegistry | ternary (print LocalRegistryNamespace "/dronerx-frontend") "proxy/drone-rx/ghcr.io/jmboby/dronerx-frontend" }}'
-        tag: $VERSION
+        tag: latest
     ingress:
       enabled: false
       tls:
