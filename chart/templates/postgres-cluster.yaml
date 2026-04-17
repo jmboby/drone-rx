@@ -19,6 +19,10 @@ spec:
     initdb:
       database: dronerx
       owner: dronerx
+      {{- if .Values.postgresql.password }}
+      secret:
+        name: {{ include "dronerx.fullname" . }}-db-app
+      {{- end }}
   storage:
     size: {{ .Values.postgresql.storage.size }}
 {{- end }}

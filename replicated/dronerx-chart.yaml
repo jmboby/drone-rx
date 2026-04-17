@@ -22,6 +22,7 @@ spec:
       tickerInterval: repl{{ ConfigOption "api_ticker_interval" | ParseInt }}
       liveTrackingEnabled: 'repl{{ and (ConfigOptionEquals "live_tracking_enabled" "1") (LicenseFieldValue "live_tracking_enabled" | ParseBool) }}'
       lightModeEnabled: 'repl{{ and (ConfigOptionEquals "light_mode_enabled" "1") (LicenseFieldValue "light_mode_enabled" | ParseBool) }}'
+      webhookURL: repl{{ ConfigOption "webhook_url" }}
     frontend:
       image:
         registry: 'repl{{ ReplicatedImageRegistry (HelmValue ".Values.frontend.image.registry") }}'
@@ -44,6 +45,7 @@ spec:
       instances: repl{{ ConfigOption "postgres_instances" | ParseInt }}
       storage:
         size: repl{{ ConfigOption "postgres_storage_size" }}
+      password: repl{{ ConfigOption "db_password" }}
     externalDatabase:
       host: repl{{ ConfigOption "external_db_host" }}
       port: repl{{ ConfigOption "external_db_port" | ParseInt }}
