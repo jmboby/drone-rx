@@ -8,36 +8,36 @@ spec:
     chartVersion: $VERSION
   weight: 10
   builder:
-    api:
-      image:
-        registry: ghcr.io
-        repository: jmboby/dronerx-api
-        tag: $VERSION
-    frontend:
-      image:
-        registry: ghcr.io
-        repository: jmboby/dronerx-frontend
-        tag: $VERSION
+    # api:
+    #   image:
+    #     registry: ghcr.io
+    #     repository: jmboby/dronerx-api
+    #     tag: $VERSION
+    # frontend:
+    #   image:
+    #     registry: ghcr.io
+    #     repository: jmboby/dronerx-frontend
+    #     tag: $VERSION
     postgresql:
       enabled: true
       imageName: ghcr.io/cloudnative-pg/postgresql:18.3-system-trixie
-    nats:
-      enabled: true
-      container:
-        image:
-          registry: index.docker.io
-          repository: library/nats
-      reloader:
-        image:
-          registry: index.docker.io
-          repository: natsio/nats-server-config-reloader
-      natsBox:
-        container:
-          image:
-            registry: index.docker.io
-            repository: natsio/nats-box
-    busybox:
-      image: index.docker.io/library/busybox:1.36
+    # nats:
+    #   enabled: true
+    #   container:
+    #     image:
+    #       registry: index.docker.io
+    #       repository: library/nats
+    #   reloader:
+    #     image:
+    #       registry: index.docker.io
+    #       repository: natsio/nats-server-config-reloader
+    #   natsBox:
+    #     container:
+    #       image:
+    #         registry: index.docker.io
+    #         repository: natsio/nats-box
+    # busybox:
+    #   image: index.docker.io/library/busybox:1.36
     replicated:
       image:
         registry: proxy.replicated.com
