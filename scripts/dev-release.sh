@@ -15,7 +15,8 @@ cleanup() {
   echo "Reverting local file changes..."
   git checkout chart/values.yaml chart/Chart.yaml replicated/dronerx-chart.yaml 2>/dev/null || true
   rm -f chart/values.yaml.bak chart/Chart.yaml.bak replicated/dronerx-chart.yaml.bak
-  rm -rf charts/
+  rm -rf charts/ chart/charts/
+  rm -f chart/*.tgz
   echo "Local files restored."
 }
 trap cleanup EXIT

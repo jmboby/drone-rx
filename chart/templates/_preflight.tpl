@@ -82,14 +82,14 @@ spec:
         checkName: Cluster Memory Capacity
         outcomes:
           - fail:
+              when: "sum(memoryAllocatable) < 2Gi"
+              message: |
+                Insufficient memory: cluster has less than 2 GiB allocatable.
+                DroneRx requires at least 2 GiB of memory across all nodes.
+          - warn:
               when: "sum(memoryAllocatable) < 4Gi"
               message: |
-                Insufficient memory: cluster has less than 4 GiB allocatable.
-                DroneRx requires at least 4 GiB of memory across all nodes.
-          - warn:
-              when: "sum(memoryAllocatable) < 8Gi"
-              message: |
-                Cluster has less than 8 GiB memory. Production workloads may be constrained.
+                Cluster has less than 4 GiB memory. Production workloads may be constrained.
           - pass:
               message: Cluster has sufficient memory.
     {{- /* 3.1d: Kubernetes version check (always) */}}

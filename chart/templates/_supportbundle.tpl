@@ -88,6 +88,18 @@ spec:
                 Run: kubectl describe deployment {{ include "dronerx.fullname" . }}-frontend -n {{ .Release.Namespace }}
           - pass:
               message: DroneRx frontend is running.
+    - deploymentStatus:
+        name: {{ include "dronerx.fullname" . }}-cloudnative-pg
+        namespace: {{ .Release.Namespace }}
+        outcomes:
+          - fail:
+              when: "< 1"
+              message: |
+                The DroneRx CNPG Operator deployment has no available replicas.
+                The Postgres Operator is down, The application is unavailable — users cannot place or track orders.
+                Run: kubectl describe deployment {{ include "dronerx.fullname" . }}-frontend -n {{ .Release.Namespace }}
+          - pass:
+              message: CNPG Operator is running.
     - statefulsetStatus:
         name: {{ .Release.Name }}-nats
         namespace: {{ .Release.Namespace }}
