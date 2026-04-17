@@ -3,6 +3,7 @@ kind: HelmChart
 metadata:
   name: traefik
 spec:
+  exclude: 'repl{{ ConfigOptionNotEquals "ingress_enabled" "1" }}'
   namespace: traefik
   chart:
     name: traefik
@@ -21,7 +22,7 @@ spec:
       registry: 'repl{{ ReplicatedImageRegistry (HelmValue ".Values.image.registry") }}'
       repository: 'repl{{ ReplicatedImageRepository (HelmValue ".Values.image.repository") }}'
     service:
-      type: NodePort
+      type: repl{{ ConfigOption "traefik_service_type" }}
       nodePorts:
         http: 80
         https: 443

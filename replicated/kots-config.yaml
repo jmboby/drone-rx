@@ -22,6 +22,12 @@ spec:
           type: text
           default: "1"
           when: 'repl{{ ConfigOptionEquals "database_type" "embedded" }}'
+        - name: postgres_storage_size
+          title: PostgreSQL Storage Size
+          help_text: PVC size for each PostgreSQL instance (e.g. 1Gi, 10Gi, 100Gi).
+          type: text
+          default: "1Gi"
+          when: 'repl{{ ConfigOptionEquals "database_type" "embedded" }}'
         - name: external_db_host
           title: Host
           type: text
@@ -84,6 +90,13 @@ spec:
               title: Let's Encrypt (HTTP-01)
             - name: cloudflare
               title: Let's Encrypt (Cloudflare DNS-01)
+            - name: existing-secret
+              title: Existing Kubernetes Secret (BYO)
+        - name: tls_existing_secret_name
+          title: Existing TLS Secret Name
+          help_text: Name of a pre-created kubernetes.io/tls Secret in the app namespace.
+          type: text
+          when: 'repl{{ and (ConfigOptionEquals "ingress_enabled" "1") (ConfigOptionEquals "tls_mode" "existing-secret") }}'
         - name: tls_email
           title: Contact Email
           help_text: Used by Let's Encrypt for certificate expiry notices.
@@ -94,3 +107,47 @@ spec:
           help_text: Scoped token with Zone:DNS:Edit for the ingress domain.
           type: password
           when: 'repl{{ and (ConfigOptionEquals "ingress_enabled" "1") (ConfigOptionEquals "tls_mode" "cloudflare") }}'
+        - name: traefik_service_type
+          title: Traefik Service Type
+          help_text: NodePort for bare-metal/Embedded Cluster, LoadBalancer for cloud installs.
+          type: select_one
+          default: NodePort
+          when: 'repl{{ ConfigOptionEquals "ingress_enabled" "1" }}'
+          items:
+            - name: NodePort
+              title: NodePort
+            - name: LoadBalancer
+              title: LoadBalancer
+    - name: scaling
+      title: Scaling & Tuning
+      description: Adjust replica counts and polling intervals.
+      items:
+        - name: api_replicas
+          title: API Replicas
+          type: text
+          default: "1"
+        - name: frontend_replicas
+          title: Frontend Replicas
+          type: text
+          default: "1"
+        - name: api_ticker_interval
+          title: API Ticker Interval (seconds)
+          help_text: How often the API advances drone simulation state.
+          type: text
+          default: "5"
+    - name: features
+      title: Features
+      description: Entitlement-gated features. Disabled options are unavailable on your current license.
+      items:
+        - name: live_tracking_enabled
+          title: Live Drone Tracking
+          help_text: Stream real-time drone telemetry to the UI. Requires license entitlement.
+          type: bool
+          default: 'repl{{ ternary "1" "0" (LicenseFieldValue "live_tracking_enabled" | ParseBool) }}'
+          readonly: 'repl{{ not (LicenseFieldValue "live_tracking_enabled" | ParseBool) }}'
+        - name: light_mode_enabled
+          title: Light / Dark Mode Toggle
+          help_text: Allow end users to switch UI theme. Requires license entitlement.
+          type: bool
+          default: 'repl{{ ternary "1" "0" (LicenseFieldValue "light_mode_enabled" | ParseBool) }}'
+          readonly: 'repl{{ not (LicenseFieldValue "light_mode_enabled" | ParseBool) }}'

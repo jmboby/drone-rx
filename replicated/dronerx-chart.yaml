@@ -18,18 +18,23 @@ spec:
         registry: 'repl{{ ReplicatedImageRegistry (HelmValue ".Values.api.image.registry") }}'
         repository: 'repl{{ ReplicatedImageRepository (HelmValue ".Values.api.image.repository") }}'
         tag: latest
-      liveTrackingEnabled: 'repl{{ LicenseFieldValue "live_tracking_enabled" }}'
+      replicas: repl{{ ConfigOption "api_replicas" | ParseInt }}
+      tickerInterval: repl{{ ConfigOption "api_ticker_interval" | ParseInt }}
+      liveTrackingEnabled: 'repl{{ and (ConfigOptionEquals "live_tracking_enabled" "1") (LicenseFieldValue "live_tracking_enabled" | ParseBool) }}'
+      lightModeEnabled: 'repl{{ and (ConfigOptionEquals "light_mode_enabled" "1") (LicenseFieldValue "light_mode_enabled" | ParseBool) }}'
     frontend:
       image:
         registry: 'repl{{ ReplicatedImageRegistry (HelmValue ".Values.frontend.image.registry") }}'
         repository: 'repl{{ ReplicatedImageRepository (HelmValue ".Values.frontend.image.repository") }}'
         tag: latest
+      replicas: repl{{ ConfigOption "frontend_replicas" | ParseInt }}
     ingress:
       enabled: repl{{ ConfigOptionEquals "ingress_enabled" "1" }}
       hostname: repl{{ ConfigOption "ingress_hostname" }}
       tls:
         mode: repl{{ ConfigOption "tls_mode" }}
         email: repl{{ ConfigOption "tls_email" }}
+        existingSecretName: repl{{ ConfigOption "tls_existing_secret_name" }}
         cloudflare:
           enabled: repl{{ ConfigOptionEquals "tls_mode" "cloudflare" }}
           apiTokenSecretName: drone-rx-cloudflare-api-token
@@ -37,6 +42,8 @@ spec:
       enabled: repl{{ ConfigOptionEquals "database_type" "embedded" }}
       imageName: 'repl{{ ReplicatedImageName (HelmValue ".Values.postgresql.imageName") }}'
       instances: repl{{ ConfigOption "postgres_instances" | ParseInt }}
+      storage:
+        size: repl{{ ConfigOption "postgres_storage_size" }}
     externalDatabase:
       host: repl{{ ConfigOption "external_db_host" }}
       port: repl{{ ConfigOption "external_db_port" | ParseInt }}

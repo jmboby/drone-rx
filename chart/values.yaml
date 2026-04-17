@@ -45,6 +45,7 @@ ingress:
   tls:
     mode: "auto"
     secretName: "letsencrypt-cert"
+    existingSecretName: ""
     email: ""
     cloudflare:
       enabled: false
@@ -55,7 +56,8 @@ ingress:
 cloudnative-pg:
   image:
     repository: images.littleroom.co.nz/proxy/drone-rx/ghcr.io/cloudnative-pg/cloudnative-pg
-  imagePullSecrets: []
+  imagePullSecrets:
+    - name: enterprise-pull-secret
 
 # -- CNPG operator management mode.
 # true = operator deployed as subchart (helm CLI installs)
@@ -88,7 +90,8 @@ externalDatabase:
 busybox:
   image: images.littleroom.co.nz/proxy/drone-rx/index.docker.io/library/busybox:1.36
 
-imagePullSecrets: []
+imagePullSecrets:
+  - name: enterprise-pull-secret
 
 replicated:
   nameOverride: "drone-rx-sdk"
@@ -100,7 +103,8 @@ nats:
   enabled: true
   global:
     image:
-      pullSecretNames: []
+      pullSecretNames:
+        - enterprise-pull-secret
   container:
     image:
       registry: images.littleroom.co.nz/proxy/drone-rx/index.docker.io

@@ -13,6 +13,8 @@ metadata:
 spec:
   imageName: {{ .Values.postgresql.imageName }}
   instances: {{ .Values.postgresql.instances }}
+  imagePullSecrets:
+    {{- include "dronerx.imagePullSecrets" . | nindent 4 }}
   bootstrap:
     initdb:
       database: dronerx
