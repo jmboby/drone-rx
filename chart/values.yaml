@@ -74,6 +74,9 @@ postgresql:
   instances: 1
   storage:
     size: 1Gi
+  # Embedded DB app-user password. Empty = let CNPG auto-generate.
+  # KOTS installs pass a cached RandomString via HelmChart CR.
+  password: ""
 
 # -- External (BYO) PostgreSQL connection.
 # Only used when postgresql.enabled=false.

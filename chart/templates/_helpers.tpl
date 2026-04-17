@@ -116,15 +116,17 @@ Image pull secrets helper.
 Includes the Replicated enterprise-pull-secret when available, plus any user-provided secrets.
 */}}
 {{- define "dronerx.imagePullSecrets" -}}
-{{- if .Values.global }}
-{{- if .Values.global.replicated }}
-{{- if .Values.global.replicated.dockerconfigjson }}
-- name: enterprise-pull-secret
-{{- end }}
-{{- end }}
-{{- end }}
-{{- range .Values.imagePullSecrets }}
-- name: {{ .name }}
+{{- $names := list -}}
+{{- if and .Values.global .Values.global.replicated .Values.global.replicated.dockerconfigjson -}}
+{{- $names = append $names "enterprise-pull-secret" -}}
+{{- end -}}
+{{- range .Values.imagePullSecrets -}}
+{{- if not (has .name $names) -}}
+{{- $names = append $names .name -}}
+{{- end -}}
+{{- end -}}
+{{- range $names }}
+- name: {{ . }}
 {{- end }}
 {{- end }}
 

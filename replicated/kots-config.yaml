@@ -10,6 +10,7 @@ spec:
       items:
         - name: database_type
           title: Database Type
+          help_text: Embedded runs CloudNativePG in-cluster; External connects to your existing PostgreSQL (e.g. RDS, Neon).
           type: select_one
           default: embedded
           items:
@@ -19,6 +20,7 @@ spec:
               title: External (BYO PostgreSQL)
         - name: postgres_instances
           title: PostgreSQL Instances
+          help_text: Number of CNPG cluster instances. 1 = single primary; 2+ = HA with streaming replicas.
           type: text
           default: "1"
           when: 'repl{{ ConfigOptionEquals "database_type" "embedded" }}'
@@ -28,30 +30,42 @@ spec:
           type: text
           default: "1Gi"
           when: 'repl{{ ConfigOptionEquals "database_type" "embedded" }}'
+        - name: db_password
+          title: Embedded Database Password
+          help_text: Password for the embedded PostgreSQL dronerx user. Auto-generated on first install and preserved across upgrades. Override if you want to set a known value.
+          type: password
+          default: 'repl{{ RandomString 32 }}'
+          when: 'repl{{ ConfigOptionEquals "database_type" "embedded" }}'
         - name: external_db_host
           title: Host
+          help_text: Hostname or IP of your external PostgreSQL server.
           type: text
           when: 'repl{{ ConfigOptionEquals "database_type" "external" }}'
         - name: external_db_port
           title: Port
+          help_text: TCP port the PostgreSQL server listens on. Usually 5432.
           type: text
           default: "5432"
           when: 'repl{{ ConfigOptionEquals "database_type" "external" }}'
         - name: external_db_name
           title: Database Name
+          help_text: Name of the pre-created database DroneRx will connect to.
           type: text
           default: "neondb"
           when: 'repl{{ ConfigOptionEquals "database_type" "external" }}'
         - name: external_db_user
           title: Username
+          help_text: PostgreSQL role DroneRx will authenticate as. Needs CREATE on the database.
           type: text
           when: 'repl{{ ConfigOptionEquals "database_type" "external" }}'
         - name: external_db_password
           title: Password
+          help_text: Password for the PostgreSQL user above.
           type: password
           when: 'repl{{ ConfigOptionEquals "database_type" "external" }}'
         - name: external_db_sslmode
           title: SSL Mode
+          help_text: libpq sslmode. "require" is correct for most managed services (Neon, RDS); "verify-full" for strict CA pinning.
           type: select_one
           default: require
           when: 'repl{{ ConfigOptionEquals "database_type" "external" }}'
@@ -70,6 +84,7 @@ spec:
       items:
         - name: ingress_enabled
           title: Enable Ingress
+          help_text: Install Traefik and expose DroneRx externally. Disable if fronting with your own ingress controller or service mesh.
           type: bool
           default: "1"
         - name: ingress_hostname
@@ -80,6 +95,7 @@ spec:
           when: 'repl{{ ConfigOptionEquals "ingress_enabled" "1" }}'
         - name: tls_mode
           title: TLS Mode
+          help_text: How DroneRx obtains its ingress TLS certificate.
           type: select_one
           default: self-signed
           when: 'repl{{ ConfigOptionEquals "ingress_enabled" "1" }}'
@@ -99,9 +115,13 @@ spec:
           when: 'repl{{ and (ConfigOptionEquals "ingress_enabled" "1") (ConfigOptionEquals "tls_mode" "existing-secret") }}'
         - name: tls_email
           title: Contact Email
-          help_text: Used by Let's Encrypt for certificate expiry notices.
+          help_text: Used by Let's Encrypt for certificate expiry notices. Must be a valid email address.
           type: text
           when: 'repl{{ and (ConfigOptionEquals "ingress_enabled" "1") (or (ConfigOptionEquals "tls_mode" "auto") (ConfigOptionEquals "tls_mode" "cloudflare")) }}'
+          validation:
+            regex:
+              pattern: '^[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Za-z]{2,}$'
+              message: Enter a valid email address (e.g. ops@example.com).
         - name: cloudflare_api_token
           title: Cloudflare API Token
           help_text: Scoped token with Zone:DNS:Edit for the ingress domain.
@@ -124,10 +144,12 @@ spec:
       items:
         - name: api_replicas
           title: API Replicas
+          help_text: Number of API deployment pods. Scale up for redundancy or higher throughput.
           type: text
           default: "1"
         - name: frontend_replicas
           title: Frontend Replicas
+          help_text: Number of frontend deployment pods.
           type: text
           default: "1"
         - name: api_ticker_interval
@@ -135,6 +157,19 @@ spec:
           help_text: How often the API advances drone simulation state.
           type: text
           default: "5"
+    - name: integrations
+      title: Integrations
+      description: Outbound notification and webhook endpoints.
+      items:
+        - name: webhook_url
+          title: Notification Webhook URL
+          help_text: DroneRx POSTs delivery events to this URL. Leave blank to disable.
+          type: text
+          default: ""
+          validation:
+            regex:
+              pattern: '^$|^https?://[^\s]+$'
+              message: Must be blank or a valid http(s) URL.
     - name: features
       title: Features
       description: Entitlement-gated features. Disabled options are unavailable on your current license.
