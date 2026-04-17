@@ -45,6 +45,7 @@ ingress:
   tls:
     mode: "auto"
     secretName: "letsencrypt-cert"
+    existingSecretName: ""
     email: ""
     cloudflare:
       enabled: false
