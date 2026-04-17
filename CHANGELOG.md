@@ -1,5 +1,27 @@
 # Changelog
 
+## [1.19.1](https://github.com/jmboby/drone-rx/compare/v1.19.0...v1.19.1) (2026-04-17)
+
+
+### Features
+
+* **ingress-kots:** Add ingress config to config screen ([c33f13f](https://github.com/jmboby/drone-rx/commit/c33f13f060cc9af78463081c820e979797c2ceb8))
+* **kots-config:** Expand config screen with scaling, features, and ingress options ([444148b](https://github.com/jmboby/drone-rx/commit/444148b6cbcd1b3ca50fa83fde792c2e816b8855))
+* **preflight-v1beta3:** Add external DB and Cloudflare connectivity checks ([d5f2130](https://github.com/jmboby/drone-rx/commit/d5f21303ebb9ee16ac136d0009a0c8ce74826b1f))
+
+
+### Bug Fixes
+
+* **airgap-builder-cpng:** Change template function for cnpg ([1cbcdf8](https://github.com/jmboby/drone-rx/commit/1cbcdf80d4c677c3e2e8cbdddc0a1ba638892fcb))
+* **airgap-builder-sdk:** Fix replicated sdk image ref ([ca72415](https://github.com/jmboby/drone-rx/commit/ca72415200271f8772b4939d3efebefd39bc3293))
+* **airgap-builder:** Add missing images to builder key ([555562a](https://github.com/jmboby/drone-rx/commit/555562a003cb14396a7d5adf20208726ca3bd87b))
+* **airgap:** Fix up image tags ([210e198](https://github.com/jmboby/drone-rx/commit/210e1982f07ab4ebe418316a8b40563dcf44f871))
+* **airgap:** Resolve .helmignore issue causing releases to fail ([108345c](https://github.com/jmboby/drone-rx/commit/108345c1c226e3538df861a61f9d013eb179be12))
+* **helm-cli:** Pass imagePullSecrets into CNPG Cluster CR ([f478e18](https://github.com/jmboby/drone-rx/commit/f478e18550ee741b5cdf0c44aa782a90b6de225d))
+* **helm-cli:** Reference enterprise-pull-secret in subchart defaults ([bf60bd4](https://github.com/jmboby/drone-rx/commit/bf60bd487d9d307ab932b441739347636e69a0aa))
+* **preflight:** Add extra checks to preflight and supportbundle, fix dev-release tgz cleanup blowing out release size ([91111cd](https://github.com/jmboby/drone-rx/commit/91111cd7929ad42beb542492918921f227e48ff0))
+* **traefik:** fix imagepull ref ([db15e61](https://github.com/jmboby/drone-rx/commit/db15e617fe1c1370d27fd8cdba367f1a437396c4))
+
 ## [1.19.0](https://github.com/jmboby/drone-rx/compare/v1.18.4...v1.19.0) (2026-04-16)
 
 
