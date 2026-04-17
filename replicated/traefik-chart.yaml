@@ -17,8 +17,8 @@ spec:
       tag: v3.6.12
   values:
     image:
-      registry: 'repl{{ HasLocalRegistry | ternary LocalRegistryHost "images.littleroom.co.nz/anonymous/index.docker.io" }}'
-      repository: 'repl{{ HasLocalRegistry | ternary (print LocalRegistryNamespace "/traefik") "library/traefik" }}'
+      registry: 'repl{{ ReplicatedImageRegistry (HelmValue ".Values.image.registry") }}'
+      repository: 'repl{{ ReplicatedImageRepository (HelmValue ".Values.image.repository") }}'
     service:
       type: NodePort
       nodePorts:

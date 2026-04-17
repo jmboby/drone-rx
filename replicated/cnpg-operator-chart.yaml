@@ -17,6 +17,6 @@ spec:
         tag: "1.29.0"
   values:
     image:
-      repository: repl{{ HasLocalRegistry | ternary (print LocalRegistryHost "/" LocalRegistryNamespace "/cloudnative-pg") "images.littleroom.co.nz/anonymous/ghcr.io/cloudnative-pg/cloudnative-pg" }}
+      repository: 'repl{{ ReplicatedImageRepository (HelmValue ".Values.image.repository") }}'
     imagePullSecrets:
       - name: enterprise-pull-secret

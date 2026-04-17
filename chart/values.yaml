@@ -51,7 +51,7 @@ ingress:
 
 cloudnative-pg:
   image:
-    repository: images.littleroom.co.nz/anonymous/ghcr.io/cloudnative-pg/cloudnative-pg
+    repository: images.littleroom.co.nz/proxy/drone-rx/ghcr.io/cloudnative-pg/cloudnative-pg
   imagePullSecrets: []
 
 # -- CNPG operator management mode.
@@ -65,7 +65,7 @@ cnpgOperator:
 # This toggle controls both the CNPG operator subchart and the Cluster CR.
 postgresql:
   enabled: true
-  imageName: images.littleroom.co.nz/anonymous/ghcr.io/cloudnative-pg/postgresql:18.3-system-trixie
+  imageName: images.littleroom.co.nz/proxy/drone-rx/ghcr.io/cloudnative-pg/postgresql:18.3-system-trixie
   instances: 1
   storage:
     size: 1Gi
@@ -83,7 +83,7 @@ externalDatabase:
   sslmode: "require"
 
 busybox:
-  image: images.littleroom.co.nz/anonymous/index.docker.io/library/busybox:1.36
+  image: images.littleroom.co.nz/proxy/drone-rx/index.docker.io/library/busybox:1.36
 
 imagePullSecrets: []
 
@@ -100,14 +100,14 @@ nats:
       pullSecretNames: []
   container:
     image:
-      registry: images.littleroom.co.nz/anonymous/index.docker.io
+      registry: images.littleroom.co.nz/proxy/drone-rx/index.docker.io
       repository: library/nats
   reloader:
     image:
-      registry: images.littleroom.co.nz/anonymous/index.docker.io
+      registry: images.littleroom.co.nz/proxy/drone-rx/index.docker.io
       repository: natsio/nats-server-config-reloader
   natsBox:
     container:
       image:
-        registry: images.littleroom.co.nz/anonymous/index.docker.io
+        registry: images.littleroom.co.nz/proxy/drone-rx/index.docker.io
         repository: natsio/nats-box

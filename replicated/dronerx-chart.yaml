@@ -18,9 +18,9 @@ spec:
     #     registry: ghcr.io
     #     repository: jmboby/dronerx-frontend
     #     tag: $VERSION
-    postgresql:
-      enabled: true
-      imageName: ghcr.io/cloudnative-pg/postgresql:18.3-system-trixie
+    # postgresql:
+    #   enabled: true
+    #   imageName: ghcr.io/cloudnative-pg/postgresql:18.3-system-trixie
     # nats:
     #   enabled: true
     #   container:
@@ -38,25 +38,25 @@ spec:
     #         repository: natsio/nats-box
     # busybox:
     #   image: index.docker.io/library/busybox:1.36
-    replicated:
-      image:
-        registry: proxy.replicated.com
-        repository: library/replicated-sdk-image
+    # replicated:
+    #   image:
+    #     registry: proxy.replicated.com
+    #     repository: library/replicated-sdk-image
   values:
     cnpgOperator:
       managed: false
     busybox:
-      image: repl{{ HasLocalRegistry | ternary (print LocalRegistryHost "/" LocalRegistryNamespace "/busybox:1.36") "images.littleroom.co.nz/anonymous/index.docker.io/library/busybox:1.36" }}
+      image: 'repl{{ ReplicatedImageName (HelmValue ".Values.busybox.image") }}'
     api:
       image:
-        registry: 'repl{{ HasLocalRegistry | ternary LocalRegistryHost "images.littleroom.co.nz" }}'
-        repository: 'repl{{ HasLocalRegistry | ternary (print LocalRegistryNamespace "/dronerx-api") "proxy/drone-rx/ghcr.io/jmboby/dronerx-api" }}'
+        registry: 'repl{{ ReplicatedImageRegistry (HelmValue ".Values.api.image.registry") }}'
+        repository: 'repl{{ ReplicatedImageRepository (HelmValue ".Values.api.image.repository") }}'
         tag: latest
       liveTrackingEnabled: 'repl{{ LicenseFieldValue "live_tracking_enabled" }}'
     frontend:
       image:
-        registry: 'repl{{ HasLocalRegistry | ternary LocalRegistryHost "images.littleroom.co.nz" }}'
-        repository: 'repl{{ HasLocalRegistry | ternary (print LocalRegistryNamespace "/dronerx-frontend") "proxy/drone-rx/ghcr.io/jmboby/dronerx-frontend" }}'
+        registry: 'repl{{ ReplicatedImageRegistry (HelmValue ".Values.frontend.image.registry") }}'
+        repository: 'repl{{ ReplicatedImageRepository (HelmValue ".Values.frontend.image.repository") }}'
         tag: latest
     ingress:
       enabled: false
@@ -64,7 +64,7 @@ spec:
         mode: "self-signed"
     postgresql:
       enabled: repl{{ ConfigOptionEquals "database_type" "embedded" }}
-      imageName: repl{{ HasLocalRegistry | ternary (print LocalRegistryHost "/" LocalRegistryNamespace "/postgresql:18.3-system-trixie") "images.littleroom.co.nz/anonymous/ghcr.io/cloudnative-pg/postgresql:18.3-system-trixie" }}
+      imageName: 'repl{{ ReplicatedImageName (HelmValue ".Values.postgresql.imageName") }}'
       instances: repl{{ ConfigOption "postgres_instances" | ParseInt }}
     externalDatabase:
       host: repl{{ ConfigOption "external_db_host" }}
@@ -75,21 +75,21 @@ spec:
       sslmode: repl{{ ConfigOption "external_db_sslmode" }}
     replicated:
       image:
-        registry: 'repl{{ HasLocalRegistry | ternary LocalRegistryHost "images.littleroom.co.nz" }}'
+        registry: 'repl{{ ReplicatedImageRegistry (HelmValue ".Values.replicated.image.registry") }}'
     nats:
       container:
         image:
-          registry: 'repl{{ HasLocalRegistry | ternary LocalRegistryHost "images.littleroom.co.nz/anonymous/index.docker.io" }}'
-          repository: 'repl{{ HasLocalRegistry | ternary (print LocalRegistryNamespace "/nats") "library/nats" }}'
+          registry: 'repl{{ ReplicatedImageRegistry (HelmValue ".Values.nats.container.image.registry") }}'
+          repository: 'repl{{ ReplicatedImageRepository (HelmValue ".Values.nats.container.image.repository") }}'
       reloader:
         image:
-          registry: 'repl{{ HasLocalRegistry | ternary LocalRegistryHost "images.littleroom.co.nz/anonymous/index.docker.io" }}'
-          repository: 'repl{{ HasLocalRegistry | ternary (print LocalRegistryNamespace "/nats-server-config-reloader") "natsio/nats-server-config-reloader" }}'
+          registry: 'repl{{ ReplicatedImageRegistry (HelmValue ".Values.nats.reloader.image.registry") }}'
+          repository: 'repl{{ ReplicatedImageRepository (HelmValue ".Values.nats.reloader.image.repository") }}'
       natsBox:
         container:
           image:
-            registry: 'repl{{ HasLocalRegistry | ternary LocalRegistryHost "images.littleroom.co.nz/anonymous/index.docker.io" }}'
-            repository: 'repl{{ HasLocalRegistry | ternary (print LocalRegistryNamespace "/nats-box") "natsio/nats-box" }}'
+            registry: 'repl{{ ReplicatedImageRegistry (HelmValue ".Values.nats.natsBox.container.image.registry") }}'
+            repository: 'repl{{ ReplicatedImageRepository (HelmValue ".Values.nats.natsBox.container.image.repository") }}'
       global:
         image:
           pullSecretNames:

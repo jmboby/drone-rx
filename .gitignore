@@ -40,3 +40,6 @@ charts/
 
 # Worktrees
 .worktrees/
+
+.playwright-mcp/
+.superpowers/

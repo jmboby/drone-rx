@@ -13,3 +13,5 @@ spec:
       servicePort: 3000
       localPort: 3000
       applicationUrl: "http://drone-rx-frontend"
+  additionalImages:
+    - ghcr.io/cloudnative-pg/postgresql:18.3-system-trixie
