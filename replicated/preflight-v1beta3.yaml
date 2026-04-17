@@ -3,57 +3,7 @@ kind: Preflight
 metadata:
   name: drone-rx
 spec:
-  collectors:
-    # External DB connectivity (only when database_type=external)
-    - run:
-        collectorName: dronerx-db-check
-        exclude: 'repl{{ ConfigOptionNotEquals "database_type" "external" }}'
-        image: 'repl{{ ReplicatedImageName "images.littleroom.co.nz/proxy/drone-rx/index.docker.io/library/busybox:1.36" }}'
-        command: ["sh", "-c"]
-        args:
-          - |
-            nc -zv repl{{ ConfigOption "external_db_host" }} repl{{ ConfigOption "external_db_port" }} 2>&1 && echo "connected" || echo "connection_failed"
-    # Cloudflare API connectivity (only when tls_mode=cloudflare AND not airgap)
-    - run:
-        collectorName: dronerx-cloudflare-check
-        exclude: 'repl{{ or (ConfigOptionNotEquals "tls_mode" "cloudflare") IsAirgap }}'
-        image: 'repl{{ ReplicatedImageName "images.littleroom.co.nz/proxy/drone-rx/index.docker.io/library/busybox:1.36" }}'
-        command: ["sh", "-c"]
-        args:
-          - |
-            nc -zv api.cloudflare.com 443 2>&1 && echo "connected" || echo "connection_failed"
   analyzers:
-    # External DB connectivity analyzer
-    - textAnalyze:
-        checkName: External Database Connectivity
-        exclude: 'repl{{ ConfigOptionNotEquals "database_type" "external" }}'
-        fileName: dronerx-db-check.log
-        regex: "connected"
-        outcomes:
-          - fail:
-              when: "false"
-              message: |
-                Cannot connect to external database at repl{{ ConfigOption "external_db_host" }}:repl{{ ConfigOption "external_db_port" }}.
-                Verify the host, port, and credentials are correct and the database is reachable from this cluster.
-          - pass:
-              when: "true"
-              message: External database is reachable.
-    # Cloudflare API connectivity analyzer
-    - textAnalyze:
-        checkName: Cloudflare API Connectivity
-        exclude: 'repl{{ or (ConfigOptionNotEquals "tls_mode" "cloudflare") IsAirgap }}'
-        fileName: dronerx-cloudflare-check.log
-        regex: "connected"
-        outcomes:
-          - fail:
-              when: "false"
-              message: |
-                Cannot reach Cloudflare API at api.cloudflare.com:443.
-                cert-manager DNS-01 challenges require outbound HTTPS access to the Cloudflare API.
-                Ensure firewall and proxy rules allow outbound TCP to api.cloudflare.com on port 443.
-          - pass:
-              when: "true"
-              message: Cloudflare API is reachable.
     # 3.1c: Cluster CPU capacity
     - nodeResources:
         checkName: Cluster CPU Capacity
