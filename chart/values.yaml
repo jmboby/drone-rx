@@ -45,9 +45,12 @@ ingress:
   tls:
     mode: "auto"
     secretName: "letsencrypt-cert"
-    email: "jamesw@replicated.com"
+    email: ""
     cloudflare:
       enabled: false
+      # Name of a Kubernetes Secret holding the Cloudflare API token
+      # (key: api-token). Populated by KOTS when tls.mode=cloudflare.
+      apiTokenSecretName: ""
 
 cloudnative-pg:
   image:

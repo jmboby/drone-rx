@@ -3,6 +3,7 @@ kind: HelmChart
 metadata:
   name: traefik
 spec:
+  namespace: traefik
   chart:
     name: traefik
     chartVersion: 39.0.7

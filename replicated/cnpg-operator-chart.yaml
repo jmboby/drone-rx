@@ -3,6 +3,7 @@ kind: HelmChart
 metadata:
   name: cnpg-operator
 spec:
+  exclude: 'repl{{ ConfigOptionNotEquals "database_type" "embedded" }}'
   chart:
     name: cloudnative-pg
     chartVersion: 0.28.0

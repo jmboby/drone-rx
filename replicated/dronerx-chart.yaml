@@ -8,40 +8,6 @@ spec:
     chartVersion: $VERSION
   weight: 10
   builder:
-    # api:
-    #   image:
-    #     registry: ghcr.io
-    #     repository: jmboby/dronerx-api
-    #     tag: $VERSION
-    # frontend:
-    #   image:
-    #     registry: ghcr.io
-    #     repository: jmboby/dronerx-frontend
-    #     tag: $VERSION
-    # postgresql:
-    #   enabled: true
-    #   imageName: ghcr.io/cloudnative-pg/postgresql:18.3-system-trixie
-    # nats:
-    #   enabled: true
-    #   container:
-    #     image:
-    #       registry: index.docker.io
-    #       repository: library/nats
-    #   reloader:
-    #     image:
-    #       registry: index.docker.io
-    #       repository: natsio/nats-server-config-reloader
-    #   natsBox:
-    #     container:
-    #       image:
-    #         registry: index.docker.io
-    #         repository: natsio/nats-box
-    # busybox:
-    #   image: index.docker.io/library/busybox:1.36
-    # replicated:
-    #   image:
-    #     registry: proxy.replicated.com
-    #     repository: library/replicated-sdk-image
   values:
     cnpgOperator:
       managed: false
@@ -59,9 +25,14 @@ spec:
         repository: 'repl{{ ReplicatedImageRepository (HelmValue ".Values.frontend.image.repository") }}'
         tag: latest
     ingress:
-      enabled: false
+      enabled: repl{{ ConfigOptionEquals "ingress_enabled" "1" }}
+      hostname: repl{{ ConfigOption "ingress_hostname" }}
       tls:
-        mode: "self-signed"
+        mode: repl{{ ConfigOption "tls_mode" }}
+        email: repl{{ ConfigOption "tls_email" }}
+        cloudflare:
+          enabled: repl{{ ConfigOptionEquals "tls_mode" "cloudflare" }}
+          apiTokenSecretName: drone-rx-cloudflare-api-token
     postgresql:
       enabled: repl{{ ConfigOptionEquals "database_type" "embedded" }}
       imageName: 'repl{{ ReplicatedImageName (HelmValue ".Values.postgresql.imageName") }}'

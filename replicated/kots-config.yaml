@@ -58,3 +58,39 @@ spec:
               title: Verify CA
             - name: verify-full
               title: Verify Full
+    - name: ingress
+      title: Ingress & TLS
+      description: Configure external access and TLS for DroneRx.
+      items:
+        - name: ingress_enabled
+          title: Enable Ingress
+          type: bool
+          default: "1"
+        - name: ingress_hostname
+          title: Hostname
+          help_text: The DNS name clients will use to reach DroneRx (e.g. drone-rx.example.com).
+          type: text
+          required: true
+          when: 'repl{{ ConfigOptionEquals "ingress_enabled" "1" }}'
+        - name: tls_mode
+          title: TLS Mode
+          type: select_one
+          default: self-signed
+          when: 'repl{{ ConfigOptionEquals "ingress_enabled" "1" }}'
+          items:
+            - name: self-signed
+              title: Self-signed (cluster-generated)
+            - name: auto
+              title: Let's Encrypt (HTTP-01)
+            - name: cloudflare
+              title: Let's Encrypt (Cloudflare DNS-01)
+        - name: tls_email
+          title: Contact Email
+          help_text: Used by Let's Encrypt for certificate expiry notices.
+          type: text
+          when: 'repl{{ and (ConfigOptionEquals "ingress_enabled" "1") (or (ConfigOptionEquals "tls_mode" "auto") (ConfigOptionEquals "tls_mode" "cloudflare")) }}'
+        - name: cloudflare_api_token
+          title: Cloudflare API Token
+          help_text: Scoped token with Zone:DNS:Edit for the ingress domain.
+          type: password
+          when: 'repl{{ and (ConfigOptionEquals "ingress_enabled" "1") (ConfigOptionEquals "tls_mode" "cloudflare") }}'
