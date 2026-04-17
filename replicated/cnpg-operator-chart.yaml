@@ -17,6 +17,6 @@ spec:
         tag: "1.29.0"
   values:
     image:
-      repository: 'repl{{ ReplicatedImageRepository (HelmValue ".Values.image.repository") }}'
+      repository: 'repl{{ ReplicatedImageName (HelmValue ".Values.image.repository") }}'
     imagePullSecrets:
       - name: enterprise-pull-secret
