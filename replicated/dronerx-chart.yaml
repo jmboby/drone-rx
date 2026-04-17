@@ -76,6 +76,7 @@ spec:
     replicated:
       image:
         registry: 'repl{{ ReplicatedImageRegistry (HelmValue ".Values.replicated.image.registry") }}'
+        repository: 'repl{{ ReplicatedImageRepository (HelmValue ".Values.replicated.image.repository") }}'
     nats:
       container:
         image:
