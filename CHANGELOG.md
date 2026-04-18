@@ -1,5 +1,17 @@
 # Changelog
 
+## [1.19.3](https://github.com/jmboby/drone-rx/compare/v1.19.2...v1.19.3) (2026-04-17)
+
+
+### Features
+
+* **kots-config:** Rubric 5.2/5.3/5.4 - DB password, webhook URL, validations, help_text ([43d9721](https://github.com/jmboby/drone-rx/commit/43d97216e5b7f4118c70062d4b85fae5709495a6))
+
+
+### Bug Fixes
+
+* **helm:** Dedupe enterprise-pull-secret in imagePullSecrets helper ([85c8431](https://github.com/jmboby/drone-rx/commit/85c843100c6c1ad2bb1d52a2bb6b12d67541e861))
+
 ## [1.19.2](https://github.com/jmboby/drone-rx/compare/v1.19.1...v1.19.2) (2026-04-17)
 
 
