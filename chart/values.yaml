@@ -93,6 +93,9 @@ externalDatabase:
 busybox:
   image: images.littleroom.co.nz/proxy/drone-rx/index.docker.io/library/busybox:1.36
 
+selfSignedCert:
+  image: images.littleroom.co.nz/proxy/drone-rx/index.docker.io/library/alpine:3.19
+
 imagePullSecrets:
   - name: enterprise-pull-secret
 

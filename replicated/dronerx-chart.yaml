@@ -7,12 +7,21 @@ spec:
     name: drone-rx
     chartVersion: $VERSION
   weight: 10
+  # Builder values force-render conditional templates so the airgap bundler
+  # discovers all images. Set self-signed TLS to render the cert job (alpine).
   builder:
+    ingress:
+      enabled: true
+      hostname: "builder.example.com"
+      tls:
+        mode: "self-signed"
   values:
     cnpgOperator:
       managed: false
     busybox:
       image: 'repl{{ ReplicatedImageName (HelmValue ".Values.busybox.image") true }}'
+    selfSignedCert:
+      image: 'repl{{ ReplicatedImageName (HelmValue ".Values.selfSignedCert.image") true }}'
     api:
       image:
         registry: 'repl{{ ReplicatedImageRegistry (HelmValue ".Values.api.image.registry") true }}'
