@@ -12,11 +12,11 @@ spec:
     cnpgOperator:
       managed: false
     busybox:
-      image: 'repl{{ ReplicatedImageName (HelmValue ".Values.busybox.image") }}'
+      image: 'repl{{ ReplicatedImageName (HelmValue ".Values.busybox.image") true }}'
     api:
       image:
-        registry: 'repl{{ ReplicatedImageRegistry (HelmValue ".Values.api.image.registry") }}'
-        repository: 'repl{{ ReplicatedImageRepository (HelmValue ".Values.api.image.repository") }}'
+        registry: 'repl{{ ReplicatedImageRegistry (HelmValue ".Values.api.image.registry") true }}'
+        repository: 'repl{{ ReplicatedImageRepository (HelmValue ".Values.api.image.repository") true }}'
         tag: latest
       replicas: repl{{ ConfigOption "api_replicas" | ParseInt }}
       tickerInterval: repl{{ ConfigOption "api_ticker_interval" | ParseInt }}
@@ -25,8 +25,8 @@ spec:
       webhookURL: repl{{ ConfigOption "webhook_url" }}
     frontend:
       image:
-        registry: 'repl{{ ReplicatedImageRegistry (HelmValue ".Values.frontend.image.registry") }}'
-        repository: 'repl{{ ReplicatedImageRepository (HelmValue ".Values.frontend.image.repository") }}'
+        registry: 'repl{{ ReplicatedImageRegistry (HelmValue ".Values.frontend.image.registry") true }}'
+        repository: 'repl{{ ReplicatedImageRepository (HelmValue ".Values.frontend.image.repository") true }}'
         tag: latest
       replicas: repl{{ ConfigOption "frontend_replicas" | ParseInt }}
     ingress:
@@ -41,7 +41,7 @@ spec:
           apiTokenSecretName: drone-rx-cloudflare-api-token
     postgresql:
       enabled: repl{{ ConfigOptionEquals "database_type" "embedded" }}
-      imageName: 'repl{{ ReplicatedImageName (HelmValue ".Values.postgresql.imageName") }}'
+      imageName: 'repl{{ ReplicatedImageName (HelmValue ".Values.postgresql.imageName") true }}'
       instances: repl{{ ConfigOption "postgres_instances" | ParseInt }}
       storage:
         size: repl{{ ConfigOption "postgres_storage_size" }}
@@ -55,22 +55,22 @@ spec:
       sslmode: repl{{ ConfigOption "external_db_sslmode" }}
     replicated:
       image:
-        registry: 'repl{{ ReplicatedImageRegistry (HelmValue ".Values.replicated.image.registry") }}'
-        repository: 'repl{{ ReplicatedImageRepository (HelmValue ".Values.replicated.image.repository") }}'
+        registry: 'repl{{ ReplicatedImageRegistry (HelmValue ".Values.replicated.image.registry") true }}'
+        repository: 'repl{{ ReplicatedImageRepository (HelmValue ".Values.replicated.image.repository") true }}'
     nats:
       container:
         image:
-          registry: 'repl{{ ReplicatedImageRegistry (HelmValue ".Values.nats.container.image.registry") }}'
-          repository: 'repl{{ ReplicatedImageRepository (HelmValue ".Values.nats.container.image.repository") }}'
+          registry: 'repl{{ ReplicatedImageRegistry (HelmValue ".Values.nats.container.image.registry") true }}'
+          repository: 'repl{{ ReplicatedImageRepository (HelmValue ".Values.nats.container.image.repository") true }}'
       reloader:
         image:
-          registry: 'repl{{ ReplicatedImageRegistry (HelmValue ".Values.nats.reloader.image.registry") }}'
-          repository: 'repl{{ ReplicatedImageRepository (HelmValue ".Values.nats.reloader.image.repository") }}'
+          registry: 'repl{{ ReplicatedImageRegistry (HelmValue ".Values.nats.reloader.image.registry") true }}'
+          repository: 'repl{{ ReplicatedImageRepository (HelmValue ".Values.nats.reloader.image.repository") true }}'
       natsBox:
         container:
           image:
-            registry: 'repl{{ ReplicatedImageRegistry (HelmValue ".Values.nats.natsBox.container.image.registry") }}'
-            repository: 'repl{{ ReplicatedImageRepository (HelmValue ".Values.nats.natsBox.container.image.repository") }}'
+            registry: 'repl{{ ReplicatedImageRegistry (HelmValue ".Values.nats.natsBox.container.image.registry") true }}'
+            repository: 'repl{{ ReplicatedImageRepository (HelmValue ".Values.nats.natsBox.container.image.repository") true }}'
       global:
         image:
           pullSecretNames:
