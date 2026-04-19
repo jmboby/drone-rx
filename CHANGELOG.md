@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.19.6](https://github.com/jmboby/drone-rx/compare/v1.19.5...v1.19.6) (2026-04-19)
+
+
+### Features
+
+* **ec:** Extend k0s NodePort range so Traefik binds :80/:443 ([91b2416](https://github.com/jmboby/drone-rx/commit/91b24166af277ed0c66cd229b24b440c49f0699a))
+
 ## [1.19.5](https://github.com/jmboby/drone-rx/compare/v1.19.4...v1.19.5) (2026-04-19)
 
 
