@@ -26,7 +26,6 @@ spec:
       image:
         registry: 'repl{{ ReplicatedImageRegistry (HelmValue ".Values.api.image.registry") true }}'
         repository: 'repl{{ ReplicatedImageRepository (HelmValue ".Values.api.image.repository") true }}'
-        tag: latest
       replicas: repl{{ ConfigOption "api_replicas" | ParseInt }}
       tickerInterval: repl{{ ConfigOption "api_ticker_interval" | ParseInt }}
       liveTrackingEnabled: 'repl{{ and (ConfigOptionEquals "live_tracking_enabled" "1") (LicenseFieldValue "live_tracking_enabled" | ParseBool) }}'
@@ -36,7 +35,6 @@ spec:
       image:
         registry: 'repl{{ ReplicatedImageRegistry (HelmValue ".Values.frontend.image.registry") true }}'
         repository: 'repl{{ ReplicatedImageRepository (HelmValue ".Values.frontend.image.repository") true }}'
-        tag: latest
       replicas: repl{{ ConfigOption "frontend_replicas" | ParseInt }}
     ingress:
       enabled: repl{{ ConfigOptionEquals "ingress_enabled" "1" }}
