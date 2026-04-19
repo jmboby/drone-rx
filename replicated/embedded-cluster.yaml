@@ -6,3 +6,16 @@ spec:
   version: "3.0.0-alpha-31+k8s-1.34"
   domains:
     proxyRegistryDomain: images.littleroom.co.nz
+  # Extend the kube-apiserver service-node-port-range so Traefik can
+  # bind 80/443 directly via its Service. Lower bound 80 avoids widening
+  # into <80 territory where SSH (22), DNS (53), SMTP (25), etc. could
+  # collide with a misconfigured NodePort. unsupportedOverrides is
+  # outside the Replicated support SLA and spec.api cannot be modified
+  # post-install — the range is locked in at first install.
+  unsupportedOverrides:
+    k0s: |
+      config:
+        spec:
+          api:
+            extraArgs:
+              service-node-port-range: "80-32767"
