@@ -1,5 +1,13 @@
 # Changelog
 
+## [1.19.5](https://github.com/jmboby/drone-rx/compare/v1.19.4...v1.19.5) (2026-04-19)
+
+
+### Bug Fixes
+
+* **airgap:** Drop hardcoded tag:latest override for api/frontend ([8c4ca17](https://github.com/jmboby/drone-rx/commit/8c4ca178f017d512f074baba9b3c237668024203))
+* **airgap:** Use alpine/k8s image for self-signed cert job ([746c80d](https://github.com/jmboby/drone-rx/commit/746c80d229a3d6cfa80070879ef60315ea7483ce))
+
 ## [1.19.4](https://github.com/jmboby/drone-rx/compare/v1.19.3...v1.19.4) (2026-04-19)
 
 
