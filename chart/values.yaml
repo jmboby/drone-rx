@@ -94,7 +94,9 @@ busybox:
   image: images.littleroom.co.nz/proxy/drone-rx/index.docker.io/library/busybox:1.36
 
 selfSignedCert:
-  image: images.littleroom.co.nz/proxy/drone-rx/index.docker.io/library/alpine:3.19
+  # alpine/k8s ships with kubectl + openssl pre-installed (airgap-safe).
+  # Tag tracks the cluster k8s minor version for kubectl client compat.
+  image: images.littleroom.co.nz/proxy/drone-rx/index.docker.io/alpine/k8s:1.34.7
 
 imagePullSecrets:
   - name: enterprise-pull-secret
