@@ -21,11 +21,17 @@ spec:
     image:
       registry: 'repl{{ ReplicatedImageRegistry (HelmValue ".Values.image.registry") }}'
       repository: 'repl{{ ReplicatedImageRepository (HelmValue ".Values.image.repository") }}'
+    # Run Traefik in the host network namespace so it binds directly to
+    # the node's :80 and :443 instead of via a high-numbered NodePort.
+    hostNetwork: true
     service:
       type: repl{{ ConfigOption "traefik_service_type" }}
       nodePorts:
         http: 80
         https: 443
     deployment:
+      # DaemonSet pairs with hostNetwork so every node runs one Traefik
+      # pod and there are no port-conflict scheduling issues.
+      kind: DaemonSet
       imagePullSecrets:
         - name: enterprise-pull-secret
