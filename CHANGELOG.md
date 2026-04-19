@@ -1,5 +1,13 @@
 # Changelog
 
+## [1.19.4](https://github.com/jmboby/drone-rx/compare/v1.19.3...v1.19.4) (2026-04-19)
+
+
+### Bug Fixes
+
+* **airgap:** Templatize self-signed cert alpine image ([f728343](https://github.com/jmboby/drone-rx/commit/f72834345b98dc187fed893ed6433dc1c4f522b9))
+* **ec-online:** Pass noProxy=true to ReplicatedImage* functions ([b4a70d9](https://github.com/jmboby/drone-rx/commit/b4a70d99c97f7ec7e32d48024686c478bfea94ed))
+
 ## [1.19.3](https://github.com/jmboby/drone-rx/compare/v1.19.2...v1.19.3) (2026-04-17)
 
 
