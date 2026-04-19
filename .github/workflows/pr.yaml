@@ -3,6 +3,12 @@ name: PR
 on:
   pull_request:
     branches: [main]
+    # Skip CI on release-please PRs (only CHANGELOG.md + manifest). Normal PRs
+    # that also touch these files still run because paths-ignore only skips
+    # when ALL changed files match.
+    paths-ignore:
+      - 'CHANGELOG.md'
+      - '.release-please-manifest.json'
 
 permissions:
   contents: read
