@@ -11,6 +11,11 @@ spec:
       {{- include "dronerx.api.selectorLabels" . | nindent 6 }}
   template:
     metadata:
+      annotations:
+        # Roll the api pods when the ConfigMap content changes so KOTS config
+        # changes (light_mode_enabled, admin_link_visible, ticker_interval, etc.)
+        # propagate on `helm upgrade` without a manual restart.
+        checksum/config: {{ include (print $.Template.BasePath "/configmap-api.yaml") . | sha256sum }}
       labels:
         {{- include "dronerx.api.selectorLabels" . | nindent 8 }}
     spec:
