@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.19.12](https://github.com/jmboby/drone-rx/compare/v1.19.11...v1.19.12) (2026-04-20)
+
+
+### Bug Fixes
+
+* **kots-config:** Render locked live-tracking toggle as readonly text, not bool ([ab02b93](https://github.com/jmboby/drone-rx/commit/ab02b93d979ad4071a5fa4fc45bc884c2c0c7f15))
+
 ## [1.19.11](https://github.com/jmboby/drone-rx/compare/v1.19.10...v1.19.11) (2026-04-20)
 
 
