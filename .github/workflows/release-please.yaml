@@ -15,21 +15,10 @@ env:
 jobs:
   release-please:
     runs-on: ubuntu-latest
-    outputs:
-      release_created: ${{ steps.release.outputs.release_created }}
-      tag_name: ${{ steps.release.outputs.tag_name }}
-      version: ${{ steps.release.outputs.version }}
     steps:
       - uses: googleapis/release-please-action@v4
-        id: release
         with:
           release-type: simple
           token: ${{ secrets.RELEASE_PLEASE_TOKEN }}
-
-  replicated-release:
-    needs: release-please
-    if: ${{ needs.release-please.outputs.release_created == 'true' }}
-    uses: ./.github/workflows/release.yaml
-    with:
-      version: ${{ needs.release-please.outputs.version }}
-    secrets: inherit
+  # release.yaml fires on its own via `on.push.tags` when release-please
+  # pushes the new v*.*.* tag using the PAT. No workflow_call chain needed.
