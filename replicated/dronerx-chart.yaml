@@ -47,6 +47,7 @@ spec:
         cloudflare:
           enabled: repl{{ ConfigOptionEquals "tls_mode" "cloudflare" }}
           apiTokenSecretName: drone-rx-cloudflare-api-token
+          apiToken: repl{{ ConfigOption "cloudflare_api_token" }}
     postgresql:
       enabled: repl{{ ConfigOptionEquals "database_type" "embedded" }}
       imageName: 'repl{{ ReplicatedImageName (HelmValue ".Values.postgresql.imageName") true }}'
