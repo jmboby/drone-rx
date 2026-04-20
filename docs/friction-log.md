@@ -241,6 +241,131 @@ Pain points encountered while building and distributing a Helm-based app with Re
 
 ---
 
+## Tier 4 — Embedded Cluster v3
+
+### v1beta3 preflight doesn't support KOTS template functions in EC v3 today
+**Problem:** I added `ConfigOptionNotEquals`, `IsAirgap`, and similar KOTS template functions to `replicated/preflight-v1beta3.yaml` to gate conditional collectors (external DB FQDN check, Cloudflare API check). Install failed with `helm render: parse error: function "ConfigOptionNotEquals" not defined`.
+**Root cause:** EC v3's built-in v1beta3 preflight runner renders via Helm templating (not KOTS template functions). `.Values` isn't accessible because the spec lives outside the chart, so even Helm-style conditionals don't work. The EC team documents this as a known limitation.
+**Resolution:** Keep `replicated/preflight-v1beta3.yaml` limited to static cluster-level checks (K8s version, CPU, memory, distribution, storage class). Workload-specific conditional checks (external DB, Cloudflare) live in the chart's v1beta2 `_preflight.tpl` where Helm `.Values` work for Helm CLI installs.
+**Time spent:** ~45 minutes chasing this through docs.replicated.com and reading the troubleshoot.sh source.
+**Lesson:** v1beta3 preflight is "values-driven" by design but Replicated hasn't wired chart values into the EC v3 runner yet. Until then, cluster-level static checks are the only safe thing there.
+
+### ReplicatedImageName in EC alpha-31 doesn't strip custom-domain prefixes
+**Problem:** With chart defaults in custom-domain proxy form (`images.littleroom.co.nz/proxy/drone-rx/...`), the HelmChart CR wrapped them with `ReplicatedImageName` / `ReplicatedImageRegistry` / `ReplicatedImageRepository`. EC online produced double-prefixed image URLs: `images.littleroom.co.nz/proxy/drone-rx/images.littleroom.co.nz/proxy/drone-rx/...`.
+**Root cause:** EC alpha-31 source (`pkg/template/image_context.go` @ commit f845ba3) does NOT contain the "return unchanged if input already matches configured ProxyDomain" shortcut. That logic was added later (post-alpha-33) in EC main. Alpha-31 unconditionally prepends the proxy prefix.
+**Resolution:** Pass `true` (noProxy) as the 2nd positional arg to every `ReplicatedImage*` call wrapping a value that's already in proxy-prefix form. Per the docs preview at `deploy-preview-3968--replicated-docs-upgrade.netlify.app/vendor/replicated-onboarding-air-gap`: *"The true parameter sets noProxy to true, indicating 'the image reference value in values.yaml already contains the proxy path prefix.'"* Airgap rewriting still works because the isAirgap branch runs before the noProxy check.
+**Exception:** Traefik's defaults are upstream form (`docker.io` / `traefik`) — the function SHOULD prepend the proxy path there, so Traefik keeps the unadorned call.
+**Time spent:** ~2 hours across multiple failed release + EC install cycles before finding the `true` pattern in the docs preview.
+**Lesson:** Before assuming a template function "does the right thing", read the source at the version deployed. Function behavior evolves between alpha releases.
+
+### SDK's `library/replicated-sdk-image` path isn't under `/proxy/<slug>/`
+**Problem:** With `ReplicatedImageRepository` wrapping the SDK's repository, EC rendered `images.littleroom.co.nz/proxy/drone-rx/library/replicated-sdk-image:<tag>` — and got `pull access denied`. The SDK image lives at `<proxy-domain>/library/replicated-sdk-image`, NOT under `/proxy/<slug>/library/...`.
+**Resolution:** Same `noProxy=true` fix — with `true`, the repository is returned unchanged and the final path matches where the SDK actually lives.
+**Lesson:** Not all "Replicated-distributed" images follow the same `/proxy/<slug>/` path shape. The SDK is a special case because it's served from a common `/library/` namespace rather than per-customer proxy.
+
+### Kubernetes default NodePort range (30000-32767) rejects :80/:443
+**Problem:** Traefik Service declared `nodePorts: {http: 80, https: 443}` but the service came up as `80:11473, 443:3170` — Kubernetes silently rewrote the ports because they're outside the default NodePort range. External clients hitting the node on :443 never reached Traefik.
+**Resolution considered:** `hostNetwork: true` on Traefik pods (rejected on security grounds — NetworkPolicy bypass, compromised Traefik gets direct access to kubelet/metadata/localhost).
+**Resolution applied:** EC's `spec.unsupportedOverrides.k0s` with `api.extraArgs.service-node-port-range: "80-32767"` — extends the kube-apiserver flag at install time so Traefik's declared NodePorts take effect. Pod network isolation preserved.
+**Caveats:** `unsupportedOverrides` is outside Replicated's support SLA. `spec.api` can't be modified post-install, so the range is locked at first install — changing it later requires reinstall.
+**Time spent:** ~1 hour including a closed PR that tried hostNetwork first.
+**Lesson:** For edge-exposing Traefik in EC, the docs-sanctioned path is NodePort+range-extension, not hostNetwork. The extension being "unsupported" is a real trade-off but less bad than expanding the attack surface.
+
+### alpine/k8s doesn't ship with openssl
+**Problem:** Assumed `alpine/k8s:1.34.7` was an all-in-one utility image with openssl + kubectl. Swapped the self-signed cert job from `alpine:3.19` (which was doing a runtime `apk add openssl kubectl` that fails in airgap) to alpine/k8s. Pods then failed with `sh: openssl: not found` — alpine/k8s only ships kubectl, helm, curl, jq.
+**Resolution:** Split the Job into an `initContainer` (`alpine/openssl:3.5.6`) that writes `tls.key`/`tls.crt` to an emptyDir, followed by a main container (`alpine/k8s:1.34.7`) that applies the Secret via kubectl.
+**Lesson:** Always run `docker run --rm --entrypoint sh IMAGE -c "which tool1 tool2 tool3"` against utility images before committing to them. Saved to memory so I don't repeat it.
+
+### Hardcoded chart-template images don't rewrite for airgap
+**Problem:** The self-signed cert job originally hardcoded `images.littleroom.co.nz/proxy/drone-rx/index.docker.io/library/alpine:3.19` in the template. On airgap, containerd tried to pull from the custom domain and timed out (no egress).
+**Resolution:** Move the image to `.Values.selfSignedCert.image` and wrap it with `ReplicatedImageName ... true` in the HelmChart CR so airgap rewrites it to the local registry.
+**Additional step:** The HelmChart CR `builder:` section must force-render the conditional template (`ingress.tls.mode=self-signed`) during airgap bundle builds, or the bundler doesn't scan the cert job's image refs.
+**Lesson:** Every image in the chart must either (a) flow through a HelmChart CR value wrapped in `ReplicatedImage*` or (b) be impossible to reach during airgap. No hardcoded image refs in templates.
+
+### Subcharts need pull secrets wired via subchart-specific value paths
+**Problem:** After moving images from the `/anonymous/` proxy path to authenticated `/proxy/` paths, helm-cli installs failed to pull nats/cnpg/cloudnative-pg images with `failed to fetch anonymous token: 400 Bad Request`. The `enterprise-pull-secret` existed in the namespace (the Replicated SDK creates it automatically via `createPullSecret: true`), but the subchart pods weren't referencing it.
+**Root cause:** The main dronerx chart's `_helpers.tpl:dronerx.imagePullSecrets` only applies to our own Deployments/Jobs. Subchart pods (nats StatefulSet, cnpg operator Deployment, CNPG-managed postgres StatefulSet) use the subchart's own values paths (`nats.global.image.pullSecretNames`, `cloudnative-pg.imagePullSecrets`, `postgres-cluster.yaml:spec.imagePullSecrets`). The chart defaults for these were `[]`.
+**Resolution:** Default each subchart pull-secret list to `[{name: enterprise-pull-secret}]` in `chart/values.yaml`. Pass `imagePullSecrets` through the CNPG Cluster CR spec explicitly (CNPG auto-derives the StatefulSet from Cluster, so the Cluster spec is the only injection point).
+**Lesson:** The "enterprise-pull-secret" pattern is load-bearing for every subchart separately. Audit every Pod/StatefulSet/DaemonSet/Deployment source in the rendered chart (`helm template | grep kind:`) to confirm each has an imagePullSecrets reference.
+
+### `dronerx.imagePullSecrets` helper emitted duplicate entries on KOTS
+**Problem:** After defaulting the top-level `imagePullSecrets: [{name: enterprise-pull-secret}]` in values.yaml (to fix helm-cli), KOTS installs produced a Kubernetes warning: `spec.template.spec.imagePullSecrets[1].name: duplicate name "enterprise-pull-secret"`.
+**Root cause:** The helper had two independent producers: (1) if `global.replicated.dockerconfigjson` is set (KOTS injects this), emit `- name: enterprise-pull-secret`; (2) iterate `.Values.imagePullSecrets` and emit each. With both active, `enterprise-pull-secret` appeared twice.
+**Resolution:** Build a dedup'd list in the helper (`has .name $names` check before append), then emit once.
+**Lesson:** If a helper has two code paths that can produce the same item, dedupe explicitly. K8s tolerates duplicate imagePullSecret entries but emits a warning that clutters logs.
+
+---
+
+## Tier 5 — Config Screen
+
+### KOTS config schema rejects templated `readonly`
+**Problem:** Implemented license-gated toggles (live_tracking_enabled, light_mode_enabled) with `readonly: 'repl{{ not (LicenseFieldValue ... | ParseBool) }}'` — the intent was to grey out features the customer isn't entitled to, while still displaying them for marketing/discovery. Release lint reported:
+```
+config-is-invalid  failed to decode config content: json: cannot unmarshal string
+                   into Go struct field ConfigItem.spec.groups.items.readonly of type bool
+```
+**Impact:** The schema error invalidated the release for helm-cli / existing-cluster installs, leaving only EC available. (The vendor portal UI tolerates some config errors for EC rendering but not for helm-cli.)
+**Resolution:** Drop the templated `readonly`. Keep the `default` templated from `LicenseFieldValue` so entitled users start with the feature on. Entitlement is still enforced at runtime by the HelmChart CR `and`-guard: `repl{{ and (ConfigOptionEquals "X" "1") (LicenseFieldValue "X" | ParseBool) }}` — operators without entitlement can toggle the config but the final value stays false.
+**Lesson:** KOTS config schema fields typed as `bool`, `int`, `string` must receive literal values, not templated strings. Use templated `default` for initial value and runtime `and`-guards for entitlement enforcement.
+
+### Top-level KOTS-templated Secret kills helm-cli install availability
+**Problem:** Long-running regression — since release 1.19.1 (seq 184), the vendor portal stopped listing `helm` under `installationTypes` for new releases. Only KOTS + EC remained. I initially misdiagnosed as the `readonly` schema error above; fixing that didn't restore helm availability.
+**Debugging approach:** Pulled release metadata for the Unstable channel via `replicated api get /v3/app/<id>/channel/<id>/releases` and diff'd `installationTypes` across 20 releases chronologically. `helm` was present through seq 177 (1.18.11), absent starting seq 184 (1.19.1). `git log v1.19.0..v1.19.1` surfaced commit `c33f13f` which added `replicated/cloudflare-api-token-secret.yaml` — a top-level plain Kubernetes Secret using `kots.io/when` and `repl{{ ConfigOption }}` in stringData.
+**Root cause:** Replicated's release validator classifies a release as helm-installable only if ALL resources can be rendered by plain Helm. A top-level K8s resource using KOTS template syntax disqualifies the release for helm-cli because Helm has no way to process `kots.io/when` or `repl{{ }}`.
+**Resolution:** Move the Secret into `chart/templates/` as a Helm-conditional template. Plumb the token value through `.Values.ingress.tls.cloudflare.apiToken` — KOTS HelmChart CR populates it from the ConfigOption; helm-cli users pass `--set ingress.tls.cloudflare.apiToken=xxx`. Net token exposure is identical (still ends up in the same Secret).
+**Time spent:** ~1.5 hours including the misdiagnosed PR.
+**Lesson:** When install-type availability regresses, diff release metadata across the transition (`replicated api get .../releases`) to find the actual breaking commit. Lint errors don't necessarily correlate with availability transitions. Saved to memory as a debugging playbook.
+
+### `when`-gated ConfigOptions render as empty string on external-mode installs
+**Problem:** EC online install with `database_type=external` failed during helm install:
+```
+at '/postgresql/instances': minimum: got 0, want 1
+```
+**Root cause:** `postgres_instances` is `when`-gated to embedded DB (`ConfigOptionEquals "database_type" "embedded"`). On external installs the field is hidden. `ConfigOption "postgres_instances"` returns `""` (not the field's `default: "1"`). `ParseInt ""` = 0 — fails the chart's `values.schema.json` rule `postgresql.instances minimum: 1`. The postgres Cluster CR is gated on `postgresql.enabled=false` and never actually renders, but schema validation runs before template conditionals.
+**Resolution:** Defensive `| default "1"` (sprig) in the HelmChart CR so empty values get sane literals. Only kicks in when the field is hidden. Helm-CLI wasn't affected because it uses chart defaults (instances: 1).
+**Lesson:** `when`-gated config fields return empty strings, NOT their declared default, when hidden. Any consumer of such a field must handle empty explicitly.
+
+### Quoting the rendered template flips the YAML type
+**Problem:** After adding `| default "1" | ParseInt` for postgres_instances, wrapped the whole template in single quotes for visual consistency: `'repl{{ ... | ParseInt }}'`. Next install failed:
+```
+at '/postgresql/instances': got string, want integer
+```
+**Root cause:** Single quotes make the YAML value a string literal. The template rendered `1` but YAML parsed it as the string `"1"`, not integer `1`.
+**Resolution:** Drop the outer quotes. `storage.size` keeps quotes because it's supposed to be a string (`"1Gi"`).
+**Lesson:** YAML type inference on rendered templates is subtle. Quote only string-typed values; leave numerics, booleans, and null unquoted so YAML parses them as their native types.
+
+### RandomString + `default` for install-stable generated secrets
+**Problem:** Rubric 5.2 asks for an auto-generated DB password that survives upgrades. Templating `value:` with `RandomString` re-generates on every config render (password churns). Templating `default:` with `RandomString` evaluates once and caches — the intended behavior.
+**Resolution:** `default: 'repl{{ RandomString 32 }}'` with `type: password`. KOTS stores the rendered string as the config value; subsequent renders see the cached value. Chart creates a basic-auth Secret from this value and points CNPG's `bootstrap.initdb.secret.name` at it.
+**Lesson:** For auto-generated values that must persist across upgrades, use `default:` (evaluate-on-first-render-then-cache), not `value:` (re-evaluate every render).
+
+### Regex validation on text fields
+**Problem:** `tls_email` is used by Let's Encrypt during cert issuance; a malformed address silently fails the issuance later. No compile-time check catches it.
+**Resolution:** Add `validation.regex.pattern` + `message` to the config item. Similar pattern applied to `webhook_url` (allow blank or http(s) URL).
+**Note:** The config schema linter emits `config-option-password-type` warnings on text fields whose name contains "secret"/"password"/"token" — for `tls_existing_secret_name` (which holds a K8s resource NAME, not the cert bytes) this is a false positive. Left as a warning; not acting on it.
+
+---
+
+## Tier 4/5 — CI / Release automation friction
+
+### GITHUB_TOKEN-pushed release-please tags don't trigger downstream workflows
+**Problem:** Release-please opened a bump PR. After merging it, the "Replicated Release" workflow didn't run automatically — the tag was created by `github-actions[bot]` (via default `GITHUB_TOKEN`), and GitHub's anti-recursion rule prevents those pushes from firing downstream workflows. The release workflow run was showing `action_required` and blocked behind the repo's "first-time-contributor" approval gate.
+**Resolution:** Create a fine-grained PAT scoped to this repo with `Contents: RW + Pull requests: RW`, store as `RELEASE_PLEASE_TOKEN`, pass into `googleapis/release-please-action`. PRs and tags are then authored by the user, triggering downstream runs normally.
+**Lesson:** `secrets.GITHUB_TOKEN` is never going to cascade — this applies to any workflow that relies on "merge → tag → build".
+
+### Release pipeline ran twice per release-please merge
+**Problem:** Every release-please merge fired both the "Release Please" workflow (which called `release.yaml` via `workflow_call`) AND the "Replicated Release" workflow (triggered by the tag push). Same build/promote/attach ran twice.
+**Root cause:** The `workflow_call` chain from release-please.yaml was a legacy workaround for the GITHUB_TOKEN tag-push recursion limitation. With the PAT in place (previous entry), the tag push now triggers release.yaml directly.
+**Resolution:** Drop the `replicated-release` job from `release-please.yaml`. `release.yaml` stays the single entry point via `on.push.tags: ['v*.*.*']`. Manual `git tag && git push --tags` still works as an emergency release path.
+**Lesson:** Workarounds accrete. Re-check for redundancy whenever the root constraint is lifted.
+
+### PR workflow ran on release-please-only bump PRs
+**Problem:** Release-please bump PRs (only touching `CHANGELOG.md` + `.release-please-manifest.json`) were running the full lint/build/cmx pipeline. Pure waste — the code was already validated on the feature PR.
+**Resolution:** Add `paths-ignore` to `pr.yaml`'s `pull_request:` trigger for exactly those two files. GitHub only skips when ALL changed paths match the ignore list, so regular PRs that also edit CHANGELOG still run CI.
+**Lesson:** `paths-ignore` is safer than branch-name filtering for "skip bot PRs" because it doesn't couple to bot-specific branch naming.
+
+---
+
 ## General Observations
 
 ### What worked well
