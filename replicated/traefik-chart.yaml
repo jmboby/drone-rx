@@ -29,9 +29,9 @@ spec:
     # sets by default (pkg/k0s/config.go L167-169).
     ports:
       web:
-        nodePort: 3080
+        nodePort: 80
       websecure:
-        nodePort: 30443
+        nodePort: 443
     deployment:
       imagePullSecrets:
         - name: enterprise-pull-secret
