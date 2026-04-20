@@ -1,5 +1,13 @@
 # Changelog
 
+## [1.19.10](https://github.com/jmboby/drone-rx/compare/v1.19.9...v1.19.10) (2026-04-20)
+
+
+### Bug Fixes
+
+* **traefik:** Change Traefik to lower order Nodeports ([60056d3](https://github.com/jmboby/drone-rx/commit/60056d37c98705f2a493aedc358ce1c5b07c141a))
+* **traefik:** Use per-entrypoint nodePort path + drop redundant k0s override ([60408ed](https://github.com/jmboby/drone-rx/commit/60408ed5027f2a0aca04b708a07e8000c8cf3211))
+
 ## [1.19.9](https://github.com/jmboby/drone-rx/compare/v1.19.8...v1.19.9) (2026-04-20)
 
 
