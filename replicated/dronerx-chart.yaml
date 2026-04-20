@@ -54,7 +54,7 @@ spec:
       # instances/storage/password fall back to literals on external DB
       # because their ConfigOptions are `when`-gated to embedded and would
       # render empty, failing chart schema validation (instances>=1).
-      instances: 'repl{{ ConfigOption "postgres_instances" | default "1" | ParseInt }}'
+      instances: repl{{ ConfigOption "postgres_instances" | default "1" | ParseInt }}
       storage:
         size: 'repl{{ ConfigOption "postgres_storage_size" | default "1Gi" }}'
       password: 'repl{{ ConfigOption "db_password" }}'
