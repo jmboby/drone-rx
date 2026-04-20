@@ -22,6 +22,7 @@ spec:
       image: 'repl{{ ReplicatedImageName (HelmValue ".Values.busybox.image") true }}'
     selfSignedCert:
       image: 'repl{{ ReplicatedImageName (HelmValue ".Values.selfSignedCert.image") true }}'
+      opensslImage: 'repl{{ ReplicatedImageName (HelmValue ".Values.selfSignedCert.opensslImage") true }}'
     api:
       image:
         registry: 'repl{{ ReplicatedImageRegistry (HelmValue ".Values.api.image.registry") true }}'
