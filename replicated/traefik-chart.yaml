@@ -24,8 +24,8 @@ spec:
     service:
       type: repl{{ ConfigOption "traefik_service_type" }}
       nodePorts:
-        http: 80
-        https: 443
+        http: 3080
+        https: 30443
     deployment:
       imagePullSecrets:
         - name: enterprise-pull-secret
