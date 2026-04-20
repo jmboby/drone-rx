@@ -88,6 +88,15 @@ spec:
                 Run: kubectl describe deployment {{ include "dronerx.fullname" . }}-frontend -n {{ .Release.Namespace }}
           - pass:
               message: DroneRx frontend is running.
+    {{- /* CNPG operator deployment name depends on how it was installed:
+           - Helm CLI: cnpgOperator.managed=true, installed as a subchart
+             of drone-rx → deployment: <release>-cloudnative-pg
+             (e.g. drone-rx-cloudnative-pg).
+           - KOTS/EC: cnpgOperator.managed=false, installed via a separate
+             HelmChart CR. KOTS uses the chart name ("cloudnative-pg") as the
+             Helm release name, and the chart's fullname helper collapses
+             release==chartname to just "cloudnative-pg". */}}
+    {{- if .Values.cnpgOperator.managed }}
     - deploymentStatus:
         name: {{ include "dronerx.fullname" . }}-cloudnative-pg
         namespace: {{ .Release.Namespace }}
@@ -95,11 +104,26 @@ spec:
           - fail:
               when: "< 1"
               message: |
-                The DroneRx CNPG Operator deployment has no available replicas.
-                The Postgres Operator is down, The application is unavailable — users cannot place or track orders.
-                Run: kubectl describe deployment {{ include "dronerx.fullname" . }}-frontend -n {{ .Release.Namespace }}
+                The DroneRx CNPG Operator deployment (subchart) has no available replicas.
+                The Postgres Operator is down — users cannot place or track orders.
+                Run: kubectl describe deployment {{ include "dronerx.fullname" . }}-cloudnative-pg -n {{ .Release.Namespace }}
+          - pass:
+              message: CNPG Operator (subchart) is running.
+    {{- else }}
+    - deploymentStatus:
+        name: cloudnative-pg
+        namespace: {{ .Release.Namespace }}
+        outcomes:
+          - fail:
+              when: "< 1"
+              message: |
+                The CNPG Operator deployment (installed by KOTS via the cnpg-operator
+                HelmChart CR) has no available replicas. Postgres is unmanaged — users
+                cannot place or track orders.
+                Run: kubectl describe deployment cloudnative-pg -n {{ .Release.Namespace }}
           - pass:
               message: CNPG Operator is running.
+    {{- end }}
     - statefulsetStatus:
         name: {{ .Release.Name }}-nats
         namespace: {{ .Release.Namespace }}
