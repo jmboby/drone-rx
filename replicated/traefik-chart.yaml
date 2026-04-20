@@ -23,9 +23,15 @@ spec:
       repository: 'repl{{ ReplicatedImageRepository (HelmValue ".Values.image.repository") }}'
     service:
       type: repl{{ ConfigOption "traefik_service_type" }}
-      nodePorts:
-        http: 3080
-        https: 30443
+    # Traefik v3 configures NodePorts per-entrypoint under ports.<name>.nodePort,
+    # NOT under service.nodePorts — the latter silently gets ignored and k8s
+    # picks random ports from the extended 80-32767 range that EC's k0s config
+    # sets by default (pkg/k0s/config.go L167-169).
+    ports:
+      web:
+        nodePort: 3080
+      websecure:
+        nodePort: 30443
     deployment:
       imagePullSecrets:
         - name: enterprise-pull-secret
