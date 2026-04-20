@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.19.9](https://github.com/jmboby/drone-rx/compare/v1.19.8...v1.19.9) (2026-04-20)
+
+
+### Bug Fixes
+
+* **external-db:** Unquote postgres instances so YAML parses as integer ([a1d6714](https://github.com/jmboby/drone-rx/commit/a1d671473864c7f6b76f087bf41927828294a1b6))
+
 ## [1.19.8](https://github.com/jmboby/drone-rx/compare/v1.19.7...v1.19.8) (2026-04-20)
 
 
