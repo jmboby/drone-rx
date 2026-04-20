@@ -49,9 +49,15 @@ ingress:
     email: ""
     cloudflare:
       enabled: false
-      # Name of a Kubernetes Secret holding the Cloudflare API token
-      # (key: api-token). Populated by KOTS when tls.mode=cloudflare.
+      # Name of the Kubernetes Secret the chart creates to hold the
+      # Cloudflare API token (key: api-token). Must be non-empty when
+      # cloudflare.enabled=true.
       apiTokenSecretName: ""
+      # Cloudflare API token value. Empty default; populated at install
+      # time — KOTS/EC installs receive it from the HelmChart CR which
+      # reads the cloudflare_api_token ConfigOption. Helm-CLI users pass
+      # `--set ingress.tls.cloudflare.apiToken=xxx` at install.
+      apiToken: ""
 
 cloudnative-pg:
   image:
