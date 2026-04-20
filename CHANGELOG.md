@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.19.15](https://github.com/jmboby/drone-rx/compare/v1.19.14...v1.19.15) (2026-04-20)
+
+
+### Bug Fixes
+
+* v1.19.14 demo release for upgrade testing ([#141](https://github.com/jmboby/drone-rx/issues/141)) ([757d398](https://github.com/jmboby/drone-rx/commit/757d3982621cde1400dbf32e1a1d809e4d4ba901))
+
 ## [1.19.14](https://github.com/jmboby/drone-rx/compare/v1.19.13...v1.19.14) (2026-04-20)
 
 
