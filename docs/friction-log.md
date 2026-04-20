@@ -263,13 +263,18 @@ Pain points encountered while building and distributing a Helm-based app with Re
 **Resolution:** Same `noProxy=true` fix — with `true`, the repository is returned unchanged and the final path matches where the SDK actually lives.
 **Lesson:** Not all "Replicated-distributed" images follow the same `/proxy/<slug>/` path shape. The SDK is a special case because it's served from a common `/library/` namespace rather than per-customer proxy.
 
-### Kubernetes default NodePort range (30000-32767) rejects :80/:443
-**Problem:** Traefik Service declared `nodePorts: {http: 80, https: 443}` but the service came up as `80:11473, 443:3170` — Kubernetes silently rewrote the ports because they're outside the default NodePort range. External clients hitting the node on :443 never reached Traefik.
+### Kubernetes default NodePort range (30000-32767) rejects :80/:443 — and EC already extends it
+**Problem:** Traefik Service declared `nodePorts: {http: 80, https: 443}` but the service came up as `80:11473, 443:3170` — Kubernetes silently rewrote the ports because they're outside the default NodePort range.
 **Resolution considered:** `hostNetwork: true` on Traefik pods (rejected on security grounds — NetworkPolicy bypass, compromised Traefik gets direct access to kubelet/metadata/localhost).
-**Resolution applied:** EC's `spec.unsupportedOverrides.k0s` with `api.extraArgs.service-node-port-range: "80-32767"` — extends the kube-apiserver flag at install time so Traefik's declared NodePorts take effect. Pod network isolation preserved.
-**Caveats:** `unsupportedOverrides` is outside Replicated's support SLA. `spec.api` can't be modified post-install, so the range is locked at first install — changing it later requires reinstall.
-**Time spent:** ~1 hour including a closed PR that tried hostNetwork first.
-**Lesson:** For edge-exposing Traefik in EC, the docs-sanctioned path is NodePort+range-extension, not hostNetwork. The extension being "unsupported" is a real trade-off but less bad than expanding the attack surface.
+**Resolution attempted:** EC's `spec.unsupportedOverrides.k0s` with `api.extraArgs.service-node-port-range: "80-32767"`. Shipped this… then discovered EC already sets that exact flag by default in its k0s config ([pkg/k0s/config.go L167-169](https://github.com/replicatedhq/ec/blob/0ea20cf0eb442b136a223da13343164cbd873d83/pkg/k0s/config.go#L167-L169)). The override was a no-op.
+**Real cause (found later):** The Traefik v3 chart accepts NodePort config at `ports.<entrypoint>.nodePort` (per-entrypoint), NOT at `service.nodePorts.{http,https}`. The latter path is silently ignored and k8s picks a random port from the extended range. See separate entry below.
+**Lesson:** Check the upstream project's source/defaults before adding an override. And before concluding "k8s is rewriting my NodePort", verify the values actually reached the Service spec — `kubectl get svc -o yaml` will show whether the declared values made it through.
+
+### Traefik v3 NodePort path is per-entrypoint, not `service.nodePorts`
+**Problem:** After extending the NodePort range, Traefik's Service STILL came up with random NodePorts (`80:8043, 443:28326`). The HelmChart CR was setting `service.nodePorts: {http: 80, https: 443}`, which Traefik v3's chart does not recognize — the values were silently dropped at chart render time.
+**Resolution:** Move to per-entrypoint config under `ports.web.nodePort` and `ports.websecure.nodePort`. Verified via `helm show values traefik/traefik` — the `ports.<entrypoint>.nodePort` field is explicitly schema-defined; `service.nodePorts` is not.
+**Time spent:** Most of the earlier "NodePort range" debugging session was actually this bug — the range-extension override was unnecessary and the real bug was the wrong values path.
+**Lesson:** When a values key silently has no effect, the first check should be `helm show values <chart>` on the actual version used — not assuming the chart accepts `service.nodePorts` just because it's a common pattern in other charts.
 
 ### alpine/k8s doesn't ship with openssl
 **Problem:** Assumed `alpine/k8s:1.34.7` was an all-in-one utility image with openssl + kubectl. Swapped the self-signed cert job from `alpine:3.19` (which was doing a runtime `apk add openssl kubectl` that fails in airgap) to alpine/k8s. Pods then failed with `sh: openssl: not found` — alpine/k8s only ships kubectl, helm, curl, jq.
