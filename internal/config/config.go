@@ -15,6 +15,7 @@ type Config struct {
 	Namespace           string
 	LiveTrackingEnabled string
 	LightModeEnabled    string
+	AdminLinkVisible    string
 }
 
 func Load() Config {
@@ -28,6 +29,7 @@ func Load() Config {
 		Namespace:           getEnv("POD_NAMESPACE", "default"),
 		LiveTrackingEnabled: getEnv("LIVE_TRACKING_ENABLED", "true"),
 		LightModeEnabled:    getEnv("LIGHT_MODE_ENABLED", "false"),
+		AdminLinkVisible:    getEnv("ADMIN_LINK_VISIBLE", "false"),
 	}
 }
 

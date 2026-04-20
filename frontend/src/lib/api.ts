@@ -1,4 +1,4 @@
-import type { Medicine, Order, CreateOrderRequest, LicenseStatus, UpdateInfo, SupportBundleResponse } from './types';
+import type { Medicine, Order, CreateOrderRequest, LicenseStatus, UIConfig, UpdateInfo, SupportBundleResponse } from './types';
 
 const BASE_URL = '/api';
 
@@ -42,6 +42,10 @@ export function connectTracking(orderID: string): WebSocket {
 
 export async function getLicenseStatus(): Promise<LicenseStatus> {
 	return fetchJSON<LicenseStatus>(`${BASE_URL}/license/status`);
+}
+
+export async function getUIConfig(): Promise<UIConfig> {
+	return fetchJSON<UIConfig>(`${BASE_URL}/config/ui`);
 }
 
 export async function getUpdates(): Promise<UpdateInfo[]> {

@@ -1,7 +1,7 @@
 <script lang="ts">
 	import '../app.css';
 	import { onMount, setContext } from 'svelte';
-	import { getUpdates, getLicenseStatus } from '$lib/api';
+	import { getUpdates, getLicenseStatus, getUIConfig } from '$lib/api';
 	import type { UpdateInfo, LicenseStatus } from '$lib/types';
 	import { theme } from '$lib/stores/theme';
 	import { writable } from 'svelte/store';
@@ -15,24 +15,30 @@
 	let showUpdateBanner = $derived(latestUpdate !== null && !bannerDismissed);
 	let showLicenseWarning = $derived(license !== null && (license.expired || !license.valid));
 
-	// Expose light_mode_enabled to child pages via context
+	// UI toggles sourced from plain config (not license-gated).
 	const lightModeEnabled = writable(false);
+	const adminLinkVisible = writable(false);
 	setContext('lightModeEnabled', lightModeEnabled);
+	setContext('adminLinkVisible', adminLinkVisible);
 
 	onMount(async () => {
 		theme.init();
 
 		try {
-			const [updates, licenseStatus] = await Promise.all([
+			const [updates, licenseStatus, uiConfig] = await Promise.all([
 				getUpdates().catch(() => []),
 				getLicenseStatus().catch(() => null),
+				getUIConfig().catch(() => null),
 			]);
 			if (updates && updates.length > 0) {
 				latestUpdate = updates[0];
 			}
 			if (licenseStatus) {
 				license = licenseStatus;
-				lightModeEnabled.set(licenseStatus.light_mode_enabled ?? false);
+			}
+			if (uiConfig) {
+				lightModeEnabled.set(uiConfig.light_mode_enabled ?? false);
+				adminLinkVisible.set(uiConfig.admin_link_visible ?? false);
 			}
 		} catch {
 			// silent — banners are non-critical

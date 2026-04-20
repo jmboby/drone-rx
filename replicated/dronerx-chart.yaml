@@ -29,8 +29,11 @@ spec:
         repository: 'repl{{ ReplicatedImageRepository (HelmValue ".Values.api.image.repository") true }}'
       replicas: repl{{ ConfigOption "api_replicas" | ParseInt }}
       tickerInterval: repl{{ ConfigOption "api_ticker_interval" | ParseInt }}
+      # Live tracking — license-gated; and-guard enforces entitlement even if an operator toggles the config on without a license.
       liveTrackingEnabled: 'repl{{ and (ConfigOptionEquals "live_tracking_enabled" "1") (LicenseFieldValue "live_tracking_enabled" | ParseBool) }}'
-      lightModeEnabled: 'repl{{ and (ConfigOptionEquals "light_mode_enabled" "1") (LicenseFieldValue "light_mode_enabled" | ParseBool) }}'
+      # Light mode and admin link — plain config options (not license-gated).
+      lightModeEnabled: repl{{ ConfigOptionEquals "light_mode_enabled" "1" }}
+      adminLinkVisible: repl{{ ConfigOptionEquals "admin_link_visible" "1" }}
       webhookURL: repl{{ ConfigOption "webhook_url" }}
     frontend:
       image:

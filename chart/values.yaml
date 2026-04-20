@@ -17,6 +17,7 @@ api:
   webhookURL: ""
   liveTrackingEnabled: "true"
   lightModeEnabled: "false"
+  adminLinkVisible: "false"
 
 frontend:
   image:

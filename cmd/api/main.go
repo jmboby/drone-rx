@@ -125,13 +125,13 @@ func main() {
 	}
 	defer nc.Drain()
 
-	// 4a. Create Replicated SDK client
+	// 4a. Create Replicated SDK client. The only license-gated feature we
+	// override is live_tracking_enabled; UI-level toggles (light mode, admin
+	// link) are plain config and served from the env directly by the
+	// UIConfigHandler below.
 	sdkClient := sdk.NewClient(cfg.SDKUrl)
 	if cfg.LiveTrackingEnabled != "" {
 		sdkClient.SetFeatureOverride("live_tracking_enabled", cfg.LiveTrackingEnabled)
-	}
-	if cfg.LightModeEnabled != "" {
-		sdkClient.SetFeatureOverride("light_mode_enabled", cfg.LightModeEnabled)
 	}
 
 	// 5. Create stores
@@ -157,6 +157,7 @@ func main() {
 	licenseHandler := handlers.NewLicenseHandler(sdkClient)
 	updatesHandler := handlers.NewUpdatesHandler(sdkClient)
 	adminHandler := handlers.NewAdminHandler(cfg.Namespace, cfg.SDKUrl, "sh", nil)
+	uiConfigHandler := handlers.NewUIConfigHandler(cfg.LightModeEnabled, cfg.AdminLinkVisible)
 
 	// 9. Set up routes
 	mux := http.NewServeMux()
@@ -168,6 +169,7 @@ func main() {
 	mux.HandleFunc("GET /api/orders", orderHandler.List)
 	mux.Handle("GET /api/orders/{id}/track", trackingHandler)
 	mux.HandleFunc("GET /api/license/status", licenseHandler.Status)
+	mux.HandleFunc("GET /api/config/ui", uiConfigHandler.Get)
 	mux.HandleFunc("GET /api/updates", updatesHandler.Check)
 	mux.HandleFunc("POST /api/admin/support-bundle", adminHandler.GenerateSupportBundle)
 

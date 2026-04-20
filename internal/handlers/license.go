@@ -23,7 +23,6 @@ type licenseStatusResponse struct {
 	LicenseType         string `json:"license_type"`
 	ExpirationDate      string `json:"expiration_date"`
 	LiveTrackingEnabled bool   `json:"live_tracking_enabled"`
-	LightModeEnabled    bool   `json:"light_mode_enabled"`
 }
 
 // Status handles GET /api/license/status.
@@ -37,13 +36,11 @@ func (h *LicenseHandler) Status(w http.ResponseWriter, r *http.Request) {
 			Valid:               true,
 			Expired:             false,
 			LiveTrackingEnabled: false,
-			LightModeEnabled:    false,
 		})
 		return
 	}
 
 	liveTracking := h.client.IsFeatureEnabled("live_tracking_enabled")
-	lightMode := h.client.IsFeatureEnabled("light_mode_enabled")
 
 	json.NewEncoder(w).Encode(licenseStatusResponse{
 		Valid:               !info.IsExpired(),
@@ -51,6 +48,5 @@ func (h *LicenseHandler) Status(w http.ResponseWriter, r *http.Request) {
 		LicenseType:         info.LicenseType,
 		ExpirationDate:      info.ExpirationDate(),
 		LiveTrackingEnabled: liveTracking,
-		LightModeEnabled:    lightMode,
 	})
 }
