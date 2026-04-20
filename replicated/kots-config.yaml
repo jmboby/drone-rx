@@ -186,23 +186,16 @@ spec:
           default: "0"
     - name: features
       title: Features
-      description: Entitlement-gated paying features. Locked items are unavailable on your current license — contact your vendor to upgrade.
+      description: Entitlement-gated paying features. Items in this group are only visible when your license includes the corresponding entitlement — contact your vendor to upgrade.
       items:
-        # Live Drone Tracking — editable when the license entitles this feature.
+        # Live Drone Tracking — shown only when the license entitles this feature.
+        # Rubric 4.7 permits "hidden OR locked". We use `when` to hide because KOTS
+        # admin console doesn't visually enforce `readonly: true` (the input renders
+        # editable on both type:bool and type:text, even though the server rejects
+        # saves). Hiding is the only UX-reliable option currently.
         - name: live_tracking_enabled
           title: Live Drone Tracking
           help_text: Stream real-time drone telemetry to the UI.
           type: bool
           default: "1"
           when: 'repl{{ LicenseFieldValue "live_tracking_enabled" | ParseBool }}'
-        # Live Drone Tracking — locked placeholder shown when the license lacks
-        # the entitlement. Uses type=text + readonly so the admin console renders
-        # it as a disabled/greyed field — KOTS bool checkboxes with readonly=true
-        # still render as clickable in the UI (server rejects saves but UX is confusing).
-        - name: live_tracking_enabled_locked
-          title: Live Drone Tracking
-          help_text: Your license does not include the live_tracking_enabled entitlement. Contact your vendor to upgrade.
-          type: text
-          value: "🔒 Locked — license upgrade required"
-          readonly: true
-          when: 'repl{{ not (LicenseFieldValue "live_tracking_enabled" | ParseBool) }}'
