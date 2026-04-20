@@ -176,13 +176,11 @@ spec:
       items:
         - name: live_tracking_enabled
           title: Live Drone Tracking
-          help_text: Stream real-time drone telemetry to the UI. Requires license entitlement.
+          help_text: Stream real-time drone telemetry to the UI. Requires the `live_tracking_enabled` license entitlement — toggling this on without entitlement has no effect (the HelmChart CR and-guards with the license field).
           type: bool
           default: 'repl{{ ternary "1" "0" (LicenseFieldValue "live_tracking_enabled" | ParseBool) }}'
-          readonly: 'repl{{ not (LicenseFieldValue "live_tracking_enabled" | ParseBool) }}'
         - name: light_mode_enabled
           title: Light / Dark Mode Toggle
-          help_text: Allow end users to switch UI theme. Requires license entitlement.
+          help_text: Allow end users to switch UI theme. Requires the `light_mode_enabled` license entitlement — toggling this on without entitlement has no effect (the HelmChart CR and-guards with the license field).
           type: bool
           default: 'repl{{ ternary "1" "0" (LicenseFieldValue "light_mode_enabled" | ParseBool) }}'
-          readonly: 'repl{{ not (LicenseFieldValue "light_mode_enabled" | ParseBool) }}'
