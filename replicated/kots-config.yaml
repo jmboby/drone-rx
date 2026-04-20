@@ -195,11 +195,14 @@ spec:
           type: bool
           default: "1"
           when: 'repl{{ LicenseFieldValue "live_tracking_enabled" | ParseBool }}'
-        # Live Drone Tracking — greyed-out placeholder shown when the license lacks the entitlement.
+        # Live Drone Tracking — locked placeholder shown when the license lacks
+        # the entitlement. Uses type=text + readonly so the admin console renders
+        # it as a disabled/greyed field — KOTS bool checkboxes with readonly=true
+        # still render as clickable in the UI (server rejects saves but UX is confusing).
         - name: live_tracking_enabled_locked
           title: Live Drone Tracking
           help_text: Your license does not include the live_tracking_enabled entitlement. Contact your vendor to upgrade.
-          type: bool
-          default: "0"
+          type: text
+          value: "🔒 Locked — license upgrade required"
           readonly: true
           when: 'repl{{ not (LicenseFieldValue "live_tracking_enabled" | ParseBool) }}'
