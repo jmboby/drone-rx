@@ -1,5 +1,13 @@
 # Changelog
 
+## [1.19.14](https://github.com/jmboby/drone-rx/compare/v1.19.13...v1.19.14) (2026-04-20)
+
+
+### Bug Fixes
+
+* **kots-config:** Hide live-tracking when unentitled; drop broken locked placeholder ([#139](https://github.com/jmboby/drone-rx/issues/139)) ([f3dce8f](https://github.com/jmboby/drone-rx/commit/f3dce8f4d5f59a7b45399a5c37d5a0a4403a666c))
+* **support-bundle:** Use correct CNPG operator deployment name on EC/KOTS ([#138](https://github.com/jmboby/drone-rx/issues/138)) ([4fa4b5d](https://github.com/jmboby/drone-rx/commit/4fa4b5daeb071c76a4a091fd25ef28184562c72f))
+
 ## [1.19.12](https://github.com/jmboby/drone-rx/compare/v1.19.11...v1.19.12) (2026-04-20)
 
 
