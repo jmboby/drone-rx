@@ -1,5 +1,14 @@
 # Changelog
 
+## [1.19.8](https://github.com/jmboby/drone-rx/compare/v1.19.7...v1.19.8) (2026-04-20)
+
+
+### Bug Fixes
+
+* **external-db:** Default postgres values so external installs pass schema ([c61312e](https://github.com/jmboby/drone-rx/commit/c61312e388fdc1f3cac2eee99bb65cb3647fbb92))
+* Restore helm-cli install availability by moving Cloudflare Secret into chart ([8185c9d](https://github.com/jmboby/drone-rx/commit/8185c9d296bb98900fe7917f4a2061f77a470654))
+* **traefik:** Change Traefik to higher order Nodeports ([7c7cfec](https://github.com/jmboby/drone-rx/commit/7c7cfec92cd0c886b5e4f7456b230aaa3c5c4c4d))
+
 ## [1.19.7](https://github.com/jmboby/drone-rx/compare/v1.19.6...v1.19.7) (2026-04-20)
 
 
