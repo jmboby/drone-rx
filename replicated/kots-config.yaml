@@ -170,17 +170,36 @@ spec:
             regex:
               pattern: '^$|^https?://[^\s]+$'
               message: Must be blank or a valid http(s) URL.
-    - name: features
-      title: Features
-      description: Entitlement-gated features. Disabled options are unavailable on your current license.
+    - name: ui
+      title: User Interface
+      description: Optional UI features visible to all end users.
       items:
-        - name: live_tracking_enabled
-          title: Live Drone Tracking
-          help_text: Stream real-time drone telemetry to the UI. Requires the `live_tracking_enabled` license entitlement — toggling this on without entitlement has no effect (the HelmChart CR and-guards with the license field).
-          type: bool
-          default: 'repl{{ ternary "1" "0" (LicenseFieldValue "live_tracking_enabled" | ParseBool) }}'
         - name: light_mode_enabled
           title: Light / Dark Mode Toggle
-          help_text: Allow end users to switch UI theme. Requires the `light_mode_enabled` license entitlement — toggling this on without entitlement has no effect (the HelmChart CR and-guards with the license field).
+          help_text: Allow end users to switch between light and dark themes via a toggle in the main site header.
           type: bool
-          default: 'repl{{ ternary "1" "0" (LicenseFieldValue "light_mode_enabled" | ParseBool) }}'
+          default: "0"
+        - name: admin_link_visible
+          title: Show Admin Link
+          help_text: Display an "Admin" link in the main site header pointing to operational tooling at /admin (support bundle, webhooks, observability).
+          type: bool
+          default: "0"
+    - name: features
+      title: Features
+      description: Entitlement-gated paying features. Locked items are unavailable on your current license — contact your vendor to upgrade.
+      items:
+        # Live Drone Tracking — editable when the license entitles this feature.
+        - name: live_tracking_enabled
+          title: Live Drone Tracking
+          help_text: Stream real-time drone telemetry to the UI.
+          type: bool
+          default: "1"
+          when: 'repl{{ LicenseFieldValue "live_tracking_enabled" | ParseBool }}'
+        # Live Drone Tracking — greyed-out placeholder shown when the license lacks the entitlement.
+        - name: live_tracking_enabled_locked
+          title: Live Drone Tracking
+          help_text: Your license does not include the live_tracking_enabled entitlement. Contact your vendor to upgrade.
+          type: bool
+          default: "0"
+          readonly: true
+          when: 'repl{{ not (LicenseFieldValue "live_tracking_enabled" | ParseBool) }}'

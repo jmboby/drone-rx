@@ -8,6 +8,7 @@
 	import type { Writable } from 'svelte/store';
 
 	const lightModeEnabled = getContext<Writable<boolean>>('lightModeEnabled');
+	const adminLinkVisible = getContext<Writable<boolean>>('adminLinkVisible');
 
 	let { data }: { data: PageData } = $props();
 
@@ -33,6 +34,14 @@
 			<span class="text-xs text-navy-300 hidden sm:inline ml-1 font-medium">Aerial Pharmacy</span>
 		</div>
 		<nav class="flex items-center gap-4">
+			{#if $adminLinkVisible}
+				<a
+					href="/admin"
+					class="text-sm font-medium text-navy-200 hover:text-cyan-glow transition-colors"
+				>
+					Admin
+				</a>
+			{/if}
 			<a
 				href="/orders"
 				class="text-sm font-medium text-navy-200 hover:text-cyan-glow transition-colors"

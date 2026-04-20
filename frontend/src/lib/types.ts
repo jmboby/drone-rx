@@ -40,7 +40,11 @@ export interface LicenseStatus {
 	license_type?: string;
 	expiration_date?: string;
 	live_tracking_enabled: boolean;
+}
+
+export interface UIConfig {
 	light_mode_enabled: boolean;
+	admin_link_visible: boolean;
 }
 
 export interface UpdateInfo {
