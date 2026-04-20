@@ -1,5 +1,13 @@
 # Changelog
 
+## [1.19.7](https://github.com/jmboby/drone-rx/compare/v1.19.6...v1.19.7) (2026-04-20)
+
+
+### Bug Fixes
+
+* **airgap:** Split self-signed cert job into openssl initContainer ([a2efd49](https://github.com/jmboby/drone-rx/commit/a2efd49e10c287101a4dfa7df85b03bc9141a557))
+* **kots-config:** Drop string-templated readonly to restore helm-cli availability ([980be5f](https://github.com/jmboby/drone-rx/commit/980be5fa99df33cc05634e9a55b6956545b92b9c))
+
 ## [1.19.6](https://github.com/jmboby/drone-rx/compare/v1.19.5...v1.19.6) (2026-04-19)
 
 
