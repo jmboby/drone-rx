@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.19.11](https://github.com/jmboby/drone-rx/compare/v1.19.10...v1.19.11) (2026-04-20)
+
+
+### Features
+
+* **config:** Split rubric 4.7 (license) from 5.1 (plain config) ([887767c](https://github.com/jmboby/drone-rx/commit/887767c40fb00717c83ac6e4501f063bdf7e81e8))
+
 ## [1.19.10](https://github.com/jmboby/drone-rx/compare/v1.19.9...v1.19.10) (2026-04-20)
 
 
