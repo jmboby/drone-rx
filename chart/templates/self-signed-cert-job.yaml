@@ -20,23 +20,39 @@ spec:
       imagePullSecrets:
         {{- include "dronerx.imagePullSecrets" . | nindent 8 }}
       serviceAccountName: {{ include "dronerx.fullname" . }}-cert-job
-      containers:
+      volumes:
+        - name: cert-data
+          emptyDir: {}
+      initContainers:
         - name: generate-cert
-          image: {{ .Values.selfSignedCert.image }}
+          image: {{ .Values.selfSignedCert.opensslImage }}
           command:
             - sh
             - -c
             - |
               openssl req -x509 -nodes -days 365 -newkey rsa:2048 \
-                -keyout /tmp/tls.key \
-                -out /tmp/tls.crt \
+                -keyout /tmp/cert/tls.key \
+                -out /tmp/cert/tls.crt \
                 -subj "/CN={{ .Values.ingress.hostname }}/O=dronerx" \
                 -addext "subjectAltName=DNS:{{ .Values.ingress.hostname }}"
+          volumeMounts:
+            - name: cert-data
+              mountPath: /tmp/cert
+      containers:
+        - name: apply-secret
+          image: {{ .Values.selfSignedCert.image }}
+          command:
+            - sh
+            - -c
+            - |
               kubectl create secret tls {{ include "dronerx.tlsSecretName" . }} \
-                --cert=/tmp/tls.crt \
-                --key=/tmp/tls.key \
+                --cert=/tmp/cert/tls.crt \
+                --key=/tmp/cert/tls.key \
                 --namespace={{ .Release.Namespace }} \
                 --dry-run=client -o yaml | kubectl apply -f -
+          volumeMounts:
+            - name: cert-data
+              mountPath: /tmp/cert
 ---
 apiVersion: v1
 kind: ServiceAccount
