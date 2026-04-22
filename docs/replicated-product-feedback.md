@@ -1,6 +1,8 @@
 # Replicated Product Feedback — DroneRx Bootcamp
 
-Compiled from building DroneRx end-to-end (Tiers 0-5: Helm chart → Replicated distribution → SDK → support bundles → KOTS config screen → EC v3). Ordered by product area. Every item is something a vendor hit during a realistic build-out.
+Compiled from building DroneRx end-to-end (Tiers 0-5: Helm chart → Replicated distribution → SDK → support bundles → KOTS config screen → EC v3). Ordered by product area. Each item is something a vendor might hit during a realistic build-out.
+
+Alot of my friction items were related to my choice of CNPG as my Postgres Db, this requires post-install hooks to solve the CRD ready race condition when installing via Helm-CLI but these hooks fail to trigger reliably when installing on Embedded Cluster. So I had to switch to installing CNPG as a separate HelmChart CR. This required alot of templating and testing to ensure it worked on all 3 scenarios -  Helm-CLI, EC online and EC air-gap!
 
 ---
 
@@ -9,11 +11,10 @@ Compiled from building DroneRx end-to-end (Tiers 0-5: Helm chart → Replicated 
 - **RBAC resource names docs show mixed case, API requires lowercase.** Docs say `KOTS/app/*/read`; real policy needs `kots/...`. Multiple 403 iterations before figuring it out. Also `kots/cluster/*/kubeconfig` is a separate permission from `kots/cluster/*`, which isn't obvious.
 - **403 errors don't tell you which permission is missing.** Just "Not authorized". Tightening RBAC becomes guess-and-check.
 - **Bundle Analysis view is incomplete.** The tarball on disk has JSON for statefulsets, clusterroles, clusterrolebindings, namespaces, persistentvolumes — but none of those render in the portal UI. Only deployments, services, pods, ingresses, PVCs, and secrets show. Have to download + extract to see the full picture.
-- **"Custom domains → set as default" is release-gated.** Only releases promoted **after** flipping the default use the new domain. Not obvious from the UI — operators wondering why old releases still pull from `proxy.replicated.com`.
 
 ---
 
-## 🧩 KOTS Admin Console
+## 🧩 ECv3 Admin Console
 
 - **`readonly: true` is server-side-only — the UI doesn't visually lock the input.** Tested on both `type: bool` (checkbox remains tickable) and `type: text` (input remains editable). Rubric 4.7 asks for "hidden or locked" feature items — "locked" currently isn't UX-enforceable. Had to fall back to `when`-based hiding, which means we lose the upsell signal for non-entitled customers.
 - **Config groups with zero visible items auto-hide entirely.** Surprising when all items in a group are `when`-gated off — the section title/description disappears too, not just the items.
