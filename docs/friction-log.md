@@ -13,6 +13,16 @@ Pain points encountered while building and distributing a Helm-based app with Re
 **Time wasted:** ~2-3 hours across all CI iterations that could have been caught in seconds locally.
 **Lesson:** Don't trust docs or help output alone. Run the actual command first, verify the output format, then write the workflow. This applies to any CLI tool being embedded in CI.
 
+### Claude claimed image contents without verifying
+**Problem:** When switching the self-signed cert job away from alpine + runtime `apk add`, Claude confidently recommended `alpine/k8s:1.34.7` saying it "ships with kubectl + openssl pre-installed". User deployed; pod failed with `sh: openssl: not found`. alpine/k8s actually only has kubectl, helm, curl, jq — no openssl. Required another PR to split into an initContainer pattern (`alpine/openssl` for generation, `alpine/k8s` for kubectl apply).
+**Resolution:** Before recommending any utility image, run `docker run --rm --entrypoint sh IMAGE:TAG -c "for t in tool1 tool2; do which $t || echo MISSING; done"` and paste the output into the commit / PR message. Saved to memory as `feedback_verify_image_contents.md`.
+**Lesson:** Docker Hub descriptions and gut-feel aren't verification. Always `docker run` against the exact tag before writing it into a chart. Applies to every utility image swap, not just the cert-job.
+
+### Misdiagnosing install-type regressions from the latest lint error
+**Problem:** The vendor portal stopped listing helm-cli as an available install type for new releases. Claude jumped to the newest lint error (`config-is-invalid: readonly must be a bool`) and shipped PR #121 to fix it — availability did NOT return. Another full diagnostic round later, the real cause turned out to be a top-level KOTS-templated Secret (`replicated/cloudflare-api-token-secret.yaml`) introduced many releases earlier, which disqualified the release as helm-installable because plain Helm can't render `kots.io/when` / `repl{{ ConfigOption }}`. Fixed in PR #124.
+**Resolution:** The correct debugging path: pull release metadata via the Replicated API (`replicated api get /v3/app/<id>/channel/<id>/releases`) and diff `installationTypes` across releases chronologically to find the exact transition sequence. Then `git log <last-good-tag>..<first-bad-tag>` to find the specific commit that flipped the state.
+**Lesson:** Lint errors don't always correlate with availability transitions. For install-type-availability bugs, diff release metadata across the transition first. Saved to memory as `feedback_diff_release_metadata.md`.
+
 ---
 
 ## Tier 0 — Build It
@@ -293,6 +303,30 @@ Pain points encountered while building and distributing a Helm-based app with Re
 **Resolution:** Default each subchart pull-secret list to `[{name: enterprise-pull-secret}]` in `chart/values.yaml`. Pass `imagePullSecrets` through the CNPG Cluster CR spec explicitly (CNPG auto-derives the StatefulSet from Cluster, so the Cluster spec is the only injection point).
 **Lesson:** The "enterprise-pull-secret" pattern is load-bearing for every subchart separately. Audit every Pod/StatefulSet/DaemonSet/Deployment source in the rendered chart (`helm template | grep kind:`) to confirm each has an imagePullSecrets reference.
 
+### `tag: latest` override in the HelmChart CR broke airgap image pulls
+**Problem:** The HelmChart CR set `api.image.tag: latest` and `frontend.image.tag: latest`, overriding the chart defaults (which release-please keeps in sync with the real semver via `x-release-please-version`). The airgap bundler rendered the chart with builder defaults (so it saw `:1.19.7`) and pushed `dronerx-api:1.19.7` + `dronerx-frontend:1.19.7` into the local registry. At install time the CR override flipped tags to `:latest` → pods tried to pull `<LocalRegistry>/drone-rx/dronerx-api:latest` which doesn't exist in the bundle → `NotFound`.
+**Error:** `Failed to pull image "10.244.128.11:5000/drone-rx/dronerx-api:latest": not found`.
+**Resolution:** Delete the `tag: latest` lines from the HelmChart CR. Chart defaults flow through and always match whatever release-please bumped.
+**Lesson:** Don't override the chart default tag in the HelmChart CR unless you're also overriding it in `builder:` — the bundler and the runtime need to see the same tag. Simplest: let the chart default (semver-managed) be authoritative.
+
+### CNPG deployment naming differs between helm-CLI and KOTS/EC installs
+**Problem:** Support bundle analyzers hardcoded `drone-rx-cloudnative-pg` as the CNPG operator deployment name. That works for helm-CLI installs where the operator is a subchart of drone-rx (release name `drone-rx` prefixes the subchart's fullname). On EC/KOTS the operator is installed via a separate HelmChart CR (`cnpg-operator-chart.yaml`) and KOTS uses the chart name (`cloudnative-pg`) as the Helm release name — the upstream fullname helper collapses release==chartname to just `cloudnative-pg`. Bundle failed with `deployment "drone-rx-cloudnative-pg" was not found`.
+**Resolution:** Gate the `deploymentStatus` analyzer on `.Values.cnpgOperator.managed`. True (helm-CLI subchart path) → check `<release>-cloudnative-pg`. False (KOTS/EC separate-release path) → check bare `cloudnative-pg`.
+**Lesson:** KOTS HelmChart CRs name the Helm release after `spec.chart.name`, not the CR's `metadata.name`. Any analyzer / support-bundle check that references subchart-managed resource names needs the same conditional you use for the chart dependency itself.
+
+### ConfigMap-mounted env vars don't auto-propagate on `helm upgrade`
+**Problem:** Reported as "EC v3 isn't applying config changes on upgrade". Operator unticked `light_mode_enabled` / `admin_link_visible` in the KOTS config screen and redeployed — UI didn't update. Pods kept their cached env vars until something restarted them.
+**Root cause:** Kubernetes doesn't automatically restart pods when a referenced ConfigMap's content changes (applies to `envFrom` / `valueFrom: configMapKeyRef` / mounted volumes without subPath). Not EC-specific.
+**Resolution:** Add a `checksum/config` annotation to the api Deployment's pod template derived from the rendered `configmap-api.yaml`:
+```yaml
+template:
+  metadata:
+    annotations:
+      checksum/config: {{ include (print $.Template.BasePath "/configmap-api.yaml") . | sha256sum }}
+```
+When the ConfigMap's content changes, the annotation changes → Helm treats it as a pod-spec diff → rolling restart → new pods read new env vars.
+**Lesson:** Any deployment that consumes a ConfigMap via env should have this checksum annotation, otherwise "I changed config, nothing happened" bugs are baked in.
+
 ### `dronerx.imagePullSecrets` helper emitted duplicate entries on KOTS
 **Problem:** After defaulting the top-level `imagePullSecrets: [{name: enterprise-pull-secret}]` in values.yaml (to fix helm-cli), KOTS installs produced a Kubernetes warning: `spec.template.spec.imagePullSecrets[1].name: duplicate name "enterprise-pull-secret"`.
 **Root cause:** The helper had two independent producers: (1) if `global.replicated.dockerconfigjson` is set (KOTS injects this), emit `- name: enterprise-pull-secret`; (2) iterate `.Values.imagePullSecrets` and emit each. With both active, `enterprise-pull-secret` appeared twice.
@@ -344,6 +378,27 @@ at '/postgresql/instances': got string, want integer
 **Resolution:** `default: 'repl{{ RandomString 32 }}'` with `type: password`. KOTS stores the rendered string as the config value; subsequent renders see the cached value. Chart creates a basic-auth Secret from this value and points CNPG's `bootstrap.initdb.secret.name` at it.
 **Lesson:** For auto-generated values that must persist across upgrades, use `default:` (evaluate-on-first-render-then-cache), not `value:` (re-evaluate every render).
 
+### `readonly: true` is server-side-only — the KOTS admin UI doesn't visually lock the input
+**Problem:** Rubric 4.7 asks for feature items to be "hidden or locked" when the license lacks the entitlement. We tried the locked path first with a two-item swap pattern (editable item `when: license=true`, placeholder item `readonly: true, when: license=false`). Operator reported the locked placeholder still rendered as a clickable checkbox — they could tick it. Swapped the placeholder to `type: text` with `value: "🔒 Locked — license upgrade required"` + `readonly: true` — still rendered as an ordinary editable text field showing `0` that the user could type into.
+**Root cause:** KOTS admin console enforces `readonly` **server-side only** (rejects saves), but doesn't visually disable the input on either `type: bool` or `type: text`. Users see an editable widget even though their edits don't persist.
+**Resolution:** Rubric 4.7 permits "hidden OR locked". Since "locked" isn't visually enforced, switch to **hidden** via `when: LicenseFieldValue=true` — non-entitled operators don't see the item at all. Drop the placeholder.
+**Time spent:** Two PRs (#133, #135) trying different flavors of "locked" before accepting that hidden is the only reliable option today.
+**Lesson:** Don't trust that `readonly` in admin UI means visually-disabled — it only means "save rejected". For "locked" UX you need a type the UI genuinely can't interact with (none exists for these types today).
+
+### KOTS config groups with no visible items are automatically hidden
+**Problem:** After switching to `when`-based hiding for the license-gated `live_tracking_enabled` item, the entire "Features" group disappeared from the config screen for non-entitled licenses — group title, description, and all. I'd wanted the group heading + description to remain visible as an upsell signal.
+**Root cause:** KOTS auto-hides config groups that contain zero visible items. Useful UX default in most cases (no empty sections), but removes any "this feature exists, upgrade to access" messaging that the group description was carrying.
+**Resolution:** Accept the behavior. Marketing / README / sales outreach is the right place for upsell — not the config screen. Alternative if the upsell signal is critical: add a single always-visible informational item to the group, but be aware it will render as editable (see prior entry).
+**Lesson:** Config groups aren't persistent section headers — they only render if at least one child item renders.
+
+### Rubric 4.7 vs 5.1 taxonomy — separate the paying features from plain toggles
+**Problem:** Initially put both `live_tracking_enabled` (license-gated) and `light_mode_enabled` (UI preference) under the license-gated three-layer pattern. That over-gated the theme toggle — it's not a paying feature and had no business on the license path.
+**Resolution:** Split clearly:
+- **Rubric 4.7** (license entitlement, hidden/locked): `live_tracking_enabled` — via `when: LicenseFieldValue=true`. Tier 6's `terraform` will follow the same pattern.
+- **Rubric 5.1** (≥2 non-trivial plain config features): `light_mode_enabled` + `admin_link_visible` — plain bool toggles, no license involvement. Each observably changes app behavior (theme toggle appears/disappears in header; Admin link appears/disappears).
+Introduced a new `/api/config/ui` endpoint to cleanly separate UI toggles from license-status responses.
+**Lesson:** Before adding license gating to a field, ask: "does this feature need to be revenue-protected, or is it just an operator preference?" Only revenue-protective features belong on the license path.
+
 ### Regex validation on text fields
 **Problem:** `tls_email` is used by Let's Encrypt during cert issuance; a malformed address silently fails the issuance later. No compile-time check catches it.
 **Resolution:** Add `validation.regex.pattern` + `message` to the config item. Similar pattern applied to `webhook_url` (allow blank or http(s) URL).
@@ -363,6 +418,20 @@ at '/postgresql/instances': got string, want integer
 **Root cause:** The `workflow_call` chain from release-please.yaml was a legacy workaround for the GITHUB_TOKEN tag-push recursion limitation. With the PAT in place (previous entry), the tag push now triggers release.yaml directly.
 **Resolution:** Drop the `replicated-release` job from `release-please.yaml`. `release.yaml` stays the single entry point via `on.push.tags: ['v*.*.*']`. Manual `git tag && git push --tags` still works as an emergency release path.
 **Lesson:** Workarounds accrete. Re-check for redundancy whenever the root constraint is lifted.
+
+### Release-please silently skipped a release because of merge-commit parse failures
+**Problem:** Merged a PR that should have cut v1.19.13 (a `fix:` commit fixing the ConfigMap-checksum rollout). No release PR appeared. release-please log said:
+```
+commit could not be parsed: 3d5b4cd... Merge pull request #137 from jmboby/fix/config-change-rollout
+error message: Error: unexpected token ' ' at 1:6, valid tokens [(, !, :]
+commits: 0
+✔ No commits for path: ., skipping
+```
+release-please tried to parse the **merge commit message** (`"Merge pull request #137 from..."`) as a conventional commit. "Merge" isn't a valid type, parser chokes, considers zero parseable commits, skips the release. The actual `Fix(chart):` commit inside the PR got dropped during commit-splitting.
+**Resolution:**
+1. Immediate: manually tagged `v1.19.13` (release.yaml fires on `v*.*.*` tag push) to unblock.
+2. Permanent: switched the repo to **Squash-and-merge**. Each merged PR becomes a single commit on main using the PR title as the commit message. As long as PR titles follow conventional-commits (`fix: ...`, `feat: ...`) release-please parses them cleanly every time, and the merge-commit garbage problem disappears.
+**Lesson:** Any repo that uses release-please + GitHub's default "Create a merge commit" strategy has this latent failure mode. Switch to squash-merge early — it also makes history cleaner (no internal PR commits polluting main).
 
 ### PR workflow ran on release-please-only bump PRs
 **Problem:** Release-please bump PRs (only touching `CHANGELOG.md` + `.release-please-manifest.json`) were running the full lint/build/cmx pipeline. Pure waste — the code was already validated on the feature PR.
