@@ -17,7 +17,7 @@ spec:
         mode: "self-signed"
   values:
     cnpgOperator:
-      managed: false
+      managed: true
     busybox:
       image: 'repl{{ ReplicatedImageName (HelmValue ".Values.busybox.image") true }}'
     selfSignedCert:
