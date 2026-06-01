@@ -2,7 +2,7 @@
 
 > **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:subagent-driven-development (recommended) or superpowers:executing-plans to implement this plan task-by-task. Steps use checkbox (`- [ ]`) syntax for tracking.
 
-**Goal:** Fill the existing empty `_preflight.tpl` and `_supportbundle.tpl` stubs with production-quality preflight checks (5 required) and support bundle collectors/analyzers satisfying bootcamp items 3.1a–3.6.
+**Goal:** Fill the existing empty `_preflight.tpl` and `_supportbundle.tpl` stubs with production-quality preflight checks (5 required) and support bundle collectors/analyzers satisfying items 3.1a–3.6.
 
 **Architecture:** Pure Helm template work — no Go or frontend code changes. The two stub templates get replaced with full specs. Two new values (`ingress.tls.cloudflare.enabled`) are added for conditional preflight checks. All specs use Helm template helpers for dynamic names and conditionals.
 

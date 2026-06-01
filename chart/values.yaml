@@ -91,10 +91,10 @@ postgresql:
 # All fields are required when using external database.
 # Pass password via --set at install time, not in this file.
 externalDatabase:
-  host: "ep-wispy-boat-anis4ukg.c-6.us-east-1.aws.neon.tech"
+  host: ""
   port: 5432
-  name: "neondb"
-  user: "neondb_owner"
+  name: ""
+  user: ""
   password: ""
   sslmode: "require"
 

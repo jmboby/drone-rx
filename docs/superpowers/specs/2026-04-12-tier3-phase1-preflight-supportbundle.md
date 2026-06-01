@@ -1,6 +1,6 @@
 # Tier 3 Phase 1: Preflight Checks & Support Bundle Specs
 
-**Goal:** Fill in the existing stub templates `_preflight.tpl` and `_supportbundle.tpl` with production-quality preflight checks and support bundle collectors/analyzers that satisfy bootcamp items 3.1a–3.6.
+**Goal:** Fill in the existing stub templates `_preflight.tpl` and `_supportbundle.tpl` with production-quality preflight checks and support bundle collectors/analyzers that satisfy items 3.1a–3.6.
 
 **Scope:** Pure Helm template work — no app code changes. Phase 2 (item 3.7, the `/admin` UI for support bundle generation) is a separate spec.
 

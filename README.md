@@ -2,7 +2,7 @@
 
 Medicine delivery by drone. Patients browse medicines, place orders, and track deliveries in real-time as drones fly from the local chemist to their door.
 
-Built as a [Replicated Bootcamp](https://docs.replicated.com) exercise covering Tiers 0–7.
+Built as a [Replicated](https://docs.replicated.com) distribution exercise covering Tiers 0–7.
 
 ## Architecture
 
@@ -131,7 +131,7 @@ make clean           # Clean build artifacts
 | `TICKER_INTERVAL` | `10` | Seconds between status transitions |
 | `WEBHOOK_URL` | `""` | Delivery notification webhook URL |
 
-## Bootcamp Progress
+## Progress
 
 - [x] **Tier 0** — Build It
 - [ ] **Tier 1** — Automate It (CI/CD)

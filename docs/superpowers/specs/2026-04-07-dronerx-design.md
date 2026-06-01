@@ -2,7 +2,7 @@
 
 **Date:** 2026-04-07
 **Status:** Approved
-**Scope:** Replicated Bootcamp exercise — satisfies Tiers 0–7 of the Bootcamp Rubric
+**Scope:** Replicated distribution exercise — satisfies Tiers 0–7 of the Replicated Rubric
 
 ---
 
@@ -10,7 +10,7 @@
 
 DroneRx is a lightweight medicine-by-drone delivery application. Patients browse medicines from their local chemist, place orders, receive delivery time estimates, and (with a premium license) track deliveries in real-time via WebSocket. Pharmacy fulfilment is simulated — a backend state machine auto-advances orders through statuses on a configurable timer.
 
-The application is designed to satisfy all tiers of the Replicated Bootcamp Rubric (Tiers 0–7).
+The application is designed to satisfy all tiers of the Replicated Rubric (Tiers 0–7).
 
 ---
 
