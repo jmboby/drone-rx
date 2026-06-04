@@ -2,8 +2,6 @@
 
 Medicine delivery by drone. Patients browse medicines, place orders, and track deliveries in real-time as drones fly from the local chemist to their door.
 
-Built as a [Replicated Bootcamp](https://docs.replicated.com) exercise covering Tiers 0–7.
-
 ## Architecture
 
 | Component | Technology |
@@ -131,13 +129,3 @@ make clean           # Clean build artifacts
 | `TICKER_INTERVAL` | `10` | Seconds between status transitions |
 | `WEBHOOK_URL` | `""` | Delivery notification webhook URL |
 
-## Bootcamp Progress
-
-- [x] **Tier 0** — Build It
-- [ ] **Tier 1** — Automate It (CI/CD)
-- [ ] **Tier 2** — Ship It with Helm (SDK, metrics, license gating)
-- [ ] **Tier 3** — Support It (preflight, support bundle)
-- [ ] **Tier 4** — Ship It on a VM (Embedded Cluster)
-- [ ] **Tier 5** — Config Screen
-- [ ] **Tier 6** — Deliver It (Enterprise Portal)
-- [ ] **Tier 7** — Operationalize It
