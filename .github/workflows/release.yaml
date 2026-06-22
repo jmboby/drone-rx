@@ -257,6 +257,39 @@ jobs:
         run: |
           replicated channel rm "${{ needs.create-release.outputs.channel-id }}" 2>/dev/null || true
 
+  sync-ep-content:
+    runs-on: ubuntu-latest
+    needs: [build-and-push, promote-to-unstable]
+    env:
+      GH_TOKEN: ${{ secrets.RELEASE_PLEASE_TOKEN }}
+      VERSION: ${{ needs.build-and-push.outputs.version }}
+      CONTENT_REPO: jmboby/drone-rx-enterprise-portal-content
+      TF_REPO: jmboby/dronerx-terraform-modules
+    steps:
+      - name: Create matching branch in EP content repo
+        run: |
+          # Snap the new content branch to whatever is on main right now.
+          # Customers on a channel with version_label=$VERSION will see this branch.
+          SHA=$(gh api "repos/${CONTENT_REPO}/git/ref/heads/main" --jq .object.sha)
+          echo "Pointing ${VERSION} at ${SHA}"
+          # POST creates; if branch already exists (replay) PATCH it to current main.
+          if ! gh api -X POST "repos/${CONTENT_REPO}/git/refs" \
+              -f ref="refs/heads/${VERSION}" \
+              -f sha="${SHA}" 2>/dev/null; then
+            gh api -X PATCH "repos/${CONTENT_REPO}/git/refs/heads/${VERSION}" \
+              -f sha="${SHA}" -F force=true
+          fi
+
+      - name: Create matching tag in Terraform modules repo
+        run: |
+          # Proxy registry maps release version_label X.Y.Z to git tag vX.Y.Z.
+          SHA=$(gh api "repos/${TF_REPO}/git/ref/heads/main" --jq .object.sha)
+          # POST is idempotent: refs already existing => 422, which we ignore.
+          gh api -X POST "repos/${TF_REPO}/git/refs" \
+            -f ref="refs/tags/v${VERSION}" \
+            -f sha="${SHA}" 2>/dev/null \
+            || echo "Tag v${VERSION} already exists in ${TF_REPO}, skipping"
+
   attach-chart:
     runs-on: ubuntu-latest
     needs: [build-and-push, promote-to-unstable]
